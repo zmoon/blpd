@@ -39,9 +39,9 @@ pp.pprint(m.p)
 # change some params
 new_p = {
     'source_positions': [(-10, 10), (-5, 5), (0, 0), (-5, -5), (-10, -10)],
-    't_tot': 60*60.,
+    't_tot': 5*60.,
     'continuous_release': False, 'dt_out': 1.0, 'dNp_per_dt_per_source': 200, 
-    'release_height': 0.9, 'ustar': 0.25, 'dt': 0.1,
+    'release_height': 0.9, 'ustar': 0.25, 'dt': 0.001,
 }
 m.update_p(new_p)  # alternatively can pass on initialization 
 print('\n\nDefault params (including derived, after update):')
@@ -80,6 +80,12 @@ plots.pos_scatter(state, p)
 if hist:
 #    plots.trajectories(hist, p)
     plots.trajectories(hist, p, smooth=True, smooth_window_size=10)
+    
+    plots.ws_hist_all(hist, p)
+    plots.ws_hist_all(hist, p, bounds=(-5, 5))
+    plots.ws_hist_all(hist, p, bounds=(-10, 10))
+
+
 
 #plots.conc(state, conc_BO, p)
 

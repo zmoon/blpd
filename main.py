@@ -305,13 +305,18 @@ class Model():
             hist = dict()
             N_t_hist = int(t_tot/dt_out) + 1
             hist['pos'] = np.empty((Np_tot, N_t_hist, 3))  # particle, x, y, z
+            hist['ws'] = np.empty((Np_tot, N_t_hist, 3))
             # could use list instead of particle dim
             # to allow for those with different record lengths
 
             xp = self.state['xp']
             yp = self.state['yp']
             zp = self.state['zp']
+            up = self.state['up']
+            vp = self.state['vp']
+            wp = self.state['wp']
             hist['pos'][:,0,:] = np.column_stack((xp, yp, zp))  # initial positions
+            hist['ws'][:,0,:] = np.column_stack((up, vp, wp))
 
         self.hist = hist
 
@@ -393,7 +398,11 @@ class Model():
                     xp = state_run['xp']
                     yp = state_run['yp']
                     zp = state_run['zp']
+                    up = state_run['up']
+                    vp = state_run['vp']
+                    wp = state_run['wp']
                     self.hist['pos'][:,o,:] = np.column_stack((xp, yp, zp))
+                    self.hist['ws'][:,o,:] = np.column_stack((up, vp, wp))
 
 
         # self.state = state_run

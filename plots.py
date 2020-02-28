@@ -19,9 +19,21 @@ plt.close('all')
 
 
 def get_open_fig_labels():
-    labels = [plt.figure(num).get_label() for num in plt.get_fignums()]
-    return labels
+    return [plt.figure(num).get_label() for num in plt.get_fignums()]
 # TODO: use this to check if a figure with certain num already exists, then append _X to it
+
+
+def check_fig_num(label, n=0):
+    current_labels = get_open_fig_labels()
+    if n == 0:
+        labeln = label
+    else:
+        labeln = f'{label}_{n}'
+    if labeln in current_labels:
+        return check_fig_num(label, n=n+1)
+    else:
+        return labeln
+
 
 def moving_average(a, n=3, axis=0):
     """
@@ -73,7 +85,11 @@ def pos_scatter(state, p):
 
 
 def to_sci_not(f):
-    """convert float f to scientific notation string"""
+    """Convert float f to scientific notation string
+    by using string formats 'e' and 'g'
+    
+    The output of this must be enclosed within `$`
+    """
     s_e = f'{f:.4e}'
     s_dec, s_pow_ = s_e.split('e')
     s_dec = f'{float(s_dec):.4g}'
@@ -198,4 +214,35 @@ def conc(state, conc, p, *,
 
 
 # TODO: statistics (hist etc.) of final positions and velocity time series (for traj)
+
+
+def ws_hist_all(hist, p,
+    bounds=False,
+):
+
+    ws = hist['ws']
+    u_all = np.ravel(ws[:,:,0])
+    v_all = np.ravel(ws[:,:,1])
+    w_all = np.ravel(ws[:,:,2])
+
+    num = check_fig_num('ws-hist-all')
+    fig, axs = plt.subplots(3, 1, num=num, sharex=True)
+
+    if not bounds:
+        bins = 100
+    else:
+        bins = np.linspace(bounds[0], bounds[1], 100)
+
+    labels = ['$u$', '$v$', '$w$']
+    for i, (ui, ax) in enumerate(zip([u_all, v_all, w_all], axs.flat)):
+        ax.hist(ui, bins)
+        ax.text(0.01, 0.98, labels[i], va='top', ha='left', fontsize=13, transform=ax.transAxes)
+
+    if bounds:
+        axs[0].set_xlim(bounds)
+
+    fig.tight_layout()
+
+    return
+
 
