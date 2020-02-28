@@ -483,7 +483,7 @@ def integrate_particles_one_timestep(state, p):
     wp = state['wp']
 
     # for i in range(Np_k):
-    for i in prange(Np_k):
+    for i in prange(Np_k):  # pylint: disable=not-an-iterable
 
         # state for one particle
         # pos and local wind speed

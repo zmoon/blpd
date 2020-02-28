@@ -4,228 +4,175 @@ plots of lpdm results
 
 """
 
-__all__ = ('pos_scatter', 'conc', 'trajectories')
+# __all__ = ("pos_scatter", "conc", "trajectories")
 
 from matplotlib.collections import LineCollection as _LineCollection
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
-# could add `as _{}` to all of these
+
+# ^ could add `as _{}` to all of these
 # to indicate that these are not intended to be public parts of the module name space
 # since __all__ is not respected by linters or autocompleters
 
-plt.close('all')
+from utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info
 
 
-
-def get_open_fig_labels():
-    return [plt.figure(num).get_label() for num in plt.get_fignums()]
-# TODO: use this to check if a figure with certain num already exists, then append _X to it
-
-
-def check_fig_num(label, n=0):
-    current_labels = get_open_fig_labels()
-    if n == 0:
-        labeln = label
-    else:
-        labeln = f'{label}_{n}'
-    if labeln in current_labels:
-        return check_fig_num(label, n=n+1)
-    else:
-        return labeln
-
-
-def moving_average(a, n=3, axis=0):
-    """
-    from: https://stackoverflow.com/a/14314054
-    for now only axis=0 works
-    """
-    if axis != 0:
-        raise NotImplementedError
-    ret = np.cumsum(a, axis=axis, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return ret[n - 1:] / n
+# TODO: create some base classes for plots to reduce repeating of code
+#       allow passing fig and ax kwargs in __init__
 
 
 def pos_scatter(state, p):
-    """
-    """
-    xpath = state['xp']
-    ypath = state['yp']
-    zpath = state['zp']
-    T = state['t']
+    """Scatter plot of particle end positions."""
+    xpath = state["xp"]
+    ypath = state["yp"]
+    # zpath = state["zp"]
 
-    t_tot = p['t_tot']
-    dt = p['dt']
-    N_t = p['N_t']
-    Np_tot = p['Np_tot']
+    Np_tot = p["Np_tot"]
 
     numpart_tot = xpath.size
-    assert( numpart_tot == Np_tot )
+    assert numpart_tot == Np_tot
 
-    fig, ax = plt.subplots(num='horizontal-end-positions')
-    ax.plot(xpath, ypath, 'o', alpha=0.5, mew=0)
+    fig, ax = plt.subplots(num="horizontal-end-positions")
+    ax.plot(xpath, ypath, "o", alpha=0.5, mew=0)
 
-    ax.set_xlabel('x'); ax.set_ylabel('y')
-
-    ax.set_title(f'$t = {T}$ s, $\\delta t = {dt}$, $N_t = {N_t}$', loc='left')
-    ax.set_title(f'$N_p = {numpart_tot}$', loc='right')
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title(s_t_info(p), loc="left")
+    ax.set_title(f"$N_p = {numpart_tot}$", loc="right")
 
     # should make fn for this
-    for (x, y) in p['source_positions']:
-        ax.plot(x, y, '*', c='gold', ms=10)
+    for (x, y) in p["source_positions"]:
+        ax.plot(x, y, "*", c="gold", ms=10)
 
     fig.tight_layout()
 
-    # fig, ax = plt.subplots(num='horizontal-end-positions-hist')
-    # h, _, _, im = ax.hist2d(xpath, ypath)
-    # ax.set_xlabel('x'); ax.set_ylabel('y')
-    # fig.colorbar(im)
-    # ax.set_title(f'N = {numpart_tot}, t = {T} s')
 
+def trajectories(
+    hist, p, *, smooth=False, smooth_window_size=100,
+):
+    """Particle trajectories.
 
-def to_sci_not(f):
-    """Convert float f to scientific notation string
-    by using string formats 'e' and 'g'
-    
-    The output of this must be enclosed within `$`
+    note: intended to be used for a single-release run
     """
-    s_e = f'{f:.4e}'
-    s_dec, s_pow_ = s_e.split('e')
-    s_dec = f'{float(s_dec):.4g}'
-    pow_ = int(s_pow_)
-    return f'{s_dec} \\times 10^{{ {pow_} }}'
+    pos = hist["pos"]
 
+    t_tot = p["t_tot"]
+    dt = p["dt"]
+    N_t = p["N_t"]
+    Np = p["Np_tot"]
+    N = Np * N_t
 
-def trajectories(hist, p, 
-    smooth=False, smooth_window_size=100, 
-    ):
-
-    fig, ax = plt.subplots(num='trajectories')
-
-    # segs = hist['pos']
-    pos = hist['pos']
-
-    t_tot = p['t_tot']
-    dt = p['dt']
-    N_t = p['N_t']
-    Np_tot = p['Np_tot']
-
-    ltitle = f'$t = {t_tot}$ s, $\\delta t = {dt}$, $N_t = {N_t}$'
-
-    s_Np_tot = to_sci_not(Np_tot)
-    rtitle = f'$N_p = {s_Np_tot}$'
+    ltitle = s_t_info(p)
+    rtitle = f"$N_p = {to_sci_not(Np)}$\n$N = {to_sci_not(N)}$"
 
     if smooth:
         n = int(smooth_window_size)
-        if n*dt > 0.5*t_tot:
-            raise ValueError("can't do any smoothing with the requested window size (not enough points)")
-        # print(pos.shape)
-        pos0 = pos[:,0,:][:,np.newaxis,:]
-        pos = np.swapaxes(moving_average(\
-            np.swapaxes(pos, 0, 1), n=n, axis=0), 0, 1)
-        # ^ np.swapaxes should return views, not create new arrays (ver >= 1.10.0)
-        # print(pos0.shape, pos.shape)
+        if n * dt > 0.5 * t_tot:
+            raise ValueError(
+                "can't do any smoothing with the requested window size (not enough points)"
+            )
+        pos0 = pos[:, 0, :][:, np.newaxis, :]
+        pos = np.swapaxes(moving_average(np.swapaxes(pos, 0, 1), n=n, axis=0), 0, 1)
+        # ^ `np.swapaxes` should return views, not create new arrays (ver >= 1.10.0)
 
         # preserve starting point
-        pos = np.concatenate((pos0, pos), axis=1)  # axis=1 -> like hstack
+        pos = np.concatenate((pos0, pos), axis=1)  # axis=1 => basically `hstack`
 
-        ltitle = f'$N_{{smooth}} = {n}$ ({n*dt:} s)\n{ltitle}'
+        ltitle = f"$N_{{smooth}} = {n}$ ({n*dt:} s)\n{ltitle}"  # add smoothing info to left title
 
+    segs = [pos[i, :, :2] for i in range(pos.shape[0])]
 
-    # segs = (pos[i,:,:2] for i in range(pos.shape[0]))
+    num = check_fig_num("trajectories")
+    fig, ax = plt.subplots(num=num)
 
-    segs = [pos[i,:,:2] for i in range(pos.shape[0])]
-
-
-    lc = _LineCollection(segs,
-        linewidths=0.5, colors='0.6', linestyles='solid', alpha=0.5, 
-    )
+    lc = _LineCollection(segs, linewidths=0.5, colors="0.6", linestyles="solid", alpha=0.5,)
     ax.add_collection(lc)
 
-    for (x, y) in p['source_positions']:
-        ax.plot(x, y, '*', c='gold', ms=10)
+    for (x, y) in p["source_positions"]:
+        ax.plot(x, y, "*", c="gold", ms=10)
 
-    ax.autoscale()
+    ax.autoscale()  # `ax.add_collection` won't do this automatically
 
-    ax.set_xlabel('x'); ax.set_ylabel('y')
-
-    ax.set_title(ltitle, loc='left')
-    ax.set_title(rtitle, loc='right')
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title(ltitle, loc="left")
+    ax.set_title(rtitle, loc="right")
 
     fig.tight_layout()
 
 
-# marker size should be calculated dynamically
-# but also allowed to pass!
-
-
-def conc(state, conc, p, *, 
-    plot_type='scatter', bins=(20, 10), levels=30, 
-    cmap='gnuplot',
-    ):
-    xpath = state['xp']
-    ypath = state['yp']
-    zpath = state['zp']
+def conc(
+    state, conc, p, *, plot_type="scatter", bins=(20, 10), levels=30, cmap="gnuplot",
+):
+    """Scatter plot of particle end positions colored by concentration 
+    for continuous release runs
+    """
+    xpath = state["xp"]
+    ypath = state["yp"]
+    zpath = state["zp"]
 
     X = xpath
     Y = ypath
     Z = zpath
 
-    compound_name = 'beta-ocimene'
+    compound_name = "β-ocimene"  # for now assuming it is this one
 
-    fig, ax = plt.subplots(num=f'horizontal-end-positions-with-conc_{compound_name}_{plot_type}')
-    # plt.scatter(xpath, ypath, c=conc, marker='o', alpha=0.5, linewidths=0)
-    # plt.colorbar()
-    # default `s` is 6**2 (default lines.markersize squared)
+    num = check_fig_num(f"horizontal-end-positions-with-conc_{compound_name}_{plot_type}")
+    fig, ax = plt.subplots(num=num)
 
-    if plot_type == 'scatter':
-        im = ax.scatter(X, Y, c=conc, s=7, marker='o', alpha=0.4, linewidths=0, cmap=cmap, vmax=100)
-    elif plot_type in ('pcolor', 'contourf'):
-        ret = stats.binned_statistic_2d(X, Y, conc, statistic='mean', bins=bins)
+    if plot_type == "scatter":
+        im = ax.scatter(X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmax=100)
+        # default `s` is 6**2 (default lines.markersize squared)
+        # TODO: marker size should be calculated dynamically but also allowed to pass!
+    elif plot_type in ("pcolor", "contourf"):
+        ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
         z = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
         x = ret.x_edge
         y = ret.y_edge
         # ^ these are cell edges
-        xc = x[:-1] + 0.5*np.diff(x)
-        yc = y[:-1] + 0.5*np.diff(y)
-        if plot_type == 'pcolor':
+        xc = x[:-1] + 0.5 * np.diff(x)
+        yc = y[:-1] + 0.5 * np.diff(y)
+        if plot_type == "pcolor":
             im = ax.pcolormesh(x, y, z, cmap=cmap, vmax=100)
-        elif plot_type == 'contourf':
+        elif plot_type == "contourf":
             im = ax.contourf(xc, yc, z, levels, cmap=cmap, vmax=100)
 
+        ax.set_xlim((x[0], x[-1]))
+        ax.set_ylim((y[0], y[-1]))
+
     else:
-        raise ValueError('invalid `plot_type`')
-    
+        raise ValueError("invalid `plot_type`")
+
     cb = fig.colorbar(im, drawedges=False)
+    cb.set_label(f"{compound_name} relative conc. (%)")
 
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_title(s_t_info(p), loc="left")
 
-    cb.set_label(f'{compound_name} relative conc. (%)')
-    ax.set_xlabel('x'); ax.set_ylabel('y')
-    # ax.set_title(f'N = {numpart_tot}, t = {T} s')
-
-    # ax.set_xlim((-10, 50))
-
-    for (x, y) in p['source_positions']:
-        ax.plot(x, y, '*', c='gold', ms=11, mec='0.35', mew=1.0)
+    for (x, y) in p["source_positions"]:
+        ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
 
     fig.tight_layout()
 
 
+# TODO: x-y (or u-v) hists for different height (z) bins
 
-# TODO: statistics (hist etc.) of final positions and velocity time series (for traj)
 
-
-def ws_hist_all(hist, p,
-    bounds=False,
+def ws_hist_all(
+    hist, p, *, bounds=False,
 ):
+    """Histograms of particle wind speed components 
+    from a single-release run.
+    """
 
-    ws = hist['ws']
-    u_all = np.ravel(ws[:,:,0])
-    v_all = np.ravel(ws[:,:,1])
-    w_all = np.ravel(ws[:,:,2])
+    ws = hist["ws"]
+    u_all = np.ravel(ws[:, :, 0])
+    v_all = np.ravel(ws[:, :, 1])
+    w_all = np.ravel(ws[:, :, 2])
 
-    num = check_fig_num('ws-hist-all')
+    num = check_fig_num("ws-hist-all")
     fig, axs = plt.subplots(3, 1, num=num, sharex=True)
 
     if not bounds:
@@ -233,16 +180,127 @@ def ws_hist_all(hist, p,
     else:
         bins = np.linspace(bounds[0], bounds[1], 100)
 
-    labels = ['$u$', '$v$', '$w$']
+    labels = ["$u$", "$v$", "$w$"]
     for i, (ui, ax) in enumerate(zip([u_all, v_all, w_all], axs.flat)):
         ax.hist(ui, bins)
-        ax.text(0.01, 0.98, labels[i], va='top', ha='left', fontsize=13, transform=ax.transAxes)
+        ax.text(0.01, 0.98, labels[i], va="top", ha="left", fontsize=13, transform=ax.transAxes)
 
     if bounds:
         axs[0].set_xlim(bounds)
 
+    axs[0].set_title(s_t_info(p), loc="left")
+    Np, Nt = p["Np_tot"], p["N_t"]
+    N = Np * Nt
+    axs[0].set_title(f"$N_p = {to_sci_not(Np)}$\n$N = {to_sci_not(N)}$", loc="right")
+
     fig.tight_layout()
 
-    return
+    # return
 
+
+def final_pos_hist(
+    state, p, *, bounds=False,
+):
+    """Histograms of final position components."""
+
+    xf = state["xp"]
+    yf = state["yp"]
+    zf = state["zp"]
+
+    num = check_fig_num("final-pos-hist")
+    fig, axs = plt.subplots(3, 1, num=num, sharex=True)
+
+    if not bounds:
+        bins = 100
+    else:
+        bins = np.linspace(bounds[0], bounds[1], 100)
+
+    labels = ["$x$", "$y$", "$z$"]
+    for i, (xi, ax) in enumerate(zip([xf, yf, zf], axs.flat)):
+        ax.hist(xi, bins)
+        ax.text(0.01, 0.98, labels[i], va="top", ha="left", fontsize=13, transform=ax.transAxes)
+
+    if bounds:
+        axs[0].set_xlim(bounds)
+
+    axs[0].set_title(s_t_info(p), loc="left")
+
+    fig.tight_layout()
+
+
+def final_pos_hist2d(
+    state, p, *, dim=("x", "y"), bounds=False, create_contourf=False,
+):
+    """2-D histogram of selected final position components."""
+
+    x = state[f"{dim[0]}p"]
+    y = state[f"{dim[1]}p"]
+
+    Np = x.size
+
+    if len(dim) != 2 or any(dim_ not in ("x", "y", "z") for dim_ in dim):
+        raise ValueError
+    sdim = "-".join(dim)
+
+    num = check_fig_num(f"final-pos-hist-{sdim}")
+    fig, ax = plt.subplots(num=num)
+
+    if not bounds:
+        bins = 50
+    elif bounds == "auto":
+        xbar, xstd = x.mean(), x.std()
+        ybar, ystd = y.mean(), y.std()
+        mult = 2.0
+        nx = min(np.sqrt(Np).astype(int), 100)
+        ny = nx
+        x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
+        y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
+        bins = [x_edges, y_edges]
+        # TODO: fix so that for z we don't go below zero (or just a bit)
+    else:
+        bins = np.linspace(bounds[0], bounds[1], 50)
+
+    # H, xedges, yedges = np.histogram2d(x, y, bins=bins)
+
+    H, xedges, yedges, im = ax.hist2d(x, y, bins=bins, vmin=1.0)
+    # ^ returns h (nx, ny), xedges, yedges, image
+
+    cb = plt.colorbar(im)
+
+    ax.set_xlabel(f"${dim[0]}$")
+    ax.set_ylabel(f"${dim[1]}$")
+
+    ax.set_xlim((xedges[0], xedges[-1]))
+    ax.set_ylim((yedges[0], yedges[-1]))
+    ax.set_title(s_t_info(p), loc="left")
+
+    fig.tight_layout()
+
+    if create_contourf:
+        num = check_fig_num(f"final-pos-hist-{sdim}-contourf")
+        fig2, ax = plt.subplots(num=num)
+
+        levels = np.arange(1, H.max() + 1, 1)
+        xc = xedges[:-1] + np.diff(xedges)
+        yc = yedges[:-1] + np.diff(yedges)
+        cs = ax.contourf(
+            xc,
+            yc,
+            H.T,
+            levels=levels,
+            # vmin=1., extend='max'
+        )
+
+        cb = plt.colorbar(cs)
+        cs.cmap.set_under("white")
+        cs.changed()
+
+        ax.set_xlabel(f"${dim[0]}$")
+        ax.set_ylabel(f"${dim[1]}$")
+        ax.set_title(s_t_info(p), loc="left")
+
+        ax.set_xlim((xedges[0], xedges[-1]))
+        ax.set_ylim((yedges[0], yedges[-1]))
+
+        fig2.tight_layout()
 

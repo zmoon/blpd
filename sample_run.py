@@ -38,10 +38,11 @@ pp.pprint(m.p)
 
 # change some params
 new_p = {
-    'source_positions': [(-10, 10), (-5, 5), (0, 0), (-5, -5), (-10, -10)],
+    # 'source_positions': [(-10, 10), (-5, 5), (0, 0), (-5, -5), (-10, -10)],
+    'source_positions': [(-200, -200), (500, 0), (1000, 200)],  # the ones Pratt used in Fig 4.2
     't_tot': 5*60.,
-    'continuous_release': False, 'dt_out': 1.0, 'dNp_per_dt_per_source': 200, 
-    'release_height': 0.9, 'ustar': 0.25, 'dt': 0.001,
+    'continuous_release': False, 'dt_out': 1.0, 'dNp_per_dt_per_source': 5000, 
+    'release_height': 0.4, 'ustar': 0.25, 'dt': 0.1,
 }
 m.update_p(new_p)  # alternatively can pass on initialization 
 print('\n\nDefault params (including derived, after update):')
@@ -76,14 +77,23 @@ dt = m.p['dt']
 
 plots.pos_scatter(state, p)
 
-# for a hist run only
+# for a hist (single release) run only
 if hist:
 #    plots.trajectories(hist, p)
-    plots.trajectories(hist, p, smooth=True, smooth_window_size=10)
+    plots.trajectories(hist, p, smooth=True, smooth_window_size=20)
     
     plots.ws_hist_all(hist, p)
     plots.ws_hist_all(hist, p, bounds=(-5, 5))
     plots.ws_hist_all(hist, p, bounds=(-10, 10))
+    
+    plots.final_pos_hist(state, p)
+    plots.final_pos_hist(state, p, bounds=(-500, 1500))
+
+    plots.final_pos_hist2d(state, p)
+    plots.final_pos_hist2d(state, p, bounds='auto', create_contourf=True)
+    plots.final_pos_hist2d(state, p, dim=('x', 'z'), bounds='auto', create_contourf=True)
+
+    
 
 
 
