@@ -48,6 +48,9 @@ def pos_scatter(state, p):
     fig.tight_layout()
 
 
+# TODO: add option to do trajectories for continuous release runs, colored by time out
+
+
 def trajectories(
     hist, p, *, smooth=False, smooth_window_size=100,
 ):

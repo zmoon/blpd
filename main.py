@@ -112,6 +112,14 @@ def get_p_MW(p):
 
 
 
+rate_consts = {
+    'BO_O3': 5.4e-16,
+    'BO_OH': 2.52e-10,
+    'BO_NO3': 2.2e-11,
+}
+# BO: beta-ocimene
+
+
 def get_default_params():
     """
     all in one dict 
@@ -131,10 +139,17 @@ def get_default_params():
         'conc_fv_0': {  # fv: floral volatiles
             'BO': 100.  # 100 %; if using relative conc. this doesn't matter really
             },
+        'n_air_cm3': 2.62e19,  # (dry) air number density (molec cm^-3)
+        'oxidants_ppbv' : {
+            'O3': 40.0,
+            'OH': 1.0e-4,
+            'NO3': 1.0e-5 
+        },
         'dt_out': 0.,
         'continuous_release': True, 
         'dNp_per_dt_per_source': 2,  # should be int
-        'use_numba': True
+        'use_numba': True,
+        'chemistry_on': False
     }
 
     p.update(get_p_MW(p))
@@ -149,21 +164,6 @@ def get_default_params():
 
 #     """
 
-
-
-
-rate_consts = {
-    'BO_O3': 5.4e-16,
-    'BO_OH': 2.52e-10,
-    'BO_NO3': 2.2e-11,
-}
-# BO: beta-ocimene
-
-n_air = 2.62e19  # molec/cm^3
-
-conc_O3 = 40e-9 * n_air
-conc_OH = 0.1e-12 * n_air
-conc_NO3 = 0.01e-12 * n_air 
 
 
 
@@ -206,6 +206,13 @@ class Model():
         # i.e., user changing them without using `update_p`
         self.p['N_sources'] = len(self.p['source_positions'])
 
+        # calculate oxidant concentrations from ppbv values and air number density
+        n_a = self.p['n_air_cm3']
+        conc_ox = {}
+        for ox_name, ox_ppbv in self.p['oxidants_ppbv'].items():
+            conc_ox[ox_name] = n_a * ox_ppbv * 1e-9
+        self.p.update({'conc_oxidants': conc_ox})
+
         # calculate number of time steps: N_t from t_tot
         t_tot = self.p['t_tot']
         dt = self.p['dt']
@@ -213,7 +220,7 @@ class Model():
         if abs(N_t-t_tot/dt) > 0.01:
             msg = f'N was rounded down from {t_tot/dt:.4f} to {N_t}'
             warnings.warn(msg)
-        self.p['N_t'] = N_t
+        self.p['N_t'] = N_t  # TODO: consistentify style between N_p and N_t
 
         # calculate total run number of particles: Np_tot
         dNp_dt_ds = self.p['dNp_per_dt_per_source']
@@ -414,28 +421,46 @@ class Model():
         #
         #  source strengths are not changing with time either
 
-        # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
-        #t_out = np.floor(np.arange(0, N_t, 1/Np_tot ))
-        t_out = np.ravel(np.tile(np.arange(dt, (N_t+1)*dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
-        # ^ need to find the best way to do this!
-        #t_out = (t_out[::-1]+1) * dt
+        if self.p['chemistry_on']:
+            if not self.p['continuous_release']:
+                warnings.warn('chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry')
+                self.p['chemistry_on'] = False
 
-        # t_out = t_out[::-1]
+        if self.p['chemistry_on']:
 
-        # assert( np.isclose(t_tot, t_out[0]) )  # the first particle has been out for the full time
+            # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
+            #t_out = np.floor(np.arange(0, N_t, 1/Np_tot ))
+            t_out = np.ravel(np.tile(np.arange(dt, (N_t+1)*dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
+            # ^ need to find the best way to do this!
 
-        # conc_BO = np.full((Np_tot, ), conc_fv_0['BO'])
+            # t_out = (t_out[::-1]+1) * dt
+            t_out = t_out[::-1]
 
-        # conc_BO *= np.exp(-rate_consts['BO_O3']*conc_O3*t_out) \
-        #         * np.exp(-rate_consts['BO_OH']*conc_OH*t_out) \
-        #         * np.exp(-rate_consts['BO_NO3']*conc_NO3*t_out)
+            assert np.isclose(t_tot, t_out[0])   # the first particle has been out for the full time
+
+            conc_BO = np.full((Np_tot, ), self.p['conc_fv_0']['BO'])
+
+            conc_O3 = self.p['conc_oxidants']['O3']
+            conc_OH = self.p['conc_oxidants']['OH']
+            conc_NO3 = self.p['conc_oxidants']['NO3']
+            conc_BO *= np.exp(-rate_consts['BO_O3']*conc_O3*t_out) \
+                     * np.exp(-rate_consts['BO_OH']*conc_OH*t_out) \
+                     * np.exp(-rate_consts['BO_NO3']*conc_NO3*t_out)
+
+        else:
+            conc_BO = False
+
+        self.state.update({
+            'conc': {'BO': conc_BO}
+        })
 
 
 
 
 def numbify(d, zerod_only=False):
-    """
-    keys must be numpy arrays (or individual floats)
+    """Convert dict to numba-suitable format.
+
+    dict values must be numpy arrays (or individual floats)
 
     ref: https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#id7
     """
@@ -468,9 +493,7 @@ def numbify(d, zerod_only=False):
 
 
 def unnumbify(d_nb):
-    """
-
-    """
+    """Convert numba dict to normal dict of numpy arrays."""
     if not isinstance(d_nb, numba.typed.Dict):
         raise TypeError('this fn is for numbified dicts')
 

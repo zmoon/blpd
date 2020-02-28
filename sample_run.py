@@ -41,8 +41,10 @@ new_p = {
     # 'source_positions': [(-10, 10), (-5, 5), (0, 0), (-5, -5), (-10, -10)],
     'source_positions': [(-200, -200), (500, 0), (1000, 200)],  # the ones Pratt used in Fig 4.2
     't_tot': 5*60.,
-    'continuous_release': False, 'dt_out': 1.0, 'dNp_per_dt_per_source': 5000, 
+    'continuous_release': False, 'dt_out': 1.0, 'dNp_per_dt_per_source': 500, 
+    # 'continuous_release': True, 'dt_out': 0, 'dNp_per_dt_per_source': 10, 
     'release_height': 0.4, 'ustar': 0.25, 'dt': 0.1,
+    'chemistry_on': True,
 }
 m.update_p(new_p)  # alternatively can pass on initialization 
 print('\n\nDefault params (including derived, after update):')
@@ -94,15 +96,16 @@ if hist:
     plots.final_pos_hist2d(state, p, dim=('x', 'z'), bounds='auto', create_contourf=True)
 
     
+if p['chemistry_on']:
 
+    conc_BO = state['conc']['BO']
 
-
-#plots.conc(state, conc_BO, p)
-
-#plots.conc(state, conc_BO, p, plot_type='pcolor')
-#plots.conc(state, conc_BO, p, plot_type='pcolor', bins=(100, 50))
-#
-#
-#plots.conc(state, conc_BO, p, plot_type='contourf')
-#plots.conc(state, conc_BO, p, plot_type='contourf', bins=(100, 50))
+    plots.conc(state, conc_BO, p)
+    
+    plots.conc(state, conc_BO, p, plot_type='pcolor')
+    plots.conc(state, conc_BO, p, plot_type='pcolor', bins=(100, 50))
+    
+    
+    plots.conc(state, conc_BO, p, plot_type='contourf')
+    plots.conc(state, conc_BO, p, plot_type='contourf', bins=(100, 50))
 
