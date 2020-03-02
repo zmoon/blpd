@@ -6,6 +6,8 @@ plots of lpdm results
 
 # __all__ = ("pos_scatter", "conc", "trajectories")
 
+from itertools import cycle
+
 from matplotlib.collections import LineCollection as _LineCollection
 import matplotlib.pyplot as plt
 import numpy as np
@@ -51,9 +53,7 @@ def pos_scatter(state, p):
 # TODO: add option to do trajectories for continuous release runs, colored by time out
 
 
-def trajectories(
-    hist, p, *, smooth=False, smooth_window_size=100,
-):
+def trajectories(hist, p, *, smooth=False, smooth_window_size=100, color_sources=False):
     """Particle trajectories.
 
     note: intended to be used for a single-release run
@@ -65,6 +65,7 @@ def trajectories(
     N_t = p["N_t"]
     Np = p["Np_tot"]
     N = Np * N_t
+    assert pos.shape[0] == Np
 
     ltitle = s_t_info(p)
     rtitle = f"$N_p = {to_sci_not(Np)}$\n$N = {to_sci_not(N)}$"
@@ -84,13 +85,28 @@ def trajectories(
 
         ltitle = f"$N_{{smooth}} = {n}$ ({n*dt:} s)\n{ltitle}"  # add smoothing info to left title
 
-    segs = [pos[i, :, :2] for i in range(pos.shape[0])]
-
     num = check_fig_num("trajectories")
     fig, ax = plt.subplots(num=num)
 
-    lc = _LineCollection(segs, linewidths=0.5, colors="0.6", linestyles="solid", alpha=0.5,)
-    ax.add_collection(lc)
+    if color_sources:
+        if isinstance(color_sources, (list, np.ndarray)):
+            colors = color_sources  # assume is a list of colors (TODO: should check)
+        else:
+            colors = plt.get_cmap("Dark2").colors
+            # Dark2 is a ListedColormap with 8 colors; `plt.cm.Dark2` same but pylint complains plt.cm `no-member` Dark2
+
+        N_sources = p["N_sources"]
+        for j, color in zip(range(N_sources), cycle(colors)):
+            segs = [pos[i, :, :2] for i in range(j, Np, N_sources) for j in range(N_sources)]
+
+            lc = _LineCollection(segs, linewidths=0.5, colors=color, linestyles="solid", alpha=0.3,)
+            ax.add_collection(lc)
+
+    else:
+        segs = [pos[i, :, :2] for i in range(Np)]
+
+        lc = _LineCollection(segs, linewidths=0.5, colors="0.6", linestyles="solid", alpha=0.5,)
+        ax.add_collection(lc)
 
     for (x, y) in p["source_positions"]:
         ax.plot(x, y, "*", c="gold", ms=10)
@@ -306,4 +322,3 @@ def final_pos_hist2d(
         ax.set_ylim((yedges[0], yedges[-1]))
 
         fig2.tight_layout()
-
