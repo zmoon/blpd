@@ -69,10 +69,11 @@ def final_pos_scatter(state, p, sdim="xy"):
 
     # TODO: should make fn for this
     for (xs, ys) in p["source_positions"]:
+        sp = dict(x=xs, y=ys, z=p["release_height"])
         if subplot_kw:  # hack for now
-            ax.plot([xs], [ys], [p["release_height"]], "*", c="gold", ms=10)
+            ax.plot([sp[dim[0]]], [sp[dim[1]]], [sp[dim[2]]], "*", c="gold", ms=10)
         else:
-            ax.plot(xs, ys, "*", c="gold", ms=10)
+            ax.plot(sp[dim[0]], sp[dim[1]], "*", c="gold", ms=10)
 
     fig.tight_layout()
 
