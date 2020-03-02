@@ -88,4 +88,7 @@ def s_t_info(p):
     else:
         s_N_t = str(N_t)
     s_t_tot = sec_to_str(t_tot)
-    return f"$t = {s_t_tot}$ s, $\\delta t = {dt} s$, $N_t = {s_N_t}$"
+    return f"$t = ${s_t_tot}, $\\delta t = {dt}$ s, $N_t = {s_N_t}$"
+
+
+# TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
