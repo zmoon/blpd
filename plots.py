@@ -10,6 +10,7 @@ from itertools import cycle
 
 from matplotlib.collections import LineCollection as _LineCollection
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import numpy as np
 from scipy import stats
 
@@ -21,36 +22,63 @@ from utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_inf
 
 
 # TODO: create some base classes for plots to reduce repeating of code
-#       allow passing fig and ax kwargs in __init__
+#       - allow passing fig and ax kwargs in __init__
+#       - stars to mark sources; check_fig_num, labeling, etc.
+#       - alpha calculation based on number of particles & spread?
 
 
-def pos_scatter(state, p):
+def final_pos_scatter(state, p, sdim="xy"):
     """Scatter plot of particle end positions."""
     xpath = state["xp"]
     ypath = state["yp"]
     # zpath = state["zp"]
 
     Np_tot = p["Np_tot"]
+    assert xpath.size == Np_tot
 
-    numpart_tot = xpath.size
-    assert numpart_tot == Np_tot
+    if sdim in ('xyz', '3d', '3-D'):
+        sdim = "xyz"
+        x = state["xp"]
+        y = state["yp"]
+        z = state["zp"]
+        subplot_kw = {'projection': '3d'}
+        coords = (x, y, z)
+        plot_kw = dict(alpha=0.5, mew=0, ms=7)
+    elif len(sdim) == 2 and all( sdim_ in ('x', 'y', 'z') for sdim_ in sdim ):
+        x = state[f"{sdim[0]}p"]
+        y = state[f"{sdim[1]}p"]
+        subplot_kw = {}
+        coords = (x, y)
+        plot_kw = dict(alpha=0.5, mfc='none', mew=0.8, ms=5)
+    else:
+        raise ValueError('invalid choice of `sdim`')
 
-    fig, ax = plt.subplots(num="horizontal-end-positions")
-    ax.plot(xpath, ypath, "o", alpha=0.5, mew=0)
+    dim = list(sdim)
 
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    num = check_fig_num(f"final-pos-scatter-{sdim}")
+    fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
+
+    ax.plot(*coords, "o", **plot_kw)
+
+    ax.set_xlabel(f"${dim[0]}$")
+    ax.set_ylabel(f"${dim[1]}$")
+    if subplot_kw:
+        ax.set_zlabel(f"${dim[2]}$")
     ax.set_title(s_t_info(p), loc="left")
-    ax.set_title(f"$N_p = {numpart_tot}$", loc="right")
+    ax.set_title(f"$N_p = {Np_tot}$", loc="right")
 
-    # should make fn for this
-    for (x, y) in p["source_positions"]:
-        ax.plot(x, y, "*", c="gold", ms=10)
+    # TODO: should make fn for this
+    for (xs, ys) in p["source_positions"]:
+        if subplot_kw:  # hack for now
+            ax.plot([xs], [ys], [p["release_height"]], "*", c="gold", ms=10)
+        else:
+            ax.plot(xs, ys, "*", c="gold", ms=10)
 
     fig.tight_layout()
 
 
 # TODO: add option to do trajectories for continuous release runs, colored by time out
+# TODO: trajectories for hist run in 3-D?
 
 
 def trajectories(hist, p, *, smooth=False, smooth_window_size=100, color_sources=False):
@@ -261,6 +289,7 @@ def final_pos_hist2d(
         raise ValueError
     sdim = "-".join(dim)
 
+    # TODO: match style of final_pos_scatter, like 'xy', not 'x-y'
     num = check_fig_num(f"final-pos-hist-{sdim}")
     fig, ax = plt.subplots(num=num)
 
