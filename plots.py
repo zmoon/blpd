@@ -36,22 +36,22 @@ def final_pos_scatter(state, p, sdim="xy"):
     Np_tot = p["Np_tot"]
     assert xpath.size == Np_tot
 
-    if sdim in ('xyz', '3d', '3-D'):
+    if sdim in ("xyz", "3d", "3-D"):
         sdim = "xyz"
         x = state["xp"]
         y = state["yp"]
         z = state["zp"]
-        subplot_kw = {'projection': '3d'}
+        subplot_kw = {"projection": "3d"}
         coords = (x, y, z)
         plot_kw = dict(alpha=0.5, mew=0, ms=7)
-    elif len(sdim) == 2 and all( sdim_ in ('x', 'y', 'z') for sdim_ in sdim ):
+    elif len(sdim) == 2 and all(sdim_ in ("x", "y", "z") for sdim_ in sdim):
         x = state[f"{sdim[0]}p"]
         y = state[f"{sdim[1]}p"]
         subplot_kw = {}
         coords = (x, y)
-        plot_kw = dict(alpha=0.5, mfc='none', mew=0.8, ms=5)
+        plot_kw = dict(alpha=0.5, mfc="none", mew=0.8, ms=5)
     else:
-        raise ValueError('invalid choice of `sdim`')
+        raise ValueError("invalid choice of `sdim`")
 
     dim = list(sdim)
 
