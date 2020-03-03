@@ -8,6 +8,7 @@ plots of lpdm results
 
 from itertools import cycle
 
+import matplotlib as mpl
 from matplotlib.collections import LineCollection as _LineCollection
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
@@ -25,6 +26,8 @@ from utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_inf
 #       - allow passing fig and ax kwargs in __init__
 #       - stars to mark sources; check_fig_num, labeling, etc.
 #       - alpha calculation based on number of particles & spread?
+
+# TODO: really all plots could have the auto-bounds stuff. and (optionally?) print message about it?
 
 
 def final_pos_scatter(state, p, sdim="xy"):
@@ -150,8 +153,19 @@ def trajectories(hist, p, *, smooth=False, smooth_window_size=100, color_sources
     fig.tight_layout()
 
 
+# TODO: much final_pos_hist2d code is repeated here in conc
+
+
 def conc(
-    state, conc, p, *, plot_type="scatter", bins=(20, 10), levels=30, cmap="gnuplot",
+    state,
+    conc,
+    p,
+    *,
+    plot_type="scatter",
+    bins=(20, 10),
+    levels=30,
+    cmap="gnuplot",
+    log_cnorm=False,
 ):
     """Scatter plot of particle end positions colored by concentration 
     for continuous release runs
@@ -169,22 +183,70 @@ def conc(
     num = check_fig_num(f"horizontal-end-positions-with-conc_{compound_name}_{plot_type}")
     fig, ax = plt.subplots(num=num)
 
+    # TODO: copied this from the hist2d fn for now. should make a fn to do this...
+    if not bins:
+        bins = 50
+    elif bins == "auto":
+        Np = p["Np_tot"]
+        xbar, xstd = X.mean(), X.std()
+        ybar, ystd = Y.mean(), Y.std()
+        mult = 2.0
+        nx = min(np.sqrt(Np).astype(int), 100)
+        ny = nx
+        x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
+        y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
+        bins = [x_edges, y_edges]
+        # TODO: fix so that for z we don't go below zero (or just a bit)
+    # else:
+    # bins = np.linspace(bounds[0], bounds[1], 50)
+
     if plot_type == "scatter":
         im = ax.scatter(X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmax=100)
         # default `s` is 6**2 (default lines.markersize squared)
         # TODO: marker size should be calculated dynamically but also allowed to pass!
     elif plot_type in ("pcolor", "contourf"):
+        # binned conc. of floral volatiles depends on both the particle concentration (the passive scalars)
+        # and chemical destruction due to oxidation
+
+        # 1. concentration of lpd particles
+        H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
+        conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
+
+        # 2. chemistry
         ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
-        z = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+        conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
         x = ret.x_edge
         y = ret.y_edge
         # ^ these are cell edges
         xc = x[:-1] + 0.5 * np.diff(x)
         yc = y[:-1] + 0.5 * np.diff(y)
+        # ^ these are cell centers
+
+        assert np.allclose(x, xedges)
+        assert np.allclose(y, yedges)
+        # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
+
+        z = conc_p_rel * conc_c
+
+        # copied from hist2d
+        if log_cnorm:
+            norm = mpl.colors.LogNorm(vmax=100.0)
+
+            # https://matplotlib.org/3.1.3/gallery/images_contours_and_fields/contourf_log.html
+            # https://matplotlib.org/3.1.3/api/ticker_api.html#matplotlib.ticker.LogLocator
+            # locator = mpl.ticker.LogLocator(subs=(0.25, 0.5, 1.0))  # another way to get more levels in between powers of 10
+            nlevels = levels if isinstance(levels, int) else np.asarray(levels).size
+            locator = mpl.ticker.LogLocator(subs="all", numticks=nlevels)
+            # TODO: although this^ works, the ticks are not all getting labeled. need to fix.
+
+        else:
+            norm = mpl.colors.Normalize(vmax=100.0)
+            locator = None
+
         if plot_type == "pcolor":
-            im = ax.pcolormesh(x, y, z, cmap=cmap, vmax=100)
+            im = ax.pcolormesh(x, y, z, cmap=cmap, norm=norm)
         elif plot_type == "contourf":
-            im = ax.contourf(xc, yc, z, levels, cmap=cmap, vmax=100)
+            im = ax.contourf(xc, yc, z, levels, cmap=cmap, norm=norm, locator=locator)
 
         ax.set_xlim((x[0], x[-1]))
         ax.set_ylim((y[0], y[-1]))
@@ -277,7 +339,7 @@ def final_pos_hist(
 
 
 def final_pos_hist2d(
-    state, p, *, dim=("x", "y"), bounds=False, create_contourf=False,
+    state, p, *, dim=("x", "y"), bounds=False, create_contourf=False, log_cnorm=False,
 ):
     """2-D histogram of selected final position components."""
 
@@ -311,7 +373,12 @@ def final_pos_hist2d(
 
     # H, xedges, yedges = np.histogram2d(x, y, bins=bins)
 
-    H, xedges, yedges, im = ax.hist2d(x, y, bins=bins, vmin=1.0)
+    if log_cnorm:
+        norm = mpl.colors.LogNorm(vmin=1.0)
+    else:
+        norm = mpl.colors.Normalize(vmin=1.0)
+
+    H, xedges, yedges, im = ax.hist2d(x, y, bins=bins, norm=norm)
     # ^ returns h (nx, ny), xedges, yedges, image
 
     cb = plt.colorbar(im)
@@ -323,13 +390,16 @@ def final_pos_hist2d(
     ax.set_ylim((yedges[0], yedges[-1]))
     ax.set_title(s_t_info(p), loc="left")
 
+    for (x, y) in p["source_positions"]:
+        ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
+
     fig.tight_layout()
 
     if create_contourf:
         num = check_fig_num(f"final-pos-hist-{sdim}-contourf")
         fig2, ax = plt.subplots(num=num)
 
-        levels = np.arange(1, H.max() + 1, 1)
+        levels = np.arange(1, H.max() + 1, 1)  # TODO: should adjust for log cnorm
         xc = xedges[:-1] + np.diff(xedges)
         yc = yedges[:-1] + np.diff(yedges)
         cs = ax.contourf(
@@ -337,7 +407,8 @@ def final_pos_hist2d(
             yc,
             H.T,
             levels=levels,
-            # vmin=1., extend='max'
+            norm=norm,
+            # extend='max'
         )
 
         cb = plt.colorbar(cs)
@@ -350,5 +421,8 @@ def final_pos_hist2d(
 
         ax.set_xlim((xedges[0], xedges[-1]))
         ax.set_ylim((yedges[0], yedges[-1]))
+
+        for (x, y) in p["source_positions"]:
+            ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
 
         fig2.tight_layout()

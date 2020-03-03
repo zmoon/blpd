@@ -423,15 +423,18 @@ class Model():
 
         if self.p['chemistry_on']:
             if not self.p['continuous_release']:
-                warnings.warn('chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry')
+                warnings.warn(
+                    'chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry', 
+                    stacklevel=2,
+                )
                 self.p['chemistry_on'] = False
 
         if self.p['chemistry_on']:
 
             # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
-            #t_out = np.floor(np.arange(0, N_t, 1/Np_tot ))
-            t_out = np.ravel(np.tile(np.arange(dt, (N_t+1)*dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
+            t_out = np.ravel(np.tile(np.arange(dt, N_t*dt + dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
             # ^ need to find the best way to do this!
+            # note: apparently `(N_t+1)*dt` does not give the same stop as `N_t*dt+dt` sometimes (precision thing?)
 
             # t_out = (t_out[::-1]+1) * dt
             t_out = t_out[::-1]
