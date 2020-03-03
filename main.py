@@ -19,19 +19,66 @@ import lpd
 import plots
 
 
-p_MW_base_defaults = {
-    'c1': 0.28,
-    'c2': 0.37,
-    'c3': 15.1,
-    'gam1': 2.40,
-    'gam2': 1.90, 
-    'gam3': 1.25,
-    'alpha': 0.05,
-    'A2': 0.6
+
+input_param_defaults = {
+    #
+    # particle sources
+    'release_height': 1.05,  # m; really should draw from a distribution of release heights for each particle!!
+    'source_positions': [(0, 0)],  # point locs of the particle sources; must be iterable
+    'dNp_per_dt_per_source': 2,  # should be int
+    #
+    # canopy
+    'canopy_height': 1.1,  # m; h / h_c
+    'total_LAI': 2.0,  # (total) leaf area index
+    'foliage_drag_coeff': 0.2,  # C_d
+    #
+    # turbulence
+    'ustar': 0.25,  # m; u_*; friction velocity above canopy (assuming const shear layer)
+    'von_Karman_constant': 0.4,  # k
+    'Kolmogorov_C0': 5.5,
+    #
+    # run options
+    'dt': 0.25,  # s; time step for the 1-O Newton FT scheme; this is what Pratt used 
+    't_tot': 100.,  # s; total time of the run
+    'dt_out': 0.,
+    'continuous_release': True, 
+    'use_numba': True,
+    'chemistry_on': False,
+    #
+    # chemistry
+    'conc_fv_0': {  # fv: floral volatiles
+        'BO': 100.  # 100 %; if using relative conc. this doesn't matter really
+        },
+    'n_air_cm3': 2.62e19,  # (dry) air number density (molec cm^-3)
+    'oxidants_ppbv' : {
+        'O3': 40.0,
+        'OH': 1.0e-4,
+        'NO3': 1.0e-5 
+    },
+    #
+    # Massman and Weil (MW) canopy wind model parameters (could be dict)
+    'MW_c1': 0.28,
+    'MW_c2': 0.37,
+    'MW_c3': 15.1,
+    'MW_gam1': 2.40,
+    'MW_gam2': 1.90, 
+    'MW_gam3': 1.25,
+    'MW_alpha': 0.05,
+    'MW_A2': 0.6  # appears to be unused, but is part of their model
 }
+# could do more dict nesting like in pyAPES...
 
 
-def get_p_MW(p):
+rate_consts = {
+    'BO_O3': 5.4e-16,
+    'BO_OH': 2.52e-10,
+    'BO_NO3': 2.2e-11,
+}
+# BO: beta-ocimene
+
+
+
+def calc_MW_derived_params(p):
     """
     from the base MW params and 
 
@@ -43,23 +90,13 @@ def get_p_MW(p):
     h = p['canopy_height']
     kconstant = p['von_Karman_constant']
 
-    # c1 = 0.28  # the c's are only used here
-    # c2 = 0.37
-    # c3 = 15.1
-    # gam1 = 2.40  # gam's used for tau calculations
-    # gam2 = 1.90
-    # gam3 = 1.25
-    # alpha = 0.05  # this too
-    # #A2 = 0.6  # this appears to be unused
-
-    bd = p_MW_base_defaults
-    c1 = bd['c1']
-    c2 = bd['c2']
-    c3 = bd['c3']
-    gam1 = bd['gam1']
-    gam2 = bd['gam2']
-    gam3 = bd['gam3']
-    alpha = bd['alpha']
+    c1 = p['MW_c1']
+    c2 = p['MW_c2']
+    c3 = p['MW_c3']
+    gam1 = p['MW_gam1']
+    gam2 = p['MW_gam2']
+    gam3 = p['MW_gam3']
+    alpha = p['MW_alpha']
 
     # derived params
     nu1 = (gam1**2+gam2**2+gam3**2)**(-0.5)
@@ -69,9 +106,10 @@ def get_p_MW(p):
     uh = ustar/(c1 - c2*np.exp(-c3*cd*LAI))  # u(h); Eq. 5
     n = cd*LAI/(2*ustar**2/uh**2)
     B1 = -(9*ustar/uh)/(2*alpha*nu1*(9/4-Lam**2*ustar**4/uh**4))
-    d = h*(1-(1/(2*n))*(1 - np.exp(-2*n)))
 
-    z0 = (h-d)*np.exp(-kconstant*uh/ustar)
+    d = h*(1-(1/(2*n))*(1 - np.exp(-2*n)))  # displacement height
+
+    z0 = (h-d)*np.exp(-kconstant*uh/ustar)  # roughness length
 
     # Calculate dissipation at canopy top to choose matching approach (Massman and Weil)
     epsilon_ah = (ustar**3)/(kconstant*(h - d))
@@ -82,30 +120,17 @@ def get_p_MW(p):
     else:  # eps_a(h) < eps_c(h)  => usually indicates a relatively dense canopy
         epflag = False
 
-    # exclude = ['p', 'cd', 'ustar', 'LAI', 'h', 'kconstant', 'exclude']
-    # return {vn: val for vn, val in locals().items() if vn not in exclude}
-    # ^ this is cool but I want to use more descriptive names
-
     r = {
-        'MW_c1': c1,
-        'MW_c2': c2,
-        'MW_c3': c3,
-        'MW_gam1': gam1,
-        'MW_gam2': gam2,
-        'MW_gam3': gam3,
-        'MW_alpha': alpha,
-        #'MW_A2': A2,
         'MW_nu1': nu1,
         'MW_nu2': nu2,
         'MW_nu3': nu3,
         'MW_Lam': Lam,
-        #'MW_u_h': uh,  # wind speed at canopy height u(h)
-        'U_h': uh,  # wind speed at canopy height u(h)
         'MW_n': n,
         'MW_B1': B1, 
+        'U_h': uh,  # mean wind speed at canopy height U(h)
         'displacement_height': d,
         'roughness_length': z0,
-        'MW_epsilon_a_h': epsilon_ah,  # above-canopy diss rate at h
+        'MW_epsilon_a_h': epsilon_ah,  # above-canopy TKE dissipation rate at h
         'MW_epsilon_c_h': epsilon_ch,  # in-canopy " "
         'MW_epsilon_ah_gt_ch': epflag,  # name needs to be more descriptive
     }
@@ -114,72 +139,45 @@ def get_p_MW(p):
 
 
 
-rate_consts = {
-    'BO_O3': 5.4e-16,
-    'BO_OH': 2.52e-10,
-    'BO_NO3': 2.2e-11,
-}
-# BO: beta-ocimene
+def compare_params(p, p0=None, input_params_only=False):
+    """Compare `p` to reference `p0`."""
 
+    if p0 is None:
+        p0 = Model().p
+        p0_name = "default"
+    else:
+        p0_name = "reference"
 
-def get_default_params():
-    """
-    all in one dict 
-    might separate some in different sub dicts in future (like in pyAPES)
-    """
-    p = {
-        'canopy_height': 1.1,  # m; h / h_c
-        'release_height': 1.05,  # m; really should draw from a distribution of release heights for each particle!!
-        'total_LAI': 2.0,  # (total) leaf area index
-        'foliage_drag_coeff': 0.2,  # C_d
-        'von_Karman_constant': 0.4,  # k
-        'ustar': 0.25,  # m; u_*; friction velocity above canopy (assuming const shear layer)
-        'Kolmogorov_C0': 5.5,
-        'source_positions': [(0, 0)],  # point locs of the particle sources; must be iterable
-        't_tot': 100.,  # s; total time of the run
-        'dt': 0.25,  # s; time step for the 1-O Newton FT scheme; this is what Pratt used 
-        'conc_fv_0': {  # fv: floral volatiles
-            'BO': 100.  # 100 %; if using relative conc. this doesn't matter really
-            },
-        'n_air_cm3': 2.62e19,  # (dry) air number density (molec cm^-3)
-        'oxidants_ppbv' : {
-            'O3': 40.0,
-            'OH': 1.0e-4,
-            'NO3': 1.0e-5 
-        },
-        'dt_out': 0.,
-        'continuous_release': True, 
-        'dNp_per_dt_per_source': 2,  # should be int
-        'use_numba': True,
-        'chemistry_on': False
-    }
+    if any(p[k] != p0[k] for k in p0):
 
-    p.update(get_p_MW(p))
-    # ^ some of these are derived and shouldn't be changed manually
-    # TODO: should fix this potential issue
+        if input_params_only:
+            p0 = {k: p0[k] for k in p0 if k in input_param_defaults}
 
-    return p
-
-
-# def print_params(val, nesting=-4):
-#     """
-
-#     """
-
+        t = f"parameter: {p0_name} --> current"
+        print(t)
+        print('-'*len(t))
+        for k, v0 in sorted(p0.items(), key=lambda x: x[0].lower()):  # don't separate uppercase
+            v = p[k]
+            if v0 != v:
+                print(f"'{k}': {v0} --> {v}")
+    else:
+        print("all params same as defaults")
 
 
 
 class Model():
 
     # class variables (as opposed to instance)
-    _p_default = get_default_params()
+    _p_user_input_default = input_param_defaults
+    _p_default_MW = calc_MW_derived_params(_p_user_input_default)
+    _p_input_default = {**_p_user_input_default, **_p_default_MW}
 
     def __init__(self, pu={}):
         """
         pu : dict
             user-supplied parameters (to update the defaults)
         """
-        self.p = copy(Model._p_default)  # start with defaults
+        self.p = copy(Model._p_input_default)  # start with defaults
         self.update_p(pu)  # update based on user input
 
         # checks (could move to separate `check_p` method or to `update_p`)
@@ -194,10 +192,13 @@ class Model():
         """
 
         """
-        allowed_keys = Model._p_default.keys()
+        if not isinstance(pu, dict):
+            raise TypeError('must pass `dict`')
+
+        allowed_keys = Model._p_user_input_default.keys()
         for k, v in pu.items():
             if k not in allowed_keys:
-                msg = f'key {k} is not in the default parameter list. ignoring it.'
+                msg = f"key '{k}' is not in the default parameter list. ignoring it."
                 warnings.warn(msg)
             else:
                 self.p[k] = v
@@ -241,8 +242,16 @@ class Model():
             self.init_hist()
 
         # some variables affect the derived MW variables
-        if any( k in pu for k in ['foliage_drag_coeff', 'ustar', 'total_LAI', 'canopy_height', 'von_Karman_constant'] ):
-            self.p.update(get_p_MW(self.p))
+        #
+        # these are the non-model-parameter inputs:
+        MW_inputs = ['foliage_drag_coeff', 'ustar', 'total_LAI', 'canopy_height', 'von_Karman_constant']
+        # check for these and also the MW model parameters
+        if any(k in pu for k in MW_inputs) or any(k[:2] == 'MW' for k in pu):
+            self.p.update(calc_MW_derived_params(self.p))
+
+
+    # TODO: could change self.p to self._p, but have self.p return a view, 
+    #       but give error if user tries to set items
 
 
     def init_state(self):
@@ -328,8 +337,6 @@ class Model():
         self.hist = hist
 
 
-    # TODO: could change self.p to self._p, but have self.p return a view, but give error if user tries to set items
-
 
     def run(self):
         """run dat model"""
@@ -343,6 +350,8 @@ class Model():
         dNp_dt_ds = self.p['dNp_per_dt_per_source']
         N_s = self.p['N_sources']
         # outer loop could be particles instead of time. might make some parallelization easier
+
+        # init of hist and state could go here
 
         if self.p['use_numba']:
             lpd.enable_numba()  # ensure numba compilation is not disabled

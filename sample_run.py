@@ -13,7 +13,7 @@ import pprint
 import matplotlib.pyplot as plt
 
 import main
-from main import Model as model, get_default_params
+from main import Model as model, input_param_defaults, compare_params
 import plots
 
 
@@ -28,7 +28,7 @@ pp = pprint.PrettyPrinter(indent=2)
 
 # these are the ones that can be set; includes the MW derived params (only certain ones should be changed!)
 print('Default params:')
-pp.pprint(get_default_params())
+pp.pprint(input_param_defaults)
 
 m = model()
 
@@ -49,6 +49,9 @@ new_p = {
 m.update_p(new_p)  # alternatively can pass on initialization 
 print('\n\nDefault params (including derived, after update):')
 pp.pprint(m.p)
+
+compare_params(m.p)
+
 
 print('\n\n\n')
 
