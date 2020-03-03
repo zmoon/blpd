@@ -3,7 +3,9 @@
 """
 
 from copy import deepcopy as copy
+import importlib
 import os
+import sys
 import warnings
 
 # from numba import njit
@@ -183,8 +185,6 @@ class Model():
         # checks (could move to separate `check_p` method or to `update_p`)
         assert( self.p['release_height'] <= self.p['canopy_height'] )  # particles must be released within canopy
         assert( self.p['dt_out'] % self.p['dt'] == 0 )  # output interval must be a multiple of dt
-        if not self.p['use_numba']: raise NotImplementedError
-
 
         self.init_state()
         self.init_hist()
@@ -345,8 +345,7 @@ class Model():
         # outer loop could be particles instead of time. might make some parallelization easier
 
         if self.p['use_numba']:
-            #> alert lpd through env variable
-            os.environ.update({'BLPD_USE_NUMBA': str(True)})
+            lpd.enable_numba()  # ensure numba compilation is not disabled
 
             #> prepare p for numba
             p_for_nb = {k: v for k, v in self.p.items() if not isinstance(v, (str, list, dict))}
@@ -367,9 +366,17 @@ class Model():
             state_run = state_nb
             p_run = p_nb
 
-        else:
+        else:  # model is set not to use numba
+            lpd.disable_numba()  # disable numba compilation
+
             state_run = self.state
             p_run = self.p
+
+        # changing numba config in lpd redefines the njit decorated functions
+        # but that isn't recognized right away unless we do this re-import
+        # reloading numba in lpd doesn't seem to work
+        # - at least not the first time trying to run after changing use_numba True->False
+        importlib.reload(lpd)
         
         # print(state_run['xp'].shape)
 
@@ -385,11 +392,18 @@ class Model():
 
             t = k*dt  # current (elapsed) time
 
-            state_run.update(numbify({
-                'k': k, 
-                't': t, 
-                'Np_k': Np_k
-            }))
+            if self.p["use_numba"]:
+                state_run.update(numbify({
+                    'k': k, 
+                    't': t, 
+                    'Np_k': Np_k
+                }))
+            else:
+                state_run.update({
+                    'k': [k], 
+                    't': [t], 
+                    'Np_k': [Np_k]
+                })
             # print(state_run['xp'].shape)
 
                     
@@ -412,8 +426,10 @@ class Model():
                     self.hist['ws'][:,o,:] = np.column_stack((up, vp, wp))
 
 
-        # self.state = state_run
-        self.state = unnumbify(state_run)
+        if self.p["use_numba"]:
+            self.state = unnumbify(state_run)
+        else:
+            self.state = state_run
 
         #> calculate chemistry
         #  this can be outside the time loop since the concentrations of oxidants are not changing with time
@@ -459,7 +475,6 @@ class Model():
 
 
 
-
 def numbify(d, zerod_only=False):
     """Convert dict to numba-suitable format.
 
@@ -492,6 +507,10 @@ def numbify(d, zerod_only=False):
         else:
             d_nb[k] = np.float64(v)
 
+    # numba.typed.Dict.empty() creates a normal dict if it thinks jit is disabled
+    # ref: https://github.com/numba/numba/blob/868b8e3e8d034dac0440b75ca31595e07f632d27/numba/typed/typeddict.py#L95
+    assert isinstance(d_nb, numba.typed.Dict)
+
     return d_nb
 
 
@@ -509,6 +528,3 @@ def unnumbify(d_nb):
             d[k] = v
 
     return d
-
-
-

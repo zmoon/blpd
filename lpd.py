@@ -8,26 +8,47 @@ efficiently (hopefully) with the help of numba
 #   https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#typed-dict
 
 from functools import wraps
+import importlib
 import os
 import sys
 import warnings
 
+import numba
 from numba import jit, njit, prange
 import numpy as np
 
 
 
-#> allow for running without numba
-# def null_decorator(f, *args, **kwargs):
-#     """Does nothing"""
-#     @wraps(f)
-#     def wrapped(*args, **kwargs):
-#         r = f(*args, **kwargs)
-#         return r
-#     return wrapped
+def disable_numba():
+    """Tell numba to disable JIT.
+    
+    refs
+    ----
+    * disabling JIT: https://numba.pydata.org/numba-doc/latest/user/troubleshoot.html#disabling-jit-compilation
+    * reloading config: https://github.com/numba/numba/blob/868b8e3e8d034dac0440b75ca31595e07f632d27/numba/core/config.py#L369
+    """
+    os.environ.update({'NUMBA_DISABLE_JIT': str(1)})
+    numba.config.reload_config()
+    assert numba.config.DISABLE_JIT == 1  # pylint: disable=no-member
+    
+    # note: reloading numba here does not change lpd's functions as imported by another module 
+    #   like the model does
+    # until the module importing lpd reloads lpd (`importlib.reload(lpd)`)
+    # so the following does not have the desired effect
+    #
+    # importlib.reload(numba)
+    # from numba import jit, njit, prange
 
-# if not os.environ.get('BLPD_USE_NUMBA'):
-#     njit = null_decorator
+
+def enable_numba():
+    """Tell numba to enable JIT.
+    
+    see refs in `disable_numba`
+    """
+    # by default (when numba is loaded normally), this env var is not set, so remove it
+    os.environ.pop('NUMBA_DISABLE_JIT', default=None)  # avoid error
+    numba.config.reload_config()
+    assert numba.config.DISABLE_JIT == 0  # pylint: disable=no-member
 
 
 # @njit(error_model='numpy')
