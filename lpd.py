@@ -151,7 +151,7 @@ def _calc_fd_params_in_canopy(pos, p):
     #nu2 = p['MW_nu2']  # unused?
     nu3 = p['MW_nu3']
     Lam = p['MW_Lam']
-    n = p['MW_n']  # change this name!
+    n = p['MW_n']
     B1 = p['MW_B1']
     alpha = p['MW_alpha']
 
@@ -159,20 +159,42 @@ def _calc_fd_params_in_canopy(pos, p):
     epsilon_ah = p['MW_epsilon_a_h']
     epsilon_ch = p['MW_epsilon_c_h']
 
+    # zeta(z): "cumulative leaf drag area per unit planform area" (MW p. 82) (ζ)
+    # the code we started from replace terms zeta(z)/zeta(h) by z/h
+    # this assumes a vertically homogeneous LAI dist (LAD const with z in canopy)
+    #   it accumulates from z=0, not z=h_c like LAI
+    # zeta(h) is replaced by cd*LAI
 
     umean = uh*np.exp(-n*(1-(z/h)))
     dumeandz = uh*(n/h)*np.exp(-n*(1-(z/h)))
+
+    zet_h = cd*LAI  # zeta(h) total leaf drag area
+
+    # ref: MW eqn. 10, p. 87
+    sig_e = ustar * (\
+        nu3*np.exp(-Lam*zet_h*(1-z/h)) \
+      + B1*(np.exp(-3*n*(1-z/h)) \
+        - np.exp(-Lam*zet_h*(1-z/h))\
+        )\
+    )**(1./3)
+
+    # can't find a source for this eqn
+    dsig_e2dz = (2/3)*ustar**2 * \
+        (( nu3*np.exp(-Lam*zet_h*(1-z/h)) \
+         + B1*(np.exp(-3*n*(1-z/h)) \
+           - np.exp(-Lam*zet_h*(1-z/h))
+           )\
+         )**(-1./3)\
+        )\
+        * ( (nu3*Lam*zet_h/h) * np.exp(-Lam*zet_h*(1-z/h)) \
+          + B1*( (3*n/h)*np.exp(-3*n*(1-z/h)) \
+            - (Lam*zet_h/h)*np.exp(-Lam*zet_h*(1-z/h))\
+            )\
+          )
     
-    sig_e = ustar*(nu3*np.exp(-Lam*cd*LAI*(1-z/h)) + \
-                    B1*(np.exp(-3*n*(1-z/h)) - \
-                        np.exp(-Lam*cd*LAI*(1-z/h))))**(1./3)
-    dsig_e2dz = (2/3)*ustar**2*((nu3*np.exp(-Lam*cd*LAI*(1-z/h)) + \
-                                    B1*(np.exp(-3*n*(1-z/h)) - \
-                                        np.exp(-Lam*cd*LAI*(1-z/h))))**(-1./3)) \
-        *((nu3*Lam*cd*LAI/h)*np.exp(-Lam*cd*LAI*(1-z/h)) + \
-            B1*((3*n/h)*np.exp(-3*n*(1-z/h)) - \
-                (Lam*cd*LAI/h)*np.exp(-Lam*cd*LAI*(1-z/h))))
-        
+    # from MW eq. 11, in the canopy: gam_i * nu_1 * sig_e = sig_i
+    # and above the canopy: sig_i/u_star = gam_i (p. 86)
+
     tau11 = (gam1*nu1*sig_e)**2
     dtau11dz = ((gam1*nu1)**2)*dsig_e2dz
         
@@ -188,19 +210,19 @@ def _calc_fd_params_in_canopy(pos, p):
     # Dissipation
     # ref: MW p. 88
     if epflag:
-        epsilon = (sig_e**3)*((cd*LAI/h)/(nu3*alpha)*(epsilon_ah/epsilon_ch))
+        epsilon = (sig_e**3) * zet_h / (h*nu3*alpha) * (epsilon_ah/epsilon_ch)
     else:
-        if z <= d:  # log wind profile displacement height
-            epsilon = (sig_e**3)*(cd*LAI/h)/(nu3*alpha)
-        else:
-            scale_choice_1 = sig_e**3*(cd*LAI)/(nu3*alpha*ustar**3)
-            scale_choice_2 = h/(kconstant*(h-d))  # this is a source of div by 0 (if z v close to d). I replace z-d by h-d for now
+        if z <= d:  # log wind profile displacement height (could add small # to d)
+            epsilon = (sig_e**3) * zet_h / (h*nu3*alpha)
+        else:  # d < z <= h_c
+            scale_choice_1 = zet_h * sig_e**3 / (nu3*alpha*ustar**3)
+            scale_choice_2 = h/(kconstant*(z-d))  # this is a potential source of div by 0 (if z v close to d)
             # scale_choices = np.concatenate(( scale_choice_1, scale_choice_2  ))
             scale_choices = np.array([scale_choice_1, scale_choice_2])
             epsilon = (ustar**3/h) * scale_choices.min()  
                 # numba doesn't support std min without tuple
-                # * np.min( np.array([ sig_e**3*(cd*LAI)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ]) )  # numba doesn't support std min without tuple
-                # * np.min( ( sig_e**3*(cd*LAI)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ) )  # numba doesn't support std min without tuple
+                # * np.min( np.array([ sig_e**3*(zet_h)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ]) )  # numba doesn't support std min without tuple
+                # * np.min( ( sig_e**3*(zet_h)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ) )  # numba doesn't support std min without tuple
                 # also doesn't support `np.r_`
 
 
@@ -384,15 +406,16 @@ def calc_tends(pos, ws_local, p):
         # msg = 'one wind speed is too high: ' + str(du1) + str(du2) + str(du3)  # numba nopython can't do str formatting
     #     warnings.warn(msg)
         # print(msg)
-        print('one wind speed perturbation is too high:', du1, du2, du3)
+        print("one ws' is too high:", du1, du2, du3)
 
         # debugging info
         print('umean, dumeandz, epsilon', U1, dU1dx3, eps)
         if z >= h_c:
             print('  z >= h_c')
         else:
-            print('  z < h_c')
+            print('  z < h_c, z =', z)
 
+        # import pdb; pdb.set_trace()
 
         # for d in [du1, du2, du3]:  # this method doesn't seem to work in numba
         #     if np.abs(d) > 50:
@@ -400,10 +423,18 @@ def calc_tends(pos, ws_local, p):
         #         # d[:] = 50.
         # print('resetting to 50')
         
-        print('resetting all to 0')
+        # print('resetting all to 0')
+        # du1 = 0.
+        # du2 = 0.
+        # du3 = 0.
+
+        print('resetting new ws to 0')
         du1 = 0.
         du2 = 0.
         du3 = 0.
+        u1 = 0.
+        u2 = 0.
+        u3 = 0.
 
         # print('  now:', du1, du2, du3)  # to check if the resetting is working or not
 

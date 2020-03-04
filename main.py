@@ -57,14 +57,15 @@ input_param_defaults = {
     },
     #
     # Massman and Weil (MW) canopy wind model parameters (could be dict)
-    'MW_c1': 0.28,
+    'MW_c1': 0.28,  # c's for above-canopy wind profile
     'MW_c2': 0.37,
     'MW_c3': 15.1,
-    'MW_gam1': 2.40,
+    'MW_gam1': 2.40,  # gam_i = sig_i/u_star (velocity std's above canopy, in sfc layer)
     'MW_gam2': 1.90, 
     'MW_gam3': 1.25,
-    'MW_alpha': 0.05,
+    'MW_alpha': 0.05,  # parameter that controls in-canopy sigma_w and sigma_u
     'MW_A2': 0.6  # appears to be unused, but is part of their model
+    # only alpha and A_1 are empirical constants (MW p. 89)
 }
 # could do more dict nesting like in pyAPES...
 
@@ -99,12 +100,14 @@ def calc_MW_derived_params(p):
     alpha = p['MW_alpha']
 
     # derived params
-    nu1 = (gam1**2+gam2**2+gam3**2)**(-0.5)
-    nu3 = (gam1**2+gam2**2+gam3**2)**(1.5)  # ?? are these switched? (3 and 2)
-    nu2 = nu3/6-gam3**2/(2*nu1)
-    Lam = 3*nu1**2/alpha**2
-    uh = ustar/(c1 - c2*np.exp(-c3*cd*LAI))  # u(h); Eq. 5
-    n = cd*LAI/(2*ustar**2/uh**2)
+    nu1 = (gam1**2+gam2**2+gam3**2)**(-0.5)  # MW p. 86
+    nu3 = (gam1**2+gam2**2+gam3**2)**(1.5)
+    nu2 = nu3/6 - gam3**2/(2*nu1)
+    #Lam2 = 7/(3*alpha**2*nu1*nu3) + [1/3 - gam3**2*nu1**2]/(3*alpha**2*nu1*nu2)  # the first Lambda^2
+    Lam2 = 3*nu1**2/alpha**2  # the simplified Lambda^2 expr; MW p. 87
+    Lam = np.sqrt(Lam2)
+    uh = ustar/(c1 - c2*np.exp(-c3*cd*LAI))  # u(h); MW Eq. 5
+    n = cd*LAI/(2*ustar**2/uh**2)  # MW Eq. 4, definitely here "n" not "nu"
     B1 = -(9*ustar/uh)/(2*alpha*nu1*(9/4-Lam**2*ustar**4/uh**4))
 
     d = h*(1-(1/(2*n))*(1 - np.exp(-2*n)))  # displacement height
@@ -125,7 +128,7 @@ def calc_MW_derived_params(p):
         'MW_nu2': nu2,
         'MW_nu3': nu3,
         'MW_Lam': Lam,
-        'MW_n': n,
+        'MW_n': n,  # should be eta? (think not)
         'MW_B1': B1, 
         'U_h': uh,  # mean wind speed at canopy height U(h)
         'displacement_height': d,
