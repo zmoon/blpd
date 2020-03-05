@@ -258,6 +258,7 @@ class Model():
     #       but give error if user tries to set items
 
 
+    # TODO: init conc here too
     def init_state(self):
         Np_tot = self.p['Np_tot']
         # also could do as 3-D? (x,y,z coords)
@@ -318,6 +319,7 @@ class Model():
             # should use xarray for this (and for other stuff too; like sympl)
             if self.p['dt_out'] <= 0:
                 raise ValueError('dt_out must be pos. to use single-release mode')
+                # TODO: should be ok to do continuous_release without hist if want
 
             t_tot = self.p['t_tot']
             dt_out = self.p['dt_out']
@@ -427,6 +429,7 @@ class Model():
             lpd.integrate_particles_one_timestep(state_run, p_run)
             # integrate_particles_one_timestep(state_run, p_run)
 
+            # TODO: option to save avg in addition to instantaneous? or specify one? 
             if self.hist != False:
                 if t % dt_out == 0:
                     o = int(t // dt_out)  # note that `int()` floors anyway
@@ -486,6 +489,23 @@ class Model():
         self.state.update({
             'conc': {'BO': conc_BO}
         })
+
+
+    def plot(self, **kwargs):
+        """Default plot of results based on run type."""
+        # first check if model has been run
+        p = self.p
+        state = self.state
+        hist = self.hist
+        from . import plots
+        if np.all(state['up'] == 0):  # model probably hasn't been run
+            pass  # silently do nothing for now
+        else:
+            if (p['continuous_release'] == False) and hist:
+                plots.trajectories(hist, p, **kwargs)
+            else:
+                plots.final_pos_scatter(state, p, **kwargs)
+
 
 
 

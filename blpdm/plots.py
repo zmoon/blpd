@@ -89,7 +89,7 @@ def final_pos_scatter(state, p, sdim="xy"):
 # TODO: trajectories for hist run in 3-D?
 
 
-def trajectories(hist, p, *, smooth=False, smooth_window_size=100, color_sources=False):
+def trajectories(hist, p, *, smooth=False, smooth_window_size=None, color_sources=False):
     """Particle trajectories.
 
     note: intended to be used for a single-release run
@@ -97,7 +97,8 @@ def trajectories(hist, p, *, smooth=False, smooth_window_size=100, color_sources
     pos = hist["pos"]
 
     t_tot = p["t_tot"]
-    dt = p["dt"]
+    # dt = p["dt"]
+    dt = p["dt_out"]  # use dt from hist, not model integration; TODO: indicate this in the plot?
     N_t = p["N_t"]
     Np = p["Np_tot"]
     N = Np * N_t
@@ -106,8 +107,15 @@ def trajectories(hist, p, *, smooth=False, smooth_window_size=100, color_sources
     ltitle = s_t_info(p)
     rtitle = f"$N_p = {to_sci_not(Np)}$\n$N = {to_sci_not(N)}$"
 
+    # allow specifying smooth_window_size only
+    if smooth_window_size is not None and not smooth:
+        smooth = True
     if smooth:
-        n = int(smooth_window_size)
+        if smooth_window_size is None:
+            n = 100
+        else:
+            n = int(smooth_window_size)
+
         if n * dt > 0.5 * t_tot:
             raise ValueError(
                 "can't do any smoothing with the requested window size (not enough points)"
