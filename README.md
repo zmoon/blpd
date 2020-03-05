@@ -63,7 +63,7 @@ As an alternative to downloading or `git clone`-ing the repo, `pip` can download
 pip install -e git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
 ```
 
-Only `pip` versions >= 10.0 will recognize build dependencies in `pyproject.toml` and update the requirements (if necessary) before invoking `setuptools`. The current consequence of this is that if you use an older build, the version will not be read properly into the package metadata if `setuptools` is too old to read and parse the version from the text file. 
+Only `pip` versions >= 10.0 will recognize build dependencies in `pyproject.toml` and update the requirements (if necessary) before invoking `setuptools`. The current consequence of this is that if you use an older build, the version will not be read properly into the package metadata if `setuptools` is too old to read and parse the version from the text file (instead giving it as `file-VERSION.txt`). 
 
 Only `pip` versions >= 19.0 support specifying the build backend in `pyproject.toml`. 
 
