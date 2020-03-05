@@ -1,5 +1,5 @@
 """
-Code that runs Lagrangian particle dispersion
+Code that runs Lagrangian stochastic particle dispersion
 efficiently (hopefully) with the help of numba
 
 """

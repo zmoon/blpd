@@ -1,5 +1,5 @@
 """
-
+Model class, input parameters, ...
 """
 
 from copy import deepcopy as copy
@@ -15,8 +15,9 @@ import numba  #
 # from numba.typed import Dict
 import numpy as np
 
-import lpd
-import plots
+# import lpd
+from . import lpd
+# from .lpd import enable_numba, disable_numba, integrate_particles_one_timestep
 
 
 
@@ -358,6 +359,7 @@ class Model():
 
         if self.p['use_numba']:
             lpd.enable_numba()  # ensure numba compilation is not disabled
+            # enable_numba()
 
             #> prepare p for numba
             p_for_nb = {k: v for k, v in self.p.items() if not isinstance(v, (str, list, dict))}
@@ -380,6 +382,7 @@ class Model():
 
         else:  # model is set not to use numba
             lpd.disable_numba()  # disable numba compilation
+            # disable_numba()
 
             state_run = self.state
             p_run = self.p
@@ -422,8 +425,7 @@ class Model():
             # pass numba-ified dicts here
 
             lpd.integrate_particles_one_timestep(state_run, p_run)
-
-            # lpd.integrate_particles_one_timestep(xp, yp, zp, Np_k, p)
+            # integrate_particles_one_timestep(state_run, p_run)
 
             if self.hist != False:
                 if t % dt_out == 0:

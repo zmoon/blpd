@@ -1,10 +1,14 @@
 """
-
-plots of lpdm results
-
+Create plots of lpdm results.
 """
 
-# __all__ = ("pos_scatter", "conc", "trajectories")
+__all__ = (
+    "conc", 
+    "trajectories",
+    "final_pos_hist", "final_pos_hist2d", 
+    "ws_hist_all",
+    "final_pos_scatter",
+)
 
 from itertools import cycle
 
@@ -19,7 +23,7 @@ from scipy import stats
 # to indicate that these are not intended to be public parts of the module name space
 # since __all__ is not respected by linters or autocompleters
 
-from utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info
+from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info
 
 
 # TODO: create some base classes for plots to reduce repeating of code
