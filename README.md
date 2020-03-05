@@ -5,7 +5,7 @@ This project is based on a model written in Matlab by K. Pratt for his [MS thesi
 
 ## Installing
 
-Download this repo and navigate to where `setup.py` is located. (The package is not on [pypi](https://pypi.org/) at this time.)
+### Using without installing
 
 These are the dependencies to run the model:
 ```
@@ -18,10 +18,12 @@ matplotlib
 scipy
 ```
 
-If you have ensured that the dependencies are met (e.g., with `conda install {}`), the module `blpdm` can be imported without "installing" as long as Python can find it. 
+If you have ensured that the dependencies are met (e.g., with `conda install {}`), the module `blpdm` can be imported without additional build/installation steps as long as Python can find it. 
 
 
 ### But if you want to really install (add to Python search path)
+
+Download this repo and navigate to where `setup.py` is located. (The package is not on [pypi](https://pypi.org/) at this time.)
 
 #### "develop" mode (don't add to `site-packages`)
 
@@ -38,12 +40,12 @@ These options create a `*.egg-link` in `site-packages` that points to the source
 
 To ensure that the (optional) dependencies for the plotting routines are met:
 ```
-pip install -e .[plots] 
+pip install -e .[plots]
 ```
 
 #### non-"develop" (add to `site-packages`)
 
-`pip install {}` without `-e`
+`pip install {}` (without `-e`)
 
 or
 ```
@@ -52,9 +54,14 @@ python setup.py install
 
 If permission errors, add `--user` flag. 
 
-#### Uninstalling
+### Notes
 
 If you have installed with `pip` (either option), or `python setup.py develop`, you can easily uninstall (`pip uninstall`, or `python setup.py develop --uninstall`). 
+
+As an alternative to downloading or `git clone`-ing the repo, `pip` can download the repo for you. For example:
+```
+pip install -e git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
+```
 
 
 ## References
