@@ -23,6 +23,7 @@ from scipy import stats
 # to indicate that these are not intended to be public parts of the module name space
 # since __all__ is not respected by linters or autocompleters
 
+from .main import chemical_species_data
 from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info
 
 
@@ -32,6 +33,8 @@ from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_in
 #       - alpha calculation based on number of particles & spread?
 
 # TODO: really all plots could have the auto-bounds stuff. and (optionally?) print message about it?
+
+# TODO: probably should pass model object to the plotting functions, not separate state and p?
 
 
 def final_pos_scatter(state, p, sdim="xy"):
@@ -170,14 +173,16 @@ def trajectories(hist, p, *, smooth=False, smooth_window_size=None, color_source
 
 def conc(
     state,
-    conc,
     p,
+    spc="bocimene",  # species to plot: dict key, not display name
     *,
     plot_type="scatter",
     bins=(20, 10),
     levels=30,
     cmap="gnuplot",
     log_cnorm=False,
+    vmax=100,
+    vmin=None,  # allow fair comparison with other plots
 ):
     """Scatter plot of particle end positions colored by concentration 
     for continuous release runs
@@ -190,9 +195,11 @@ def conc(
     Y = ypath
     Z = zpath
 
-    compound_name = "β-ocimene"  # for now assuming it is this one
+    conc = state['conc'][spc]
 
-    num = check_fig_num(f"horizontal-end-positions-with-conc_{compound_name}_{plot_type}")
+    spc_display_name = chemical_species_data[spc]['display_name']
+
+    num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_{plot_type}")
     fig, ax = plt.subplots(num=num)
 
     # TODO: copied this from the hist2d fn for now. should make a fn to do this...
@@ -213,7 +220,7 @@ def conc(
     # bins = np.linspace(bounds[0], bounds[1], 50)
 
     if plot_type == "scatter":
-        im = ax.scatter(X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmax=100)
+        im = ax.scatter(X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmin=vmin, vmax=vmax)
         # default `s` is 6**2 (default lines.markersize squared)
         # TODO: marker size should be calculated dynamically but also allowed to pass!
     elif plot_type in ("pcolor", "contourf"):
@@ -242,7 +249,7 @@ def conc(
 
         # copied from hist2d
         if log_cnorm:
-            norm = mpl.colors.LogNorm(vmax=100.0)
+            norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
 
             # https://matplotlib.org/3.1.3/gallery/images_contours_and_fields/contourf_log.html
             # https://matplotlib.org/3.1.3/api/ticker_api.html#matplotlib.ticker.LogLocator
@@ -252,7 +259,7 @@ def conc(
             # TODO: although this^ works, the ticks are not all getting labeled. need to fix.
 
         else:
-            norm = mpl.colors.Normalize(vmax=100.0)
+            norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
             locator = None
 
         if plot_type == "pcolor":
@@ -267,7 +274,7 @@ def conc(
         raise ValueError("invalid `plot_type`")
 
     cb = fig.colorbar(im, drawedges=False)
-    cb.set_label(f"{compound_name} relative conc. (%)")
+    cb.set_label(f"{spc_display_name} relative conc. (%)")
 
     ax.set_xlabel("x")
     ax.set_ylabel("y")

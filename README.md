@@ -58,7 +58,7 @@ If permission errors, add `--user` flag.
 
 If you have installed with `pip` (either option), or `python setup.py develop`, you can easily uninstall (`pip uninstall`, or `python setup.py develop --uninstall`). 
 
-As an alternative to downloading or `git clone`-ing the repo, `pip` can download the repo for you. For example:
+As an alternative to downloading or `git clone`-ing the repo, `pip` can download the repo for you (if you have `git` that is). For example:
 ```
 pip install -e git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
 ```

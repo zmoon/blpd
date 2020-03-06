@@ -71,12 +71,46 @@ input_param_defaults = {
 # could do more dict nesting like in pyAPES...
 
 
-rate_consts = {
-    'BO_O3': 5.4e-16,
-    'BO_OH': 2.52e-10,
-    'BO_NO3': 2.2e-11,
-}
+# rate_consts = {
+#     'BO_O3': 5.4e-16,
+#     'BO_OH': 2.52e-10,
+#     'BO_NO3': 2.2e-11,
+# }
 # BO: beta-ocimene
+
+# key, display name string, kO3, kOH, kNO3
+# for now must have space after `,` !
+_chemical_species_data_table_str = """
+apinene, "α-pinene", 8.1e-17, 5.3e-11, 6.2e-12
+bocimene, "β-ocimene", 5.4e-16, 2.52e-10, 2.2e-11
+bpinene, "β-pinene", 2.4e-17, 7.8e-11, 2.5e-12
+carene, "3-carene", 3.8e-17, 8.7e-11, 9.1e-12
+cineole, "1,8-cineole", 6.0e-20, 1.0e-11, 1.7e-16
+farnesene, "α-farnesene", 1.0e-15, 3.2e-10, 5.5e-11
+limonene, "d-limonene", 2.5e-16, 1.6e-10, 1.3e-11
+linalool, "linalool", 4.3e-16, 1.6e-10, 1.1e-11
+myrcene, "β-myrcene", 4.7e-16, 2.1e-10, 1.3e-11
+sabinene, "sabinene", 9.0e-17, 1.2e-10, 1.0e-11
+thujene, "α-thujene", 4.4e-16, 8.7e-11, 1.1e-11
+""".strip()
+
+def _parse_chemical_species_data(s=_chemical_species_data_table_str):
+    d = {}
+    for line in s.split('\n'):
+        parts = [p.strip() for p in line.split(', ')]
+        dl = {
+            'display_name': eval(parts[1]),
+            'kO3': float(parts[2]),
+            'kOH': float(parts[3]),
+            'kNO3': float(parts[4])
+        }
+        key = parts[0]
+        d[key] = dl
+
+    return d
+
+chemical_species_data = _parse_chemical_species_data()
+
 
 
 
@@ -453,6 +487,7 @@ class Model():
         #  so the amount of destruction only depends on the time that a given particle has been out
         #
         #  source strengths are not changing with time either
+        # TODO: separate this from `.run` to add capability to calc chemistry again for same particles without re-running
 
         if self.p['chemistry_on']:
             if not self.p['continuous_release']:
@@ -474,20 +509,31 @@ class Model():
 
             assert np.isclose(t_tot, t_out[0])   # the first particle has been out for the full time
 
-            conc_BO = np.full((Np_tot, ), self.p['conc_fv_0']['BO'])
-
             conc_O3 = self.p['conc_oxidants']['O3']
             conc_OH = self.p['conc_oxidants']['OH']
             conc_NO3 = self.p['conc_oxidants']['NO3']
-            conc_BO *= np.exp(-rate_consts['BO_O3']*conc_O3*t_out) \
-                     * np.exp(-rate_consts['BO_OH']*conc_OH*t_out) \
-                     * np.exp(-rate_consts['BO_NO3']*conc_NO3*t_out)
+
+            conc = {}
+            for spc, d_spc in chemical_species_data.items():
+                conc0_val = self.p['conc_fv_0'].get(spc, 100.)  # default value 100
+                # TODO: should init all of them before this and allow for diff values for diff sources
+
+                kO3 = d_spc['kO3']
+                kOH = d_spc['kOH']
+                kNO3 = d_spc['kNO3']
+
+                conc_spc =  np.full((Np_tot,), conc0_val) \
+                    * np.exp(-kO3*conc_O3*t_out) \
+                    * np.exp(-kOH*conc_OH*t_out) \
+                    * np.exp(-kNO3*conc_NO3*t_out)
+
+                conc[spc] = conc_spc
 
         else:
-            conc_BO = False
+            conc = {k: False for k in chemical_species_data}
 
         self.state.update({
-            'conc': {'BO': conc_BO}
+            'conc': conc
         })
 
 
