@@ -60,3 +60,9 @@ for spc in state['conc']:
     
     plots.conc(state, p, spc, plot_type='pcolor', bins='auto', log_cnorm=True, vmin=1.0)
 
+
+#%% centerline conc
+
+plots.conc(state, p, spc="all", plot_type="centerline")
+plots.conc(state, p, spc="all", plot_type="centerline", log_cnorm=True)
+
