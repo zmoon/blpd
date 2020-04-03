@@ -3,9 +3,10 @@ Create plots of lpdm results.
 """
 
 __all__ = (
-    "conc", 
+    "conc",
     "trajectories",
-    "final_pos_hist", "final_pos_hist2d", 
+    "final_pos_hist",
+    "final_pos_hist2d",
     "ws_hist_all",
     "final_pos_scatter",
 )
@@ -183,6 +184,7 @@ def conc(
     log_cnorm=False,  # change to `log_scale` to make more sense with centerline?
     vmax=100,
     vmin=None,  # allow fair comparison with other plots
+    centerline_dy=10,  # width of y bin for centerline plots
 ):
     """Scatter plot of particle end positions colored by concentration 
     for continuous release runs
@@ -208,14 +210,16 @@ def conc(
     Z = zpath
 
     if plot_type in ("scatter", "pcolor", "contourf"):
-        conc = state['conc'][spc]
-        spc_display_name = chemical_species_data[spc]['display_name']
+        conc = state["conc"][spc]
+        spc_display_name = chemical_species_data[spc]["display_name"]
 
     num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_{plot_type}")
     fig, ax = plt.subplots(num=num)
 
     if plot_type == "scatter":
-        im = ax.scatter(X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmin=vmin, vmax=vmax)
+        im = ax.scatter(
+            X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmin=vmin, vmax=vmax
+        )
         # default `s` is 6**2 (default lines.markersize squared)
         # TODO: marker size should be calculated dynamically but also allowed to pass!
     elif plot_type in ("pcolor", "contourf"):
@@ -312,13 +316,12 @@ def conc(
                 x0_source, y0_source = source_pos
 
                 # only one bin in y
-                dy = 0.5  
-                y_edges = np.r_[ y0_source - dy, y0_source + dy ]
+                dy = centerline_dy
+                y_edges = np.r_[y0_source - 0.5 * dy, y0_source + 0.5 * dy]
 
                 # TODO: binning and such copied from 2d plot part. needs DRYing
-                
-                # x bins same as the 2d plots
 
+                # x bins same as the 2d plots
                 # if bins == "auto":
                 Np = p["Np_tot"]
                 xbar, xstd = X.mean(), X.std()
@@ -331,11 +334,11 @@ def conc(
 
                 # 1. concentration of lpd particles
                 H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
-                conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
+                conc_p_rel = (H / H.max()).T
 
                 # 2. chemistry
                 ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
-                conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+                conc_c = ret.statistic.T
                 x = ret.x_edge
                 y = ret.y_edge
                 # ^ these are cell edges
@@ -351,9 +354,9 @@ def conc(
 
                 # hack for now
                 # label = spc if i == 0 else None
-                label = chemical_species_data[spc]['display_name'] if i == 0 else None
+                label = chemical_species_data[spc]["display_name"] if i == 0 else None
 
-                ax_.plot(xc, z, '-', label=label)
+                ax_.plot(xc, z, "-", label=label)
 
                 if log_cnorm:
                     ax_.set_yscale("log")
