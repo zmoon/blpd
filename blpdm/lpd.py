@@ -51,7 +51,6 @@ def enable_numba():
     assert numba.config.DISABLE_JIT == 0  # pylint: disable=no-member
 
 
-# @njit(error_model='numpy')
 @njit
 def _calc_fd_params_above_canopy(pos, p):
     """
@@ -122,9 +121,6 @@ def _calc_fd_params_above_canopy(pos, p):
         epsilon)
 
 
-
-
-# @njit(error_model='numpy')
 @njit
 def _calc_fd_params_in_canopy(pos, p):
     """
@@ -260,7 +256,6 @@ def _calc_fd_params_in_canopy(pos, p):
         epsilon)
 
 
-# @njit(error_model='numpy')
 @njit
 def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
     """
@@ -286,8 +281,6 @@ def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
 
 
 
-
-# @njit(error_model='numpy')
 @njit
 def calc_tends(pos, ws_local, p):
     """
@@ -459,10 +452,6 @@ def calc_tends(pos, ws_local, p):
 
 
 
-
-
-
-# @njit(error_model='numpy')
 @njit
 def _integrate_particle_one_timestep(pos, ws_local, p):
     """
@@ -511,9 +500,7 @@ def _integrate_particle_one_timestep(pos, ws_local, p):
 
 
 
-# @njit(parallel=True)
 # @njit
-# @njit(parallel=True, error_model='numpy')
 @njit(parallel=True)
 def integrate_particles_one_timestep(state, p):
     """
@@ -565,22 +552,5 @@ def integrate_particles_one_timestep(state, p):
         # about a mean x-direction wind!
 
         del pos, ws_local
-        # ^ seems like numba might require this?
-
-
-
-# @njit(parallel=True)
-# @njit
-# @jit
-# def integrate_particles_one_timestep(xp, yp, zp, Np_k, p):
-#     """
-#     Integrate all particles one time step
-#     """
-
-#     for i in range(Np_k):
-
-#         pos = xp[i], yp[i], zp[i]  # position of particle i at current time step
-
-#         # newpos = _integrate_particle_one_timestep(pos, p)
-#         pos = _integrate_particle_one_timestep(pos, p)
+        # ^ seems like Numba might require this?
 
