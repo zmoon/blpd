@@ -551,6 +551,9 @@ def integrate_particles_one_timestep(state, p):
         # we are making assumptions about the distribution of perturbations
         # about a mean x-direction wind!
 
-        del pos, ws_local
-        # ^ seems like Numba might require this?
-
+        # del pos, ws_local
+        # ^ seems like Numba might require this? (gave errors otherwise)
+        # now, using numba v0.49.1 this raises error:
+        #   `CompilerError: Illegal IR, del found at: del pos`
+        # if trying to use sufficiently older versions of numba, may need to put it back
+        # TODO: maybe change numba version spec in setup.cfg to >= 0.49
