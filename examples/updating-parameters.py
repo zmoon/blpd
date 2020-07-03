@@ -4,7 +4,6 @@ Demonstrate updating parameters
 
 @author: zmoon
 """
-
 import pprint
 import sys
 sys.path.append('../')
@@ -37,14 +36,11 @@ print('\n')
 m = blpdm.model()
 m.update_p({
     't_tot': 5*60,
-    'ustar': 1.0    
+    'ustar': 1.0
 })
 
 compare_params(m.p)  # if no 2nd argument passed, we compare to default model instance
 print()
 compare_params(m.p, m0.p)  # confirm that that is the case
 print()
-compare_params(m.p, input_params_only=True)  # 
-
-
-
+compare_params(m.p, input_params_only=True)  #

@@ -9,7 +9,7 @@ This project is based on a model written in Matlab by K. Pratt for his [MS thesi
 
 ## Installing
 
-Until releases are made (on [PyPI](https://pypi.org/) and/or GitHub), the recommended method of installing is 
+Until releases are made (on [PyPI](https://pypi.org/) and/or GitHub), the recommended method of installing is
 ```
 pip install git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
 ```
@@ -55,6 +55,6 @@ scipy
 
 ## References
 
-* K. Pratt's thesis: <https://etda.libraries.psu.edu/catalog/14063>. The version described there included a simpler treatment of the in-canopy statistics. [Marcelo Chamecki](http://people.atmos.ucla.edu/mchamecki/index.htm) added the Massman & Weil (1999) model to enhance the canopy treatment. 
+* K. Pratt's thesis: <https://etda.libraries.psu.edu/catalog/14063>. The version described there included a simpler treatment of the in-canopy statistics. [Marcelo Chamecki](http://people.atmos.ucla.edu/mchamecki/index.htm) added the Massman & Weil (1999) model to enhance the canopy treatment.
 * Massman & Weil (1999): <https://doi.org/10.1023/A:1001810204560>
 * Fuentes et al. (2016): <https://doi.org/10.1016/j.atmosenv.2016.07.002>

@@ -4,7 +4,6 @@ Demonstrate chemical concentration plots.
 
 @author: zmoon
 """
-
 import sys
 sys.path.append('../')
 
@@ -21,7 +20,7 @@ new_p = {
     'source_positions': [(-200, -200), (500, 0), (1000, 200)],  # similar to the ones Pratt used in their Fig 4.2
     't_tot': 10*60.,  # 10 min
     'continuous_release': True,  # this is a default
-    'dNp_per_dt_per_source': 4, 
+    'dNp_per_dt_per_source': 4,
     'chemistry_on': True,
 }
 
@@ -57,9 +56,9 @@ plots.final_pos_hist2d(state, p, bounds='auto', create_contourf=True, log_cnorm=
 #%% plot the other species
 
 for spc in state['conc']:
-    
+
     print(state['conc'][spc].mean())
-    
+
     plots.conc(state, p, spc, plot_type='pcolor', bins='auto', log_cnorm=True, vmin=1.0)
 
 

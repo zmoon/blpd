@@ -2,7 +2,6 @@
 Chemistry and emissions calculations
 on lpd (Lagrangian particle dispersion) output.
 """
-
 import numpy as np
 from scipy import stats
 
@@ -46,12 +45,12 @@ chemical_species_data = _parse_chemical_species_data()
 
 
 # TODO: for the Lagrangian particles it is really number or mass we are calculating
-#       not volume-wise concentration or mixing ratio, 
+#       not volume-wise concentration or mixing ratio,
 #       so maybe the language/names here should be changed.
 def calc_relative_levels_fixed_oxidants(
-    p, 
-    species=chemical_species_data, 
-    *, 
+    p,
+    species=chemical_species_data,
+    *,
     t_out=None,
     fv_0_default: float = 100.0  # percentage mode by default
 ):
@@ -60,8 +59,8 @@ def calc_relative_levels_fixed_oxidants(
 
     The fixed oxidant levels greatly simplify the problem--
     fractional chemical destruction only depends on time-since-release.
-    * Since we release particles in a known non-random way (fixed release rate), 
-      we can derive time-since-release after the lpd run has finished, 
+    * Since we release particles in a known non-random way (fixed release rate),
+      we can derive time-since-release after the lpd run has finished,
       without needing the trajectory data.
       - This assumes the source strengths remain constant as well.
 
@@ -159,7 +158,7 @@ def calc_relative_levels_fixed_oxidants(
 
 def calc_t_out(p):
     """Calculate time-since-release for particles at end of simulation.
-    
+
     This works for a simulation with constant particle release rate
     (number of particles released per time step per source).
 
@@ -201,17 +200,17 @@ def calc_t_out(p):
 
 def load_canola_data():
     """Canola species data.
-    
+
     Return as dict of dicts
     """
 
     def try_float(v):
-        try: 
+        try:
             return float(v)
         except:
             return v
 
-    fields = ["key", "MW", "kO3", "kOH", "kNO3", 
+    fields = ["key", "MW", "kO3", "kOH", "kNO3",
               "OH_yield", "HCHO_yield", "display_name"]
     #,mw,ko3,koh,kno3,oh_yield,hcho_yield,display_name
     s = """
@@ -319,7 +318,7 @@ def canola_areal_emission_rates(
 
         # ug per floret-s at temperature T
         e_i = e_si * np.exp(beta * (T - T_S))
-    
+
         # compute areal emissions
 
         # ug per s per m^2
@@ -356,7 +355,7 @@ def canola_calc_gridded_conc(state, p):
     Np_per_sec_per_source = dNp_per_dt_per_source / dt
     fv_0 = {}  # floral volatile initial amounts in particle
     for spc, d in emiss_rates.items():
-        # assume 1 m^2 source area 
+        # assume 1 m^2 source area
         # TODO: source's effective area for emissions calculation can be an input somewhere?
         # and that it does not overlap with other sources
         molec_per_p = d["emiss_areal_molec"] / Np_per_sec_per_source
@@ -391,9 +390,9 @@ def canola_calc_gridded_conc(state, p):
             rets_vn = {}
             for stat in stats_to_calc:
                 ret = stats.binned_statistic_dd(
-                    np.column_stack(pos),  # binning by 
+                    np.column_stack(pos),  # binning by
                     values,  # calculating the statistic on
-                    statistic=stat, 
+                    statistic=stat,
                     bins=bins,
                     binned_statistic_result=ret,
                 )

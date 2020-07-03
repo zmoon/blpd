@@ -4,7 +4,6 @@ Demonstrate run types and default plots
 
 @author: zmoon
 """
-
 import sys
 sys.path.append('../')
 
@@ -23,7 +22,7 @@ m0.plot()
 m1 = blpdm.model()
 m1.update_p({
     'continuous_release': False,
-    'dNp_per_dt_per_source': 1000, 
+    'dNp_per_dt_per_source': 1000,
     't_tot': 10*60,  # 10 minutes
     'dt': 0.1,
     'dt_out': 1.0,  # a multiple of model integration time step

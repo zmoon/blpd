@@ -6,22 +6,23 @@ efficiently (hopefully) with the help of numba
 # in order to pass in dicts as args for numba fn
 # need to use their special dict type and specify the types of the varibles
 #   https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#typed-dict
-
-from functools import wraps
 import importlib
 import os
 import sys
 import warnings
+from functools import wraps
 
 import numba
-from numba import jit, njit, prange
 import numpy as np
+from numba import jit
+from numba import njit
+from numba import prange
 
 
 
 def disable_numba():
     """Tell numba to disable JIT.
-    
+
     refs
     ----
     * disabling JIT: https://numba.pydata.org/numba-doc/latest/user/troubleshoot.html#disabling-jit-compilation
@@ -30,8 +31,8 @@ def disable_numba():
     os.environ.update({'NUMBA_DISABLE_JIT': str(1)})
     numba.config.reload_config()
     assert numba.config.DISABLE_JIT == 1  # pylint: disable=no-member
-    
-    # note: reloading numba here does not change lpd's functions as imported by another module 
+
+    # note: reloading numba here does not change lpd's functions as imported by another module
     #   like the model does
     # until the module importing lpd reloads lpd (`importlib.reload(lpd)`)
     # so the following does not have the desired effect
@@ -42,7 +43,7 @@ def disable_numba():
 
 def enable_numba():
     """Tell numba to enable JIT.
-    
+
     see refs in `disable_numba`
     """
     # by default (when numba is loaded normally), this env var is not set, so remove it
@@ -86,7 +87,7 @@ def _calc_fd_params_above_canopy(pos, p):
         _calc_Rodean_lambdas(tau11, tau22, tau33, tau13)
 
     # Dissipation - above canopy (log wind profile)
-    # ref: e.g., MW Eq. 12 
+    # ref: e.g., MW Eq. 12
     # print(kconstant, z, d)
     epsilon = (ustar**3)/(kconstant*(z - d))
 
@@ -94,7 +95,7 @@ def _calc_fd_params_above_canopy(pos, p):
     # # should more concise dict syntax to creat it
     # r['umean'] = umean
     # r['dumeandz'] = dumeandz
-    
+
     # r['tau11'] = tau11
     # r['tau22'] = tau22
     # r['tau33'] = tau33
@@ -114,7 +115,7 @@ def _calc_fd_params_above_canopy(pos, p):
 
     # return r
 
-    return (umean, dumeandz, 
+    return (umean, dumeandz,
         tau11, tau22, tau33, tau13,
         dtau11dz, dtau22dz, dtau33dz, dtau13dz,
         lambda11, lambda22, lambda33, lambda13,
@@ -187,19 +188,19 @@ def _calc_fd_params_in_canopy(pos, p):
             - (Lam*zet_h/h)*np.exp(-Lam*zet_h*(1-z/h))\
             )\
           )
-    
+
     # from MW eq. 11, in the canopy: gam_i * nu_1 * sig_e = sig_i
     # and above the canopy: sig_i/u_star = gam_i (p. 86)
 
     tau11 = (gam1*nu1*sig_e)**2
     dtau11dz = ((gam1*nu1)**2)*dsig_e2dz
-        
+
     tau22 = (gam2*nu1*sig_e)**2
     dtau22dz = ((gam2*nu1)**2)*dsig_e2dz
-        
+
     tau33 = (gam3*nu1*sig_e)**2
     dtau33dz = ((gam3*nu1)**2)*dsig_e2dz
-        
+
     tau13 = -(ustar**2)*np.exp(-2*n*(1-(z/h)))
     dtau13dz = -(ustar**2)*(2*n/h)*np.exp(-2*n*(1-(z/h)))
 
@@ -215,7 +216,7 @@ def _calc_fd_params_in_canopy(pos, p):
             scale_choice_2 = h/(kconstant*(z-d))  # this is a potential source of div by 0 (if z v close to d)
             # scale_choices = np.concatenate(( scale_choice_1, scale_choice_2  ))
             scale_choices = np.array([scale_choice_1, scale_choice_2])
-            epsilon = (ustar**3/h) * scale_choices.min()  
+            epsilon = (ustar**3/h) * scale_choices.min()
                 # numba doesn't support std min without tuple
                 # * np.min( np.array([ sig_e**3*(zet_h)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ]) )  # numba doesn't support std min without tuple
                 # * np.min( ( sig_e**3*(zet_h)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ) )  # numba doesn't support std min without tuple
@@ -249,7 +250,7 @@ def _calc_fd_params_in_canopy(pos, p):
 
     # return r
 
-    return (umean, dumeandz, 
+    return (umean, dumeandz,
         tau11, tau22, tau33, tau13,
         dtau11dz, dtau22dz, dtau33dz, dtau13dz,
         lambda11, lambda22, lambda33, lambda13,
@@ -259,7 +260,7 @@ def _calc_fd_params_in_canopy(pos, p):
 @njit
 def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
     """
-    Ref: Pratt thesis Eq. 2.14, p. 15 
+    Ref: Pratt thesis Eq. 2.14, p. 15
     """
     # 1/{} should usually be faster than {}**-1 (at least with numpy)
     # lambda11 = 1/(tau11 - ((tau13**2)/tau33))
@@ -296,7 +297,7 @@ def calc_tends(pos, ws_local, p):
     u1, u2, u3 = ws_local
 
     h_c = p['canopy_height']
-    # 
+    #
     if z >= h_c:
         #p_fd = _calc_fd_params_above_canopy(pos, p)
 
@@ -306,7 +307,7 @@ def calc_tends(pos, ws_local, p):
         lam11, lam22, lam33, lam13, \
         eps \
             = _calc_fd_params_above_canopy(pos, p)
-        # return (umean, dumeandz, 
+        # return (umean, dumeandz,
         #     tau11, tau22, tau33, tau13,
         #     dtau11dz, dtau22dz, dtau33dz, dtau13dz,
         #     lambda11, lambda22, lambda33, lambda13,
@@ -324,7 +325,7 @@ def calc_tends(pos, ws_local, p):
     # fd: fluid dynamics
 
     #> unpack needed variables
-    
+
     # from params
     C0 = p['Kolmogorov_C0']  # a Kolmogorov constant (3--10)
     dt = p['dt']
@@ -358,7 +359,7 @@ def calc_tends(pos, ws_local, p):
     # math.sqrt might be faster for single floats
 
 
-    # if wanted to be able to use other sorts of integrators, 
+    # if wanted to be able to use other sorts of integrators,
     # would have to freeze the random seed or something?
     # otherwise the tends will be different every time
     # or separate the random part from the rest of the tend calculation
@@ -373,15 +374,15 @@ def calc_tends(pos, ws_local, p):
       + (dtau11dx3*(lam11*(u1-U1) + lam13*u3) \
         + dtau13dx3*(lam13*(u1-U1) + lam33*u3))*(u3/2*dt) \
       + sqrt_C0eps * dW1
-    
-    
+
+
     # x-2 component
     randn = np.random.standard_normal()
     dW2 = sqrt_dt * randn
     du2 = \
         (-C0*eps/2 * lam22*u2 + dtau22dx3*lam22*u2 * u3/2) * dt \
-      + sqrt_C0eps * dW2    
-    
+      + sqrt_C0eps * dW2
+
 
     # x-3 component
     randn = np.random.standard_normal()
@@ -395,7 +396,7 @@ def calc_tends(pos, ws_local, p):
 
     # if np.any(np.r_[du1, du2, du3] > 50):
     if np.any(np.abs(np.array([du1, du2, du3])) > 50):
-    #     # msg = f'one wind speed is too high: {du1}, {du2}, {du3}' 
+    #     # msg = f'one wind speed is too high: {du1}, {du2}, {du3}'
         # msg = 'one wind speed is too high: ' + str(du1) + str(du2) + str(du3)  # numba nopython can't do str formatting
     #     warnings.warn(msg)
         # print(msg)
@@ -415,7 +416,7 @@ def calc_tends(pos, ws_local, p):
         #         # d = 50.
         #         # d[:] = 50.
         # print('resetting to 50')
-        
+
         # print('resetting all to 0')
         # du1 = 0.
         # du2 = 0.
@@ -442,7 +443,7 @@ def calc_tends(pos, ws_local, p):
     # r = {
     #     'dxdt': u1 + du1,
     #     'dydt': u2 + du2,
-    #     'dzdt': u3 + du3 
+    #     'dzdt': u3 + du3
     # }
 
     # return r
@@ -459,7 +460,7 @@ def _integrate_particle_one_timestep(pos, ws_local, p):
     """
 
     # pos = state['x'], state['y'], state['z']
-    
+
     dt = p['dt']
 
     res = calc_tends(pos, ws_local, p)

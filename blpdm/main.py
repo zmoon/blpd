@@ -1,24 +1,23 @@
 """
 Model class, input parameters, ...
 """
-
-from copy import deepcopy as copy
 import importlib
 import os
 import sys
 import warnings
+from copy import deepcopy as copy
 
+import numba  #
+import numpy as np
+
+from . import lpd
+from .chem import chem_calc_options
 # from numba import njit
 # from numba.core import types  # in the docs: https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#id6 but doesn't work
 # from numba import types  # I guess this is the new method of importing 'types'
-import numba  # 
 # from numba.typed import Dict
-import numpy as np
-
 # import lpd
-from . import lpd
 # from .lpd import enable_numba, disable_numba, integrate_particles_one_timestep
-from .chem import chem_calc_options
 
 
 
@@ -40,10 +39,10 @@ input_param_defaults = {
     'Kolmogorov_C0': 5.5,
     #
     # run options
-    'dt': 0.25,  # s; time step for the 1-O Newton FT scheme; this is what Pratt used 
+    'dt': 0.25,  # s; time step for the 1-O Newton FT scheme; this is what Pratt used
     't_tot': 100.,  # s; total time of the run
     'dt_out': 0.,
-    'continuous_release': True, 
+    'continuous_release': True,
     'use_numba': True,
     'chemistry_on': False,
     #
@@ -53,7 +52,7 @@ input_param_defaults = {
     'oxidants_ppbv' : {
         'O3': 40.0,
         'OH': 1.0e-4,
-        'NO3': 1.0e-5 
+        'NO3': 1.0e-5
     },
     #
     # Massman and Weil (MW) canopy wind model parameters (could be dict)
@@ -61,7 +60,7 @@ input_param_defaults = {
     'MW_c2': 0.37,
     'MW_c3': 15.1,
     'MW_gam1': 2.40,  # gam_i = sig_i/u_star (velocity std's above canopy, in sfc layer)
-    'MW_gam2': 1.90, 
+    'MW_gam2': 1.90,
     'MW_gam3': 1.25,
     'MW_alpha': 0.05,  # parameter that controls in-canopy sigma_w and sigma_u
     'MW_A2': 0.6  # appears to be unused, but is part of their model
@@ -72,7 +71,7 @@ input_param_defaults = {
 
 def calc_MW_derived_params(p):
     """
-    from the base MW params and 
+    from the base MW params and
 
     ref: Massman and Weil (1999) [MW]
     """
@@ -120,7 +119,7 @@ def calc_MW_derived_params(p):
         'MW_nu3': nu3,
         'MW_Lam': Lam,
         'MW_n': n,  # should be eta? (think not)
-        'MW_B1': B1, 
+        'MW_B1': B1,
         'U_h': uh,  # mean wind speed at canopy height U(h)
         'displacement_height': d,
         'roughness_length': z0,
@@ -244,7 +243,7 @@ class Model():
             self.p.update(calc_MW_derived_params(self.p))
 
 
-    # TODO: could change self.p to self._p, but have self.p return a view, 
+    # TODO: could change self.p to self._p, but have self.p return a view,
     #       but give error if user tries to set items
 
 
@@ -272,17 +271,17 @@ class Model():
         source_positions = self.p['source_positions']
         for isource in range(N_sources):
             ib = isource * Np_tot_per_source
-            ie = (isource+1) * Np_tot_per_source 
+            ie = (isource+1) * Np_tot_per_source
             xp[ib:ie] = source_positions[isource][0]
             yp[ib:ie] = source_positions[isource][1]
             zp[ib:ie] = release_height
-        
+
         # rearrange by time (instead of by source)
         for p_ in (xp, yp, zp):
             groups = []
             for isource in range(N_sources):
                 ib = isource * Np_tot_per_source
-                ie = (isource+1) * Np_tot_per_source 
+                ie = (isource+1) * Np_tot_per_source
                 groups.append(p_[ib:ie])
             p_[:] = np.column_stack(groups).flatten()
         # assuming sources same strength everywhere for now
@@ -294,7 +293,7 @@ class Model():
             'xp': xp,
             'yp': yp,
             'zp': zp,
-            'up': up, 
+            'up': up,
             'vp': vp,
             'wp': wp,
             # 'test': np.r_[0.01]  # must be array, even a size 1 array (like in xr)
@@ -384,7 +383,7 @@ class Model():
         # reloading numba in lpd doesn't seem to work
         # - at least not the first time trying to run after changing use_numba True->False
         importlib.reload(lpd)
-        
+
         # print(state_run['xp'].shape)
 
         for k in range(1, N_t+1):
@@ -401,25 +400,25 @@ class Model():
 
             if self.p["use_numba"]:
                 state_run.update(numbify({
-                    'k': k, 
-                    't': t, 
+                    'k': k,
+                    't': t,
                     'Np_k': Np_k
                 }))
             else:
                 state_run.update({
-                    'k': [k], 
-                    't': [t], 
+                    'k': [k],
+                    't': [t],
                     'Np_k': [Np_k]
                 })
             # print(state_run['xp'].shape)
 
-                    
+
             # pass numba-ified dicts here
 
             lpd.integrate_particles_one_timestep(state_run, p_run)
             # integrate_particles_one_timestep(state_run, p_run)
 
-            # TODO: option to save avg in addition to instantaneous? or specify one? 
+            # TODO: option to save avg in addition to instantaneous? or specify one?
             if self.hist != False:
                 if t % dt_out == 0:
                     o = int(t // dt_out)  # note that `int()` floors anyway
@@ -452,7 +451,7 @@ class Model():
         if self.p['chemistry_on']:
             if not self.p['continuous_release']:
                 warnings.warn(
-                    'chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry', 
+                    'chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry',
                     stacklevel=2,
                 )
                 self.p['chemistry_on'] = False

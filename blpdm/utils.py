@@ -1,7 +1,6 @@
 """
 Utilities for the model, plots, etc.
 """
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,7 +27,7 @@ def check_fig_num(label, n=0):
 def to_sci_not(f):
     """Convert float f to scientific notation string.
     by using string formats 'e' and 'g'
-    
+
     The output of this must be enclosed within `$`
     """
     s_e = f"{f:.4e}"
@@ -40,8 +39,8 @@ def to_sci_not(f):
 
 def sec_to_str(total_seconds):
     """Choose best format to display the run time.
-    
-    note: can't use `strftime` with `timedelta`s 
+
+    note: can't use `strftime` with `timedelta`s
     """
     hours, remainder = divmod(total_seconds, 60 * 60)
     minutes, seconds = divmod(remainder, 60)
@@ -96,7 +95,7 @@ def s_t_info(p):
 
 # TODO: use this fn (auto_grid) in the plotting routines
 
-def auto_grid(positions, *, 
+def auto_grid(positions, *,
     nx_max: int = 100,
     sd_mult: float = 2.0,
 ):
@@ -123,7 +122,7 @@ def auto_grid(positions, *,
         raise TypeError("`positions`")
     # TODO: implement optional z binning
 
-    # form linearly spaced bins 
+    # form linearly spaced bins
     # with grid edges based on mean and standard deviation
     Np = X.size  # number of particles in the snapshot
     xbar, xstd = X.mean(), X.std()
@@ -133,6 +132,6 @@ def auto_grid(positions, *,
     ny = nx
     x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
     y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
-    bins = [x_edges, y_edges] 
+    bins = [x_edges, y_edges]
 
     return bins

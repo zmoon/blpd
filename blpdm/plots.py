@@ -186,7 +186,7 @@ def conc(
     vmin=None,  # allow fair comparison with other plots
     centerline_dy=10,  # width of y bin for centerline plots
 ):
-    """Scatter plot of particle end positions colored by concentration 
+    """Scatter plot of particle end positions colored by concentration
     for continuous release runs
 
     INPUTS
@@ -395,7 +395,7 @@ def conc(
 def ws_hist_all(
     hist, p, *, bounds=False,
 ):
-    """Histograms of particle wind speed components 
+    """Histograms of particle wind speed components
     from a single-release run.
     """
 
