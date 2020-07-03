@@ -24,7 +24,7 @@ from scipy import stats
 # to indicate that these are not intended to be public parts of the module name space
 # since __all__ is not respected by linters or autocompleters
 
-from .main import chemical_species_data
+from .chem import chemical_species_data
 from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info
 
 

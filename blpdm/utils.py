@@ -92,3 +92,47 @@ def s_t_info(p):
 
 
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
+
+
+# TODO: use this fn (auto_grid) in the plotting routines
+
+def auto_grid(positions, *, 
+    nx_max: int = 100,
+    sd_mult: float = 2.0,
+):
+    """Determine a good grid that lets us focus on where most of the data is.
+
+    positions
+        can be:
+        * container of 1-D arrays (in x,y[,z] order)
+        * single np.array where columns are x,y[,z]
+
+    sd_mult :
+        standard deviation multiplier
+        increase to capture more of the domain
+
+    """
+    # explicity pass in x,y,z positions instead of whole state?
+    if isinstance(positions, (tuple, list)):
+        X = positions[0]
+        Y = positions[1]
+    elif isinstance(positions, np.array):
+        X = positions[:,0]
+        Y = positions[:,1]
+    else:
+        raise TypeError("`positions`")
+    # TODO: implement optional z binning
+
+    # form linearly spaced bins 
+    # with grid edges based on mean and standard deviation
+    Np = X.size  # number of particles in the snapshot
+    xbar, xstd = X.mean(), X.std()
+    ybar, ystd = Y.mean(), Y.std()
+    mult = sd_mult
+    nx = min(np.sqrt(Np).astype(int), nx_max)
+    ny = nx
+    x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
+    y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
+    bins = [x_edges, y_edges] 
+
+    return bins

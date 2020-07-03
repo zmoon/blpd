@@ -18,6 +18,7 @@ import numpy as np
 # import lpd
 from . import lpd
 # from .lpd import enable_numba, disable_numba, integrate_particles_one_timestep
+from .chem import chem_calc_options
 
 
 
@@ -47,9 +48,7 @@ input_param_defaults = {
     'chemistry_on': False,
     #
     # chemistry
-    'conc_fv_0': {  # fv: floral volatiles
-        'BO': 100.  # 100 %; if using relative conc. this doesn't matter really
-        },
+    'fv_0': {},  # fv: floral volatiles. initial values (mol, ug, or somesuch) can be provided here.
     'n_air_cm3': 2.62e19,  # (dry) air number density (molec cm^-3)
     'oxidants_ppbv' : {
         'O3': 40.0,
@@ -69,49 +68,6 @@ input_param_defaults = {
     # only alpha and A_1 are empirical constants (MW p. 89)
 }
 # could do more dict nesting like in pyAPES...
-
-
-# rate_consts = {
-#     'BO_O3': 5.4e-16,
-#     'BO_OH': 2.52e-10,
-#     'BO_NO3': 2.2e-11,
-# }
-# BO: beta-ocimene
-
-# key, display name string, kO3, kOH, kNO3
-# for now must have space after `,` !
-_chemical_species_data_table_str = """
-apinene, "α-pinene", 8.1e-17, 5.3e-11, 6.2e-12
-bocimene, "β-ocimene", 5.4e-16, 2.52e-10, 2.2e-11
-bpinene, "β-pinene", 2.4e-17, 7.8e-11, 2.5e-12
-carene, "3-carene", 3.8e-17, 8.7e-11, 9.1e-12
-cineole, "1,8-cineole", 6.0e-20, 1.0e-11, 1.7e-16
-farnesene, "α-farnesene", 1.0e-15, 3.2e-10, 5.5e-11
-limonene, "d-limonene", 2.5e-16, 1.6e-10, 1.3e-11
-linalool, "linalool", 4.3e-16, 1.6e-10, 1.1e-11
-myrcene, "β-myrcene", 4.7e-16, 2.1e-10, 1.3e-11
-sabinene, "sabinene", 9.0e-17, 1.2e-10, 1.0e-11
-thujene, "α-thujene", 4.4e-16, 8.7e-11, 1.1e-11
-""".strip()
-
-def _parse_chemical_species_data(s=_chemical_species_data_table_str):
-    d = {}
-    for line in s.split('\n'):
-        parts = [p.strip() for p in line.split(', ')]
-        dl = {
-            'display_name': eval(parts[1]),
-            'kO3': float(parts[2]),
-            'kOH': float(parts[3]),
-            'kNO3': float(parts[4])
-        }
-        key = parts[0]
-        d[key] = dl
-
-    return d
-
-chemical_species_data = _parse_chemical_species_data()
-
-
 
 
 def calc_MW_derived_params(p):
@@ -292,7 +248,7 @@ class Model():
     #       but give error if user tries to set items
 
 
-    # TODO: init conc here too
+    # TODO: init conc at this time too?
     def init_state(self):
         Np_tot = self.p['Np_tot']
         # also could do as 3-D? (x,y,z coords)
@@ -483,12 +439,16 @@ class Model():
             self.state = state_run
 
         #> calculate chemistry
-        #  this can be outside the time loop since the concentrations of oxidants are not changing with time
-        #  so the amount of destruction only depends on the time that a given particle has been out
-        #
-        #  source strengths are not changing with time either
-        # TODO: separate this from `.run` to add capability to calc chemistry again for same particles without re-running
+        #  in some cases, this can be outside the time loop
+        #  (e.g., fixed oxidant levels, source strengths, particle release rate)
+        #  in other cases, will need to iterate through the trajectory history in some fashion
+        self._maybe_run_chem()
 
+
+    def _maybe_run_chem(self):
+        # note: adds conc to self.state
+
+        # this check/correction logic could be somewhere else
         if self.p['chemistry_on']:
             if not self.p['continuous_release']:
                 warnings.warn(
@@ -497,44 +457,23 @@ class Model():
                 )
                 self.p['chemistry_on'] = False
 
-        if self.p['chemistry_on']:
-
-            # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
-            t_out = np.ravel(np.tile(np.arange(dt, N_t*dt + dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
-            # ^ need to find the best way to do this!
-            # note: apparently `(N_t+1)*dt` does not give the same stop as `N_t*dt+dt` sometimes (precision thing?)
-
-            # t_out = (t_out[::-1]+1) * dt
-            t_out = t_out[::-1]
-
-            assert np.isclose(t_tot, t_out[0])   # the first particle has been out for the full time
-
-            conc_O3 = self.p['conc_oxidants']['O3']
-            conc_OH = self.p['conc_oxidants']['OH']
-            conc_NO3 = self.p['conc_oxidants']['NO3']
-
-            conc = {}
-            for spc, d_spc in chemical_species_data.items():
-                conc0_val = self.p['conc_fv_0'].get(spc, 100.)  # default value 100
-                # TODO: should init all of them before this and allow for diff values for diff sources
-
-                kO3 = d_spc['kO3']
-                kOH = d_spc['kOH']
-                kNO3 = d_spc['kNO3']
-
-                conc_spc =  np.full((Np_tot,), conc0_val) \
-                    * np.exp(-kO3*conc_O3*t_out) \
-                    * np.exp(-kOH*conc_OH*t_out) \
-                    * np.exp(-kNO3*conc_NO3*t_out)
-
-                conc[spc] = conc_spc
+        if self.p["chemistry_on"]:
+            conc = self._run_chem()
 
         else:
-            conc = {k: False for k in chemical_species_data}
+            conc = False
 
         self.state.update({
             'conc': conc
         })
+        # maybe should instead remove 'conc' from state if not doing chem
+
+
+    def _run_chem(self):
+        # TODO: other chem options
+        f = chem_calc_options["fixed_oxidants"]
+        return f(self.p)
+
 
 
     def plot(self, **kwargs):
