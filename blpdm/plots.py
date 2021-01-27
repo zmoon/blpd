@@ -25,7 +25,7 @@ from scipy import stats
 # since __all__ is not respected by linters or autocompleters
 
 from .chem import chemical_species_data
-from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info
+from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info, auto_grid
 
 
 # TODO: create some base classes for plots to reduce repeating of code
@@ -230,15 +230,7 @@ def conc(
         if not bins:
             bins = 50
         elif bins == "auto":
-            Np = p["Np_tot"]
-            xbar, xstd = X.mean(), X.std()
-            ybar, ystd = Y.mean(), Y.std()
-            mult = 2.0
-            nx = min(np.sqrt(Np).astype(int), 100)
-            ny = nx
-            x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
-            y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
-            bins = [x_edges, y_edges]
+            bins = auto_grid([X, Y])
             # TODO: fix so that for z we don't go below zero (or just a bit)
         # else:
         # bins = np.linspace(bounds[0], bounds[1], 50)
@@ -433,7 +425,7 @@ def ws_hist_all(
 def final_pos_hist(
     state, p, *, bounds=False,
 ):
-    """Histograms of final position components."""
+    """Histograms of final position components (x, y, and z)."""
 
     xf = state["xp"]
     yf = state["yp"]
@@ -461,7 +453,7 @@ def final_pos_hist(
 
 
 def final_pos_hist2d(
-    state, p, *, dim=("x", "y"), bounds=False, create_contourf=False, log_cnorm=False,
+    state, p, *, dim=("x", "y"), bins=50, create_contourf=False, log_cnorm=False,
 ):
     """2-D histogram of selected final position components."""
 
@@ -478,22 +470,8 @@ def final_pos_hist2d(
     num = check_fig_num(f"final-pos-hist-{sdim}")
     fig, ax = plt.subplots(num=num)
 
-    if not bounds:
-        bins = 50
-    elif bounds == "auto":
-        xbar, xstd = x.mean(), x.std()
-        ybar, ystd = y.mean(), y.std()
-        mult = 2.0
-        nx = min(np.sqrt(Np).astype(int), 100)
-        ny = nx
-        x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
-        y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
-        bins = [x_edges, y_edges]
-        # TODO: fix so that for z we don't go below zero (or just a bit)
-    else:
-        bins = np.linspace(bounds[0], bounds[1], 50)
-
-    # H, xedges, yedges = np.histogram2d(x, y, bins=bins)
+    if bins == "auto":
+        bins = auto_grid([x, y])
 
     if log_cnorm:
         norm = mpl.colors.LogNorm(vmin=1.0)
