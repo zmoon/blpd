@@ -50,14 +50,14 @@ plots.conc(state, p, plot_type='contourf', bins='auto')
 plots.conc(state, p, plot_type='contourf', bins='auto', log_cnorm=True)
 
 # we can compare the above reactive species conc. plots to one of the non-reactice particles
-plots.final_pos_hist2d(state, p, bounds='auto', create_contourf=True, log_cnorm=True)
+plots.final_pos_hist2d(state, p, bins='auto', create_contourf=True, log_cnorm=True)
 
 
 #%% plot the other species
 
-for spc in state['conc']:
+for spc in state['conc'].spc.values:
 
-    print(state['conc'][spc].mean())
+    print(state['conc'].f_r.sel(spc=spc).mean())
 
     plots.conc(state, p, spc, plot_type='pcolor', bins='auto', log_cnorm=True, vmin=1.0)
 

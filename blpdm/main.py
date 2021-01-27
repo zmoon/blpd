@@ -194,7 +194,10 @@ class Model():
                 msg = f"key '{k}' is not in the default parameter list. ignoring it."
                 warnings.warn(msg)
             else:
-                self.p[k] = v
+                if isinstance(v, dict):
+                    self.p[k].update(v)
+                else:
+                    self.p[k] = v
 
         # calculated parameters (probably should be in setter methods or something to prevent inconsistencies)
         # i.e., user changing them without using `update_p`
