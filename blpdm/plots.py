@@ -281,7 +281,7 @@ def conc(
     elif plot_type == "centerline":
         # raise NotImplementedError("Yo")
         if spc == "all":
-            spc_to_plot = state["conc"].spc
+            spc_to_plot = state["conc"].spc.values
             n_sp = len(p["source_positions"])
             plt.close(fig)
             fig, axs = plt.subplots(n_sp, 1, num=num)
