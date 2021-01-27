@@ -210,7 +210,7 @@ def conc(
     Z = zpath
 
     if plot_type in ("scatter", "pcolor", "contourf"):
-        conc = state["conc"][spc]
+        conc = state["conc"].f_r.sel(spc=spc).values
         spc_display_name = chemical_species_data[spc]["display_name"]
 
     num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_{plot_type}")
@@ -289,7 +289,7 @@ def conc(
     elif plot_type == "centerline":
         # raise NotImplementedError("Yo")
         if spc == "all":
-            spc_to_plot = state["conc"].keys()
+            spc_to_plot = state["conc"].spc
             n_sp = len(p["source_positions"])
             plt.close(fig)
             fig, axs = plt.subplots(n_sp, 1, num=num)
@@ -307,11 +307,11 @@ def conc(
         #     axs.append(ax_)
 
         for spc in spc_to_plot:
-            conc = state["conc"][spc]
+            conc = state["conc"].f_r.sel(spc=spc).values
 
             for i, source_pos in enumerate(p["source_positions"]):
 
-                ax_ = axs.flat[i]
+                ax_ = axs.flat[i] if spc == "all" else ax
 
                 x0_source, y0_source = source_pos
 
