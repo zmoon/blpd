@@ -2,6 +2,7 @@
 Model class, input parameters, ...
 """
 import importlib
+import math
 import os
 import sys
 import warnings
@@ -95,14 +96,14 @@ def calc_MW_derived_params(p):
     nu2 = nu3/6 - gam3**2/(2*nu1)
     #Lam2 = 7/(3*alpha**2*nu1*nu3) + [1/3 - gam3**2*nu1**2]/(3*alpha**2*nu1*nu2)  # the first Lambda^2
     Lam2 = 3*nu1**2/alpha**2  # the simplified Lambda^2 expr; MW p. 87
-    Lam = np.sqrt(Lam2)
-    uh = ustar/(c1 - c2*np.exp(-c3*cd*LAI))  # u(h); MW Eq. 5
+    Lam = math.sqrt(Lam2)
+    uh = ustar/(c1 - c2*math.exp(-c3*cd*LAI))  # u(h); MW Eq. 5
     n = cd*LAI/(2*ustar**2/uh**2)  # MW Eq. 4, definitely here "n" not "nu"
     B1 = -(9*ustar/uh)/(2*alpha*nu1*(9/4-Lam**2*ustar**4/uh**4))
 
-    d = h*(1-(1/(2*n))*(1 - np.exp(-2*n)))  # displacement height
+    d = h*(1-(1/(2*n))*(1 - math.exp(-2*n)))  # displacement height
 
-    z0 = (h-d)*np.exp(-kconstant*uh/ustar)  # roughness length
+    z0 = (h-d)*math.exp(-kconstant*uh/ustar)  # roughness length
 
     # Calculate dissipation at canopy top to choose matching approach (Massman and Weil)
     epsilon_ah = (ustar**3)/(kconstant*(h - d))
@@ -213,7 +214,7 @@ class Model():
         # calculate number of time steps: N_t from t_tot
         t_tot = self.p['t_tot']
         dt = self.p['dt']
-        N_t = np.floor(t_tot/dt).astype(int)  # number of time steps
+        N_t = math.floor(t_tot/dt)  # number of time steps
         if abs(N_t-t_tot/dt) > 0.01:
             msg = f'N was rounded down from {t_tot/dt:.4f} to {N_t}'
             warnings.warn(msg)
@@ -224,7 +225,7 @@ class Model():
         N_s = self.p['N_sources']
         if self.p['continuous_release']:
             Np_tot = N_t * dNp_dt_ds * N_s
-            Np_tot_per_source = (Np_tot / N_s).astype(int)
+            Np_tot_per_source = int(Np_tot / N_s)
 
         else:
             Np_tot = dNp_dt_ds * N_s
@@ -338,6 +339,9 @@ class Model():
 
     def run(self):
         """run dat model"""
+        import datetime
+
+        self._clock_time_run_start = datetime.datetime.now()
 
         Np_k = 0  # initially tracking 0 particles
         Np_tot = self.p['Np_tot']
@@ -421,7 +425,7 @@ class Model():
             lpd.integrate_particles_one_timestep(state_run, p_run)
             # integrate_particles_one_timestep(state_run, p_run)
 
-            # TODO: option to save avg in addition to instantaneous? or specify one?
+            # TODO: option to save avg / other stats in addition to instantaneous? or specify avg vs instant?
             if self.hist != False:
                 if t % dt_out == 0:
                     o = int(t // dt_out)  # note that `int()` floors anyway
@@ -445,6 +449,8 @@ class Model():
         #  (e.g., fixed oxidant levels, source strengths, particle release rate)
         #  in other cases, will need to iterate through the trajectory history in some fashion
         self._maybe_run_chem()
+
+        self._clock_time_run_end = datetime.datetime.now()
 
 
     def _maybe_run_chem(self):
@@ -476,6 +482,62 @@ class Model():
         f = chem_calc_options["fixed_oxidants"]
         return f(self.p)
 
+
+    def to_xarray(self):
+        """Returns :class:`xarray.Dataset` of the LPD run."""
+        # TODO: smoothing options to reduce data storage?
+        import datetime
+        import json
+        import xarray as xr
+
+        ip_coord_tup = ("ip", np.arange(self.p["Np_tot"]), {"long_name": "Lagrangian particle index"})
+        if self.hist:  # continuous release run
+            t = np.arange(0, self.p["t_tot"]+self.p["dt_out"], self.p["dt_out"])
+            # ^ note can use `pd.to_timedelta(t, unit="s")`
+            dims = ("ip", "t")
+            coords = {"ip": ip_coord_tup, "t": ("t", t, {"long_name": "Simulation elapsed time", "units": "s"})}
+            x = self.hist["pos"][..., 0]
+            y = self.hist["pos"][..., 1]
+            z = self.hist["pos"][..., 2]
+            u = self.hist["ws"][..., 0]
+            v = self.hist["ws"][..., 1]
+            w = self.hist["ws"][..., 2]
+        else:  # no hist, only current state
+            dims = ("ip",)
+            coords = {"ip": ip_coord_tup}
+            x = self.state["xp"]
+            y = self.state["yp"]
+            z = self.state["zp"]
+            u = self.state["up"]
+            v = self.state["vp"]
+            w = self.state["wp"]
+
+        data_vars = {
+            "x": (dims, x, {"long_name": "$x$", "units": "m"}),
+            "y": (dims, y, {"long_name": "$y$", "units": "m"}),
+            "z": (dims, z, {"long_name": "$z$", "units": "m"}),
+            "u": (dims, u, {"long_name": "$u$", "units": "m s$^{-1}$"}),
+            "v": (dims, v, {"long_name": "$v$", "units": "m s$^{-1}$"}),
+            "w": (dims, w, {"long_name": "$w$", "units": "m s$^{-1}$"}),
+        }
+
+        # Serialize model parameters in JSON to allow saving in netCDF and loading later
+        attrs = {
+            "run_completed": self._clock_time_run_end,
+            "run_runtime": self._clock_time_run_end - self._clock_time_run_start,
+            # TODO: blpdm version once the packaging is better...
+            "p_json": json.dumps(self.p),
+        }
+
+        ds = xr.Dataset(
+            coords=coords,
+            data_vars=data_vars,
+            attrs=attrs,
+        )
+
+        # TODO: Add extra useful coordinates: t_out for non-hist and t as Timedelta for hist
+
+        return ds
 
 
     def plot(self, **kwargs):
