@@ -47,26 +47,21 @@ __all__ = (
 _SOURCE_MARKER_PROPS = dict(marker="*", c="gold", ms=11, mec="0.35", mew=1.0)
 
 
-def final_pos_scatter(state, p, sdim="xy"):
+def final_pos_scatter(ds, sdim="xy"):
     """Scatter plot of particle end positions."""
-    xpath = state["xp"]
-    ypath = state["yp"]
-    # zpath = state["zp"]
-
-    Np_tot = p["Np_tot"]
-    assert xpath.size == Np_tot
+    p = utils.load_p(ds)
 
     if sdim in ("xyz", "3d", "3-D"):
         sdim = "xyz"
-        x = state["xp"]
-        y = state["yp"]
-        z = state["zp"]
+        x = ds.x.values
+        y = ds.y.values
+        z = ds.z.values
         subplot_kw = {"projection": "3d"}
         coords = (x, y, z)
         plot_kw = dict(alpha=0.5, mew=0, ms=7)
-    elif len(sdim) == 2 and all(sdim_ in ("x", "y", "z") for sdim_ in sdim):
-        x = state[f"{sdim[0]}p"]
-        y = state[f"{sdim[1]}p"]
+    elif len(sdim) == 2 and all(sdim1 in ("x", "y", "z") for sdim1 in sdim):
+        x = ds[sdim[0]].values
+        y = ds[sdim[1]].values
         subplot_kw = {}
         coords = (x, y)
         plot_kw = dict(alpha=0.5, mfc="none", mew=0.8, ms=5)
@@ -75,7 +70,7 @@ def final_pos_scatter(state, p, sdim="xy"):
 
     dim = list(sdim)
 
-    num = check_fig_num(f"final-pos-scatter-{sdim}")
+    num = utils.check_fig_num(f"final-pos-scatter-{sdim}")
     fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
 
     ax.plot(*coords, "o", **plot_kw)
@@ -85,9 +80,8 @@ def final_pos_scatter(state, p, sdim="xy"):
     if subplot_kw:
         ax.set_zlabel(f"${dim[2]}$")
     ax.set_title(s_t_info(p), loc="left")
-    ax.set_title(f"$N_p = {Np_tot}$", loc="right")
+    ax.set_title(f"$N_p = {p['Np_tot']}$", loc="right")
 
-    # TODO: should make fn for this
     for (xs, ys) in p["source_positions"]:
         sp = dict(x=xs, y=ys, z=p["release_height"])
         if subplot_kw:  # hack for now
@@ -95,7 +89,7 @@ def final_pos_scatter(state, p, sdim="xy"):
         else:
             ax.plot(sp[dim[0]], sp[dim[1]], "*", c="gold", ms=10)
 
-    fig.tight_layout()
+    fig.set_tight_layout(True)
 
 
 # TODO: add option to do trajectories for continuous release runs, colored by time out
