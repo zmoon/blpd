@@ -177,3 +177,11 @@ def calc_t_out(p):
     assert t_out.size == Np_tot
 
     return t_out
+
+
+def load_p(ds):
+    """Load the model parameters/info `dict` from JSON stored in `ds` :class:`xarray.Dataset`."""
+    import json
+    import xarray as xr
+
+    return json.loads(ds.attrs["p_json"])

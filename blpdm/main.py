@@ -1,5 +1,5 @@
 """
-Model class, input parameters, ...
+:class:`Model` class for running the LPD model, input parameters, ...
 """
 import importlib
 import math
@@ -13,13 +13,6 @@ import numpy as np
 
 from . import lpd
 from .chem import chem_calc_options
-# from numba import njit
-# from numba.core import types  # in the docs: https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#id6 but doesn't work
-# from numba import types  # I guess this is the new method of importing 'types'
-# from numba.typed import Dict
-# import lpd
-# from .lpd import enable_numba, disable_numba, integrate_particles_one_timestep
-
 
 
 input_param_defaults = {
@@ -70,6 +63,7 @@ input_param_defaults = {
 # could do more dict nesting like in pyAPES...
 
 
+# TODO: opposite of this -- calculate above MW params from normal wind params
 def calc_MW_derived_params(p):
     """
     from the base MW params and
@@ -134,7 +128,7 @@ def calc_MW_derived_params(p):
 
 
 def compare_params(p, p0=None, input_params_only=False):
-    """Compare `p` to reference `p0`."""
+    """Compare `p` to reference `p0` (params dicts)."""
 
     if p0 is None:
         p0 = Model().p
@@ -160,6 +154,7 @@ def compare_params(p, p0=None, input_params_only=False):
 
 
 class Model():
+    """The LPD model."""
 
     # class variables (as opposed to instance)
     _p_user_input_default = input_param_defaults
@@ -178,14 +173,12 @@ class Model():
         assert( self.p['release_height'] <= self.p['canopy_height'] )  # particles must be released within canopy
         assert( self.p['dt_out'] % self.p['dt'] == 0 )  # output interval must be a multiple of dt
 
-        self.init_state()
-        self.init_hist()
+        self._init_state()
+        self._init_hist()
 
 
     def update_p(self, pu):
-        """
-
-        """
+        """Use the dict `pu` of allowed user input parameters to check/update all model parameters."""
         if not isinstance(pu, dict):
             raise TypeError('must pass `dict`')
 
@@ -235,8 +228,8 @@ class Model():
 
         # some variables change the lengths of the state and hist arrays
         if any( k in pu for k in ['t_tot', 'dNp_per_dt_per_source', 'N_sources', 'continuous_release'] ):
-            self.init_state()
-            self.init_hist()
+            self._init_state()
+            self._init_hist()
 
         # some variables affect the derived MW variables
         #
@@ -246,13 +239,15 @@ class Model():
         if any(k in pu for k in MW_inputs) or any(k[:2] == 'MW' for k in pu):
             self.p.update(calc_MW_derived_params(self.p))
 
+        return self
+
 
     # TODO: could change self.p to self._p, but have self.p return a view,
     #       but give error if user tries to set items
 
 
     # TODO: init conc at this time too?
-    def init_state(self):
+    def _init_state(self):
         Np_tot = self.p['Np_tot']
         # also could do as 3-D? (x,y,z coords)
 
@@ -300,11 +295,10 @@ class Model():
             'up': up,
             'vp': vp,
             'wp': wp,
-            # 'test': np.r_[0.01]  # must be array, even a size 1 array (like in xr)
         }
 
 
-    def init_hist(self):
+    def _init_hist(self):
         if self.p['continuous_release']:
             hist = False
         else:
@@ -336,7 +330,6 @@ class Model():
         self.hist = hist
 
 
-
     def run(self):
         """run dat model"""
         import datetime
@@ -357,7 +350,6 @@ class Model():
 
         if self.p['use_numba']:
             lpd.enable_numba()  # ensure numba compilation is not disabled
-            # enable_numba()
 
             #> prepare p for numba
             p_for_nb = {k: v for k, v in self.p.items() if not isinstance(v, (str, list, dict))}
@@ -378,9 +370,8 @@ class Model():
             state_run = state_nb
             p_run = p_nb
 
-        else:  # model is set not to use numba
+        else:  # model is set not to use numba (for checking the performance advantage of using numba)
             lpd.disable_numba()  # disable numba compilation
-            # disable_numba()
 
             state_run = self.state
             p_run = self.p
@@ -444,43 +435,35 @@ class Model():
         else:
             self.state = state_run
 
-        #> calculate chemistry
-        #  in some cases, this can be outside the time loop
-        #  (e.g., fixed oxidant levels, source strengths, particle release rate)
-        #  in other cases, will need to iterate through the trajectory history in some fashion
-        self._maybe_run_chem()
-
         self._clock_time_run_end = datetime.datetime.now()
 
+        # self._maybe_run_chem()
 
-    def _maybe_run_chem(self):
-        # note: adds conc to self.state
-
-        # this check/correction logic could be somewhere else
-        if self.p['chemistry_on']:
-            if not self.p['continuous_release']:
-                warnings.warn(
-                    'chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry',
-                    stacklevel=2,
-                )
-                self.p['chemistry_on'] = False
-
-        if self.p["chemistry_on"]:
-            conc = self._run_chem()
-
-        else:
-            conc = False
-
-        self.state.update({
-            'conc': conc
-        })
-        # maybe should instead remove 'conc' from state if not doing chem
+        return self
 
 
-    def _run_chem(self):
-        # TODO: other chem options
-        f = chem_calc_options["fixed_oxidants"]
-        return f(self.p)
+    # def _maybe_run_chem(self):
+    #     # note: adds conc dataset to self.state
+
+    #     # this check/correction logic could be somewhere else
+    #     if self.p['chemistry_on']:
+    #         if not self.p['continuous_release']:
+    #             warnings.warn(
+    #                 'chemistry is calculated only for the continuous release option (`continuous_release=True`). not calculating chemistry',
+    #                 stacklevel=2,
+    #             )
+    #             self.p['chemistry_on'] = False
+
+    #     if self.p["chemistry_on"]:
+    #         conc = chem_calc_options["fixed_oxidants"](self.to_xarray())
+
+    #     else:
+    #         conc = False
+
+    #     self.state.update({
+    #         'conc': conc
+    #     })
+    #     # maybe should instead remove 'conc' from state if not doing chem
 
 
     def to_xarray(self):
@@ -557,7 +540,7 @@ class Model():
 
 
 
-
+# TODO: float precision option
 def numbify(d, zerod_only=False):
     """Convert dict to numba-suitable format.
 
@@ -600,7 +583,7 @@ def numbify(d, zerod_only=False):
 def unnumbify(d_nb):
     """Convert numba dict to normal dict of numpy arrays."""
     if not isinstance(d_nb, numba.typed.Dict):
-        raise TypeError('this fn is for numbified dicts')
+        raise TypeError('this fn is for dicts of type `numba.typed.Dict`')
 
     d = {}
     for k, v in d_nb.items():
