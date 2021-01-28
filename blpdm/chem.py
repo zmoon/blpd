@@ -47,9 +47,7 @@ chemical_species_data = _parse_chemical_species_data()
 """`dict`; keys: ASCII chemical species names, values: ``'display_name'``, ``'kO3'``, ``'kOH'``, ``'kNO3'``"""
 
 
-# TODO: for the Lagrangian particles it is really number or mass we are calculating
-#       not volume-wise concentration or mixing ratio,
-#       so maybe the language/names here should be changed.
+# TODO: for relative levels, should always be 0--1 (or 0--100% optionally), so should remove `fv_0_default` and coordinate with gridded calc
 def calc_relative_levels_fixed_oxidants(
     ds,
     species=chemical_species_data,
@@ -82,14 +80,8 @@ def calc_relative_levels_fixed_oxidants(
 
     Returns
     -------
-    dict
-        conc for every particle *at the end of the simulation*
-        for each of the chemical species
-        *based on provided initial conc. values in dict p["conc_fv_0"]*
-
+    xr.Dataset
     """
-    # from collections import OrderedDict
-    # TODO: take lpd model results Dataset (including t_out) as input instead
     p = load_p(ds)
 
     # unpack needed model options/params
@@ -102,6 +94,9 @@ def calc_relative_levels_fixed_oxidants(
     conc_O3 = p['conc_oxidants']['O3']
     conc_OH = p['conc_oxidants']['OH']
     conc_NO3 = p['conc_oxidants']['NO3']
+
+    # Save position dataset to merge with
+    ds0 = ds[["x", "y", "z"]].copy()
 
     ip = np.arange(Np_tot)  # for now
     spcs = sorted(species.keys())  # species keys
@@ -161,7 +156,7 @@ def calc_relative_levels_fixed_oxidants(
         ds["f_d_oh"].loc[:,spc] = f_d_OH
         ds["f_d_no3"].loc[:,spc] = f_d_NO3
 
-    return ds
+    return xr.merge([ds, ds0])
 
 
 def load_canola_species_data():
