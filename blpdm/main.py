@@ -337,11 +337,11 @@ class Model():
         self._clock_time_run_start = datetime.datetime.now()
 
         Np_k = 0  # initially tracking 0 particles
-        Np_tot = self.p['Np_tot']
+        # Np_tot = self.p['Np_tot']
         dt = self.p['dt']
         dt_out = self.p['dt_out']
         N_t = self.p['N_t']  # number of time steps
-        t_tot = self.p['t_tot']
+        # t_tot = self.p['t_tot']
         dNp_dt_ds = self.p['dNp_per_dt_per_source']
         N_s = self.p['N_sources']
         # outer loop could be particles instead of time. might make some parallelization easier
@@ -534,9 +534,9 @@ class Model():
             pass  # silently do nothing for now
         else:
             if (p['continuous_release'] == False) and hist:
-                plots.trajectories(hist, p, **kwargs)
+                plots.trajectories(self.to_xarray(), **kwargs)
             else:
-                plots.final_pos_scatter(state, p, **kwargs)
+                plots.final_pos_scatter(self.to_xarray(), **kwargs)
 
 
 

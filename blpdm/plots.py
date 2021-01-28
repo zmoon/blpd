@@ -12,13 +12,7 @@ from scipy import stats
 
 from . import utils  # TODO: move all calls to namespaced form since I am using a lot now
 from .chem import chemical_species_data
-from .utils import auto_grid
-from .utils import check_fig_num
-from .utils import load_p
-from .utils import moving_average
-from .utils import s_t_info
-from .utils import sec_to_str
-from .utils import to_sci_not
+
 # ^ could add `as _{}` to all of these
 # to indicate that these are not intended to be public parts of the module name space
 # since __all__ is not respected by linters or autocompleters
@@ -77,7 +71,7 @@ def final_pos_scatter(ds, sdim="xy"):
     ax.set_ylabel(f"${dim[1]}$")
     if subplot_kw:
         ax.set_zlabel(f"${dim[2]}$")
-    ax.set_title(s_t_info(p), loc="left")
+    ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(f"$N_p = {p['Np_tot']}$", loc="right")
 
     for (xs, ys) in p["source_positions"]:
@@ -104,13 +98,13 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
 
     t_tot = p["t_tot"]
     dt = p["dt_out"]  # note output timestep not that of the integration
-    N_t = p["N_t"]
+    # N_t = p["N_t"]
     Np = p["Np_tot"]
-    N = Np * N_t
+    # N = Np * N_t
     assert pos.shape[0] == Np
 
-    ltitle = s_t_info(p)
-    rtitle = f"$N_p = {to_sci_not(Np)}$\n$N = {to_sci_not(N)}$"
+    ltitle = utils.s_t_info(p)
+    rtitle = utils.s_sample_size(p)
 
     # allow specifying smooth_window_size only
     if smooth_window_size is not None and not smooth:
@@ -126,7 +120,7 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
                 "can't do any smoothing with the requested window size (not enough points)"
             )
         pos0 = pos[:, 0, :][:, np.newaxis, :]
-        pos = np.swapaxes(moving_average(np.swapaxes(pos, 0, 1), n=n, axis=0), 0, 1)
+        pos = np.swapaxes(utils.moving_average(np.swapaxes(pos, 0, 1), n=n, axis=0), 0, 1)
         # ^ `np.swapaxes` should return views, not create new arrays (ver >= 1.10.0)
 
         # preserve starting point
@@ -134,7 +128,7 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
 
         ltitle = f"$N_{{smooth}} = {n}$ ({n*dt:} s)\n{ltitle}"  # add smoothing info to left title
 
-    num = check_fig_num("trajectories")
+    num = utils.check_fig_num("trajectories")
     fig, ax = plt.subplots(num=num)
 
     if color_sources:
@@ -145,8 +139,8 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
             # Dark2 is a ListedColormap with 8 colors; `plt.cm.Dark2` same but pylint complains plt.cm `no-member` Dark2
 
         N_sources = p["N_sources"]
-        for j, color in zip(range(N_sources), cycle(colors)):
-            segs = [pos[i, :, :2] for i in range(j, Np, N_sources) for j in range(N_sources)]
+        for i_source, color in zip(range(N_sources), cycle(colors)):
+            segs = [pos[i, :, :2] for i in range(i_source, Np, N_sources)]# for _ in range(N_sources)]
 
             lc = _LineCollection(segs, linewidths=0.5, colors=color, linestyles="solid", alpha=0.3,)
             ax.add_collection(lc)
@@ -161,15 +155,12 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
         ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
     ax.autoscale()  # `ax.add_collection` won't do this automatically
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    ax.set_xlabel("$x$")
+    ax.set_ylabel("$y$")
     ax.set_title(ltitle, loc="left")
     ax.set_title(rtitle, loc="right")
 
     fig.set_tight_layout(True)
-
-
-# TODO: much final_pos_hist2d code is repeated in conc
 
 
 def conc_scatter(ds, spc="apinene", *,
@@ -180,7 +171,7 @@ def conc_scatter(ds, spc="apinene", *,
     ax=None,
 ):
     """Plot species relative level in particle as a scatter."""
-    p = load_p(ds)
+    p = utils.load_p(ds)
     X = ds.x.values
     Y = ds.y.values
     conc = ds.f_r.sel(spc=spc).values
@@ -199,7 +190,7 @@ def conc_scatter(ds, spc="apinene", *,
     for (x, y) in p["source_positions"]:
         ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
-    ax.set_title(s_t_info(p), loc="left")
+    ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
         ylabel=f"{ds.y.attrs['long_name']} [{ds.y.attrs['units']}]",
@@ -219,7 +210,7 @@ def conc_2d(ds, spc="apinene",
     ax=None,
 ):
     """Plot species 2-d binned average species relative level."""
-    p = load_p(ds)
+    p = utils.load_p(ds)
     X = ds.x.values
     Y = ds.y.values
     conc = ds.f_r.sel(spc=spc).values
@@ -251,7 +242,7 @@ def conc_2d(ds, spc="apinene",
         ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
     ax.autoscale(enable=True, axis='both', tight=True)
-    ax.set_title(s_t_info(p), loc="left")
+    ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
         ylabel=f"{ds.y.attrs['long_name']} [{ds.y.attrs['units']}]",
@@ -265,7 +256,7 @@ def conc_xline(ds, spc="apinene", y=0., *,
     """Plot species average relative level in the x-direction at a certain approximate y value.
     `spc` can be ``'all'``.
     """
-    p = load_p(ds)
+    p = utils.load_p(ds)
     X = ds.x.values
     Y = ds.y.values
 
@@ -294,7 +285,7 @@ def conc_xline(ds, spc="apinene", y=0., *,
             ax.plot(xs, np.nanmin(binned.c), **_SOURCE_MARKER_PROPS)
 
     fig.legend(ncol=2, fontsize="small", title="Chemical species")
-    ax.set_title(s_t_info(p), loc="left")
+    ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
         ylabel=f"Relative concentration",
@@ -317,7 +308,7 @@ def ws_hist_all(
     v_all = np.ravel(ds.v.values)
     w_all = np.ravel(ds.w.values)
 
-    num = check_fig_num("ws-hist-all")
+    num = utils.check_fig_num("ws-hist-all")
     fig, axs = plt.subplots(3, 1, num=num, sharex=True)
 
     if bounds is None:
@@ -353,7 +344,7 @@ def final_pos_hist(
         yf = ds.y.values
         zf = ds.z.values
 
-    num = check_fig_num("final-pos-hist")
+    num = utils.check_fig_num("final-pos-hist")
     fig, axs = plt.subplots(3, 1, num=num, sharex=True)
 
     if bounds is None:
@@ -369,7 +360,7 @@ def final_pos_hist(
     if bounds:
         axs[0].set_xlim(bounds)
 
-    axs[0].set_title(s_t_info(p), loc="left")
+    axs[0].set_title(utils.s_t_info(p), loc="left")
     axs[0].set_title(utils.s_sample_size(p, N_p_only=True), loc="right")
     axs[-1].set_xlabel(f"[{ds.x.attrs['units']}]")
     fig.set_tight_layout(True)
@@ -390,18 +381,18 @@ def final_pos_hist2d(
         x = ds[sdim[0]].values
         y = ds[sdim[1]].values
 
-    num = check_fig_num(f"final-pos-hist-{sdim}")
+    num = utils.check_fig_num(f"final-pos-hist-{sdim}")
     fig, ax = plt.subplots(num=num)
 
     if bins == "auto":
-        bins = auto_grid([x, y])
+        bins = utils.auto_grid([x, y])
 
     if log_cnorm:
         norm = mpl.colors.LogNorm(vmin=1.0, vmax=vmax)
     else:
         norm = mpl.colors.Normalize(vmin=1.0, vmax=vmax)
 
-    H, xedges, yedges, im = ax.hist2d(x, y, bins=bins, norm=norm)
+    _, _, _, im = ax.hist2d(x, y, bins=bins, norm=norm)
     # ^ returns h (nx, ny), xedges, yedges, image
 
     cb = fig.colorbar(im, ax=ax)

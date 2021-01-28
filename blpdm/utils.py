@@ -155,11 +155,11 @@ def auto_grid(positions, *,
 _Bin_c_xy_ret = namedtuple("bin_c_xy", "x y xe ye c")
 
 def bin_c_xy(X, Y, C, *, bins, stat="median"):
-    """Using the `x`\, `y` positions of the particles, bin `c`, and calculate a representative value in each bin."""
+    r"""Using the `x`\, `y` positions of the particles, bin `c`, and calculate a representative value in each bin."""
     from scipy import stats
 
     if bins == "auto":
-        bins = utils.auto_grid((X, Y))
+        bins = auto_grid((X, Y))
 
     # 1. Concentration of LPD particles
     H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
