@@ -1,6 +1,9 @@
 """
-Utilities for the model, plots, etc.
+Miscellaneous utility functions for the model, plots, etc.
 """
+from collections import namedtuple
+
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -90,6 +93,17 @@ def s_t_info(p):
     return f"$t = ${s_t_tot}, $\\delta t = {dt}$ s, $N_t = {s_N_t}$"
 
 
+def s_sample_size(p, *, N_p_only=False):
+    """Create string with sample size info (number of particles Np and N=Np*Nt)."""
+    Np, Nt = p["Np_tot"], p["N_t"]
+    N = Np * Nt
+    s_N_p = f"$N_p = {to_sci_not(Np)}$"
+    s_N = f"$N = {to_sci_not(N)}$"
+    if N_p_only:
+        return s_N_p
+    else:
+        return "\n".join([s_N_p, s_N])
+
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 
@@ -135,3 +149,114 @@ def auto_grid(positions, *,
     bins = [x_edges, y_edges]
 
     return bins
+
+
+
+_Bin_c_xy_ret = namedtuple("bin_c_xy", "x y xe ye c")
+
+def bin_c_xy(X, Y, C, *, bins, stat="median"):
+    r"""Using the `x`\, `y` positions of the particles, bin `c`, and calculate a representative value in each bin."""
+    from scipy import stats
+
+    if bins == "auto":
+        bins = auto_grid((X, Y))
+
+    # 1. Concentration of LPD particles
+    H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
+    conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
+
+    # 2. chemistry
+    ret = stats.binned_statistic_2d(X, Y, C, statistic="median", bins=bins)
+    conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+    x = ret.x_edge
+    y = ret.y_edge
+    # ^ these are cell edges
+    xc = x[:-1] + 0.5 * np.diff(x)
+    yc = y[:-1] + 0.5 * np.diff(y)
+    # ^ these are cell centers
+
+    assert np.allclose(x, xedges) and np.allclose(y, yedges)
+    # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
+
+    z = conc_p_rel * conc_c
+
+    return _Bin_c_xy_ret(xc, yc, x, y, z)
+
+
+def calc_t_out(p):
+    """Calculate time-since-release for each particle at the end of simulation.
+
+    This works for a simulation with constant particle release rate
+    (number of particles released per time step per source).
+
+    Args
+    ----
+    p : dict
+        the model params+options dict
+
+    Returns
+    -------
+    np.array
+        time-since-release in seconds
+    """
+    # unpack needed model options/params
+    Np_tot = p['Np_tot']
+    dt = p['dt']
+    N_t = p['N_t']  # number of time steps
+    t_tot = p['t_tot']
+    dNp_dt_ds = p['dNp_per_dt_per_source']
+    N_s = p['N_sources']
+
+    # Calculate time-since-release for every particle
+    #! the method here is based on time as outer loop
+    #! and will be incorrect if that changes
+    # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
+    t_out = np.ravel(np.tile(np.arange(dt, N_t*dt + dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
+    # ^ need to find the best way to do this!
+    # note: apparently `(N_t+1)*dt` does not give the same stop as `N_t*dt+dt` sometimes (precision thing?)
+
+    # t_out = (t_out[::-1]+1) * dt
+    t_out = t_out[::-1]
+
+    # sanity checks
+    assert np.isclose(t_tot, t_out[0])  # the first particle has been out for the full time
+    assert t_out.size == Np_tot
+
+    return t_out
+
+
+def load_p(ds):
+    """Load the model parameters/info `dict` from JSON stored in `ds` :class:`xarray.Dataset`."""
+    import json
+    import xarray as xr
+
+    return json.loads(ds.attrs["p_json"])
+
+
+def maybe_log_cnorm(log_cnorm=True, levels=30, vmin=None, vmax=100):
+    if log_cnorm:
+        norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
+        if levels is not None:
+            # https://matplotlib.org/3.1.3/gallery/images_contours_and_fields/contourf_log.html
+            # https://matplotlib.org/3.1.3/api/ticker_api.html#matplotlib.ticker.LogLocator
+            # locator = mpl.ticker.LogLocator(subs=(0.25, 0.5, 1.0))  # another way to get more levels in between powers of 10
+            nlevels = levels if isinstance(levels, int) else np.asarray(levels).size
+            locator = mpl.ticker.LogLocator(subs="all", numticks=nlevels)
+            # TODO: although this^ works, the ticks are not all getting labeled. need to fix.
+        else:
+            locator = None
+    else:
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        locator = None
+
+    return norm, locator  # TODO: named tuple would be nicer
+
+
+def maybe_new_figure(try_num: str, ax=None):
+    if ax is None:
+        num = check_fig_num(try_num)
+        fig, ax = plt.subplots(num=num)
+    else:
+        fig = ax.get_figure()
+
+    return fig, ax
