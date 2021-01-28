@@ -1,6 +1,27 @@
 """
 Create plots of lpdm results.
 """
+from itertools import cycle
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.collections import LineCollection as _LineCollection
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
+from scipy import stats
+
+from . import utils  # TODO: move all calls to namespaced form since I am using a lot now
+from .chem import chemical_species_data
+from .utils import auto_grid
+from .utils import check_fig_num
+from .utils import load_p
+from .utils import moving_average
+from .utils import s_t_info
+from .utils import sec_to_str
+from .utils import to_sci_not
+# ^ could add `as _{}` to all of these
+# to indicate that these are not intended to be public parts of the module name space
+# since __all__ is not respected by linters or autocompleters
 
 __all__ = (
     "conc",
@@ -11,23 +32,6 @@ __all__ = (
     "final_pos_scatter",
 )
 
-from itertools import cycle
-
-import matplotlib as mpl
-from matplotlib.collections import LineCollection as _LineCollection
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-import numpy as np
-from scipy import stats
-
-# ^ could add `as _{}` to all of these
-# to indicate that these are not intended to be public parts of the module name space
-# since __all__ is not respected by linters or autocompleters
-
-from .chem import chemical_species_data
-from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_info, auto_grid
-
-
 # TODO: create some base classes for plots to reduce repeating of code
 #       - allow passing fig and ax kwargs in __init__
 #       - stars to mark sources; check_fig_num, labeling, etc.
@@ -36,6 +40,9 @@ from .utils import check_fig_num, to_sci_not, sec_to_str, moving_average, s_t_in
 # TODO: really all plots could have the auto-bounds stuff. and (optionally?) print message about it?
 
 # TODO: probably should pass model object to the plotting functions, not separate state and p?
+
+
+_SOURCE_MARKER_PROPS = dict(marker="*", c="gold", ms=11, mec="0.35", mew=1.0)
 
 
 def final_pos_scatter(state, p, sdim="xy"):
@@ -169,7 +176,76 @@ def trajectories(hist, p, *, smooth=False, smooth_window_size=None, color_source
     fig.tight_layout()
 
 
-# TODO: much final_pos_hist2d code is repeated here in conc
+# TODO: much final_pos_hist2d code is repeated in conc
+
+
+def conc_scatter(ds, spc="apinene", *,
+    cmap="gnuplot",
+    log_cnorm=False,
+    vmax=100,
+    vmin=None,
+    ax=None,
+):
+    """Plot species relative level in particle as a scatter."""
+    p = load_p(ds)
+
+    X = ds.x.values
+    Y = ds.y.values
+    conc = ds.f_r.sel(spc=spc).values
+    spc_display_name = chemical_species_data[spc]["display_name"]
+
+    if ax is None:
+        num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_scatter")
+        fig, ax = plt.subplots(num=num)
+    else:
+        fig = ax.get_figure()
+
+    norm, _ = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
+
+    im = ax.scatter(
+        X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, norm=norm,
+    )
+
+    cb = fig.colorbar(im, drawedges=False)
+    cb.set_label(f"{spc_display_name} relative conc. (%)")
+
+    for (x, y) in p["source_positions"]:
+        ax.plot(x, y, **_SOURCE_MARKER_PROPS)
+
+    ax.set_title(s_t_info(p), loc="left")
+    ax.set(
+        xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
+        ylabel=f"{ds.y.attrs['long_name']} [{ds.y.attrs['units']}]",
+    )
+
+    fig.set_tight_layout(True)
+
+
+def conc_2d(ds, spc="apinene",
+    *,
+    plot_type="pcolor",
+    levels=30,  # for contourf
+    cmap="gnuplot",
+    log_cnorm=False,
+    vmax=100,
+    vmin=None,
+):
+    """Plot species 2-d binned average species relative level."""
+    p = load_p(ds)
+
+    conc = ds.f_r.sel(spc=spc).values
+    spc_display_name = chemical_species_data[spc]["display_name"]
+
+    if ax is None:
+        num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_{plot_type}")
+        fig, ax = plt.subplots(num=num)
+
+
+def conc_line(ds, spc="apinene", y=0, z=1.0, *,
+    dy=1.0, dz=1.0,
+):
+    """Plot species average relative level in the x-direction at a certain y and z."""
+    p = load_p(ds)
 
 
 def conc(
@@ -365,7 +441,7 @@ def conc(
         cb.set_label(f"{spc_display_name} relative conc. (%)")
 
         for (x, y) in p["source_positions"]:
-            ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
+            ax.plot(x, y, marker="*", c="gold", ms=11, mec="0.35", mew=1.0)
 
         ax.set_xlabel("x")
         ax.set_ylabel("y")

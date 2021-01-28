@@ -1,6 +1,7 @@
 """
-Utilities for the model, plots, etc.
+Miscellaneous utility functions for the model, plots, etc.
 """
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -185,3 +186,22 @@ def load_p(ds):
     import xarray as xr
 
     return json.loads(ds.attrs["p_json"])
+
+
+def maybe_log_cnorm(log_cnorm=True, levels=30, vmin=None, vmax=100):
+    if log_cnorm:
+        norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
+        if levels is not None:
+            # https://matplotlib.org/3.1.3/gallery/images_contours_and_fields/contourf_log.html
+            # https://matplotlib.org/3.1.3/api/ticker_api.html#matplotlib.ticker.LogLocator
+            # locator = mpl.ticker.LogLocator(subs=(0.25, 0.5, 1.0))  # another way to get more levels in between powers of 10
+            nlevels = levels if isinstance(levels, int) else np.asarray(levels).size
+            locator = mpl.ticker.LogLocator(subs="all", numticks=nlevels)
+            # TODO: although this^ works, the ticks are not all getting labeled. need to fix.
+        else:
+            locator = None
+    else:
+        norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+        locator = None
+
+    return norm, locator  # TODO: named tuple would be nicer

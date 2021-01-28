@@ -96,7 +96,7 @@ def calc_relative_levels_fixed_oxidants(
     conc_NO3 = p['conc_oxidants']['NO3']
 
     # Save position dataset to merge with
-    ds0 = ds[["x", "y", "z"]].copy()
+    ds0 = ds.copy()
 
     ip = np.arange(Np_tot)  # for now
     spcs = sorted(species.keys())  # species keys
@@ -117,6 +117,7 @@ def calc_relative_levels_fixed_oxidants(
             "conc_O3": conc_O3,  # molec cm-3
             "conc_OH": conc_OH,
             "conc_NO3": conc_NO3,
+            "p_json": ds0.attrs["p_json"],
         },
     )
     for spc, d_spc in species.items():
@@ -156,7 +157,10 @@ def calc_relative_levels_fixed_oxidants(
         ds["f_d_oh"].loc[:,spc] = f_d_OH
         ds["f_d_no3"].loc[:,spc] = f_d_NO3
 
-    return xr.merge([ds, ds0])
+    ds_ret = xr.merge([ds, ds0[["x", "y", "z"]]])
+    ds_ret.attrs.update(ds.attrs)
+
+    return ds_ret
 
 
 def load_canola_species_data():
