@@ -93,6 +93,17 @@ def s_t_info(p):
     return f"$t = ${s_t_tot}, $\\delta t = {dt}$ s, $N_t = {s_N_t}$"
 
 
+def s_sample_size(p, *, N_p_only=False):
+    """Create string with sample size info (number of particles Np and N=Np*Nt)."""
+    Np, Nt = p["Np_tot"], p["N_t"]
+    N = Np * Nt
+    s_N_p = f"$N_p = {to_sci_not(Np)}$"
+    s_N = f"$N = {to_sci_not(N)}$"
+    if N_p_only:
+        return s_N_p
+    else:
+        return "\n".join([s_N_p, s_N])
+
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 

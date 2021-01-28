@@ -35,7 +35,7 @@ input_param_defaults = {
     # run options
     'dt': 0.25,  # s; time step for the 1-O Newton FT scheme; this is what Pratt used
     't_tot': 100.,  # s; total time of the run
-    'dt_out': 0.,
+    'dt_out': 1.,
     'continuous_release': True,
     'use_numba': True,
     'chemistry_on': False,

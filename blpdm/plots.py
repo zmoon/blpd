@@ -41,8 +41,6 @@ __all__ = (
 
 # TODO: really all plots could have the auto-bounds stuff. and (optionally?) print message about it?
 
-# TODO: probably should pass model object to the plotting functions, not separate state and p?
-
 
 _SOURCE_MARKER_PROPS = dict(marker="*", c="gold", ms=11, mec="0.35", mew=1.0)
 
@@ -96,16 +94,16 @@ def final_pos_scatter(ds, sdim="xy"):
 # TODO: trajectories for hist run in 3-D?
 
 
-def trajectories(hist, p, *, smooth=False, smooth_window_size=None, color_sources=False):
-    """Particle trajectories.
+def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=False):
+    """Particle trajectories."""
+    if "t" not in ds.dims:
+        raise ValueError("time 't' must be a dimension")
 
-    note: intended to be used for a single-release run
-    """
-    pos = hist["pos"]
+    p = utils.load_p(ds)
+    pos = np.stack((ds.x.values, ds.y.values, ds.z.values), axis=-1)  # same shape as hist["pos"]
 
     t_tot = p["t_tot"]
-    # dt = p["dt"]
-    dt = p["dt_out"]  # use dt from hist, not model integration; TODO: indicate this in the plot?
+    dt = p["dt_out"]  # note output timestep not that of the integration
     N_t = p["N_t"]
     Np = p["Np_tot"]
     N = Np * N_t
@@ -160,16 +158,15 @@ def trajectories(hist, p, *, smooth=False, smooth_window_size=None, color_source
         ax.add_collection(lc)
 
     for (x, y) in p["source_positions"]:
-        ax.plot(x, y, "*", c="gold", ms=10)
+        ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
     ax.autoscale()  # `ax.add_collection` won't do this automatically
-
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.set_title(ltitle, loc="left")
     ax.set_title(rtitle, loc="right")
 
-    fig.tight_layout()
+    fig.set_tight_layout(True)
 
 
 # TODO: much final_pos_hist2d code is repeated in conc
@@ -262,7 +259,6 @@ def conc_2d(ds, spc="apinene",
     fig.set_tight_layout(True)
 
 
-
 def conc_xline(ds, spc="apinene", y=0., *,
     dy=1., ax=None,  # TODO: select z as well?
 ):
@@ -310,21 +306,21 @@ def conc_xline(ds, spc="apinene", y=0., *,
 
 
 def ws_hist_all(
-    hist, p, *, bounds=False,
+    ds, *, bounds=None,
 ):
-    """Histograms of particle wind speed components
-    from a single-release run.
+    """Histograms of particle wind speed components (one subplot for each).
+    For single-release or continuous-release run.
+    `bounds` provided as a 2-tuple are used as wind speed limits.
     """
-
-    ws = hist["ws"]
-    u_all = np.ravel(ws[:, :, 0])
-    v_all = np.ravel(ws[:, :, 1])
-    w_all = np.ravel(ws[:, :, 2])
+    p = utils.load_p(ds)
+    u_all = np.ravel(ds.u.values)  # or can do `.ravel()`
+    v_all = np.ravel(ds.v.values)
+    w_all = np.ravel(ds.w.values)
 
     num = check_fig_num("ws-hist-all")
     fig, axs = plt.subplots(3, 1, num=num, sharex=True)
 
-    if not bounds:
+    if bounds is None:
         bins = 100
     else:
         bins = np.linspace(bounds[0], bounds[1], 100)
@@ -337,29 +333,30 @@ def ws_hist_all(
     if bounds:
         axs[0].set_xlim(bounds)
 
-    axs[0].set_title(s_t_info(p), loc="left")
-    Np, Nt = p["Np_tot"], p["N_t"]
-    N = Np * Nt
-    axs[0].set_title(f"$N_p = {to_sci_not(Np)}$\n$N = {to_sci_not(N)}$", loc="right")
-
-    fig.tight_layout()
-
-    # return
+    axs[0].set_title(utils.s_t_info(p), loc="left")
+    axs[0].set_title(utils.s_sample_size(p), loc="right")
+    axs[0].set_xlabel(f"[{ds.u.attrs['units']}]")
+    fig.set_tight_layout(True)
 
 
 def final_pos_hist(
-    state, p, *, bounds=False,
+    ds, *, bounds=None,
 ):
     """Histograms of final position components (x, y, and z)."""
-
-    xf = state["xp"]
-    yf = state["yp"]
-    zf = state["zp"]
+    p = utils.load_p(ds)
+    if "t" in ds.dims:
+        xf = ds.x.isel(t=-1).values
+        yf = ds.y.isel(t=-1).values
+        zf = ds.z.isel(t=-1).values
+    else:
+        xf = ds.x.values
+        yf = ds.y.values
+        zf = ds.z.values
 
     num = check_fig_num("final-pos-hist")
     fig, axs = plt.subplots(3, 1, num=num, sharex=True)
 
-    if not bounds:
+    if bounds is None:
         bins = 100
     else:
         bins = np.linspace(bounds[0], bounds[1], 100)
@@ -373,25 +370,26 @@ def final_pos_hist(
         axs[0].set_xlim(bounds)
 
     axs[0].set_title(s_t_info(p), loc="left")
-
-    fig.tight_layout()
+    axs[0].set_title(utils.s_sample_size(p, N_p_only=True), loc="right")
+    axs[-1].set_xlabel(f"[{ds.x.attrs['units']}]")
+    fig.set_tight_layout(True)
 
 
 def final_pos_hist2d(
-    state, p, *, dim=("x", "y"), bins=50, create_contourf=False, log_cnorm=False,
+    ds, *, sdim="xy", bins=50, plot_type="pcolor", log_cnorm=False, vmax=None,
 ):
     """2-D histogram of selected final position components."""
+    if len(sdim) != 2 or any(dim1 not in ("x", "y", "z") for dim1 in sdim):
+        raise ValueError("for `sdim`, pick 2 from 'x', 'y', and 'z'")
 
-    x = state[f"{dim[0]}p"]
-    y = state[f"{dim[1]}p"]
+    p = utils.load_p(ds)
+    if "t" in ds.dims:
+        x = ds[sdim[0]].isel(t=-1).values
+        y = ds[sdim[1]].isel(t=-1).values
+    else:
+        x = ds[sdim[0]].values
+        y = ds[sdim[1]].values
 
-    Np = x.size
-
-    if len(dim) != 2 or any(dim_ not in ("x", "y", "z") for dim_ in dim):
-        raise ValueError
-    sdim = "-".join(dim)
-
-    # TODO: match style of final_pos_scatter, like 'xy', not 'x-y'
     num = check_fig_num(f"final-pos-hist-{sdim}")
     fig, ax = plt.subplots(num=num)
 
@@ -399,55 +397,22 @@ def final_pos_hist2d(
         bins = auto_grid([x, y])
 
     if log_cnorm:
-        norm = mpl.colors.LogNorm(vmin=1.0)
+        norm = mpl.colors.LogNorm(vmin=1.0, vmax=vmax)
     else:
-        norm = mpl.colors.Normalize(vmin=1.0)
+        norm = mpl.colors.Normalize(vmin=1.0, vmax=vmax)
 
     H, xedges, yedges, im = ax.hist2d(x, y, bins=bins, norm=norm)
     # ^ returns h (nx, ny), xedges, yedges, image
 
-    cb = plt.colorbar(im)
-
-    ax.set_xlabel(f"${dim[0]}$")
-    ax.set_ylabel(f"${dim[1]}$")
-
-    ax.set_xlim((xedges[0], xedges[-1]))
-    ax.set_ylim((yedges[0], yedges[-1]))
-    ax.set_title(s_t_info(p), loc="left")
+    cb = fig.colorbar(im, ax=ax)
+    cb.set_label("Particle count")
 
     for (x, y) in p["source_positions"]:
         ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
 
-    fig.tight_layout()
-
-    if create_contourf:
-        num = check_fig_num(f"final-pos-hist-{sdim}-contourf")
-        fig2, ax = plt.subplots(num=num)
-
-        levels = np.arange(1, H.max() + 1, 1)  # TODO: should adjust for log cnorm
-        xc = xedges[:-1] + np.diff(xedges)
-        yc = yedges[:-1] + np.diff(yedges)
-        cs = ax.contourf(
-            xc,
-            yc,
-            H.T,
-            levels=levels,
-            norm=norm,
-            # extend='max'
-        )
-
-        cb = plt.colorbar(cs)
-        cs.cmap.set_under("white")
-        cs.changed()
-
-        ax.set_xlabel(f"${dim[0]}$")
-        ax.set_ylabel(f"${dim[1]}$")
-        ax.set_title(s_t_info(p), loc="left")
-
-        ax.set_xlim((xedges[0], xedges[-1]))
-        ax.set_ylim((yedges[0], yedges[-1]))
-
-        for (x, y) in p["source_positions"]:
-            ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
-
-        fig2.tight_layout()
+    ax.set_xlabel(f"${sdim[0]}$ [{ds.x.attrs['units']}]")
+    ax.set_ylabel(f"${sdim[1]}$ [{ds.x.attrs['units']}]")
+    ax.autoscale(enable=True, axis='both', tight=True)
+    ax.set_title(utils.s_t_info(p), loc="left")
+    ax.set_title(utils.s_sample_size(p, N_p_only=True), loc="right")
+    fig.set_tight_layout(True)
