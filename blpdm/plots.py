@@ -24,12 +24,14 @@ from .utils import to_sci_not
 # since __all__ is not respected by linters or autocompleters
 
 __all__ = (
-    "conc",
-    "trajectories",
+    "conc_2d",
+    "conc_scatter",
+    "conc_xline",
     "final_pos_hist",
     "final_pos_hist2d",
-    "ws_hist_all",
     "final_pos_scatter",
+    "trajectories",
+    "ws_hist_all",
 )
 
 # TODO: create some base classes for plots to reduce repeating of code
