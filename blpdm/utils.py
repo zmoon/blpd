@@ -205,3 +205,13 @@ def maybe_log_cnorm(log_cnorm=True, levels=30, vmin=None, vmax=100):
         locator = None
 
     return norm, locator  # TODO: named tuple would be nicer
+
+
+def maybe_new_figure(try_num: str, ax=None):
+    if ax is None:
+        num = check_fig_num(try_num)
+        fig, ax = plt.subplots(num=num)
+    else:
+        fig = ax.get_figure()
+
+    return fig, ax

@@ -194,19 +194,14 @@ def conc_scatter(ds, spc="apinene", *,
     conc = ds.f_r.sel(spc=spc).values
     spc_display_name = chemical_species_data[spc]["display_name"]
 
-    if ax is None:
-        num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_scatter")
-        fig, ax = plt.subplots(num=num)
-    else:
-        fig = ax.get_figure()
+    fig, ax = utils.maybe_new_figure(f"horizontal-end-positions-with-conc_{spc}_scatter", ax=ax)
 
     norm, _ = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
 
     im = ax.scatter(
         X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, norm=norm,
     )
-
-    cb = fig.colorbar(im, drawedges=False)
+    cb = fig.colorbar(im, ax=ax, drawedges=False)
     cb.set_label(f"{spc_display_name} relative conc. (%)")
 
     for (x, y) in p["source_positions"]:
@@ -217,7 +212,6 @@ def conc_scatter(ds, spc="apinene", *,
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
         ylabel=f"{ds.y.attrs['long_name']} [{ds.y.attrs['units']}]",
     )
-
     fig.set_tight_layout(True)
 
 
@@ -229,16 +223,45 @@ def conc_2d(ds, spc="apinene",
     log_cnorm=False,
     vmax=100,
     vmin=None,
+    ax=None,
 ):
     """Plot species 2-d binned average species relative level."""
     p = load_p(ds)
 
+    if "x" not in ds.dims:
+        # We were passed the particles dataset, need to do the binning
+        ...
+    else:
+        ...
+
     conc = ds.f_r.sel(spc=spc).values
     spc_display_name = chemical_species_data[spc]["display_name"]
 
-    if ax is None:
-        num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_{plot_type}")
-        fig, ax = plt.subplots(num=num)
+    fig, ax = utils.maybe_new_figure(f"horizontal-end-positions-with-conc_{spc}_{plot_type}", ax=ax)
+
+    norm, locator = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
+
+    if plot_type == "pcolor":
+        im = ax.pcolormesh(x, y, z, cmap=cmap, norm=norm)
+    elif plot_type == "contourf":
+        im = ax.contourf(xc, yc, z, levels, cmap=cmap, norm=norm, locator=locator)
+    else:
+        raise ValueError("`plot_type` should be 'pcolor' or 'contourf'")
+
+    cb = fig.colorbar(im, ax=ax, drawedges=False)
+    cb.set_label(f"{spc_display_name} relative conc. (%)")
+
+    for (x, y) in p["source_positions"]:
+        ax.plot(x, y, **_SOURCE_MARKER_PROPS)
+
+    ax.autoscale(enable=True, axis='both', tight=True)
+    ax.set_title(s_t_info(p), loc="left")
+    ax.set(
+        xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
+        ylabel=f"{ds.y.attrs['long_name']} [{ds.y.attrs['units']}]",
+    )
+    fig.set_tight_layout(True)
+
 
 
 def conc_line(ds, spc="apinene", y=0, z=1.0, *,
@@ -246,6 +269,16 @@ def conc_line(ds, spc="apinene", y=0, z=1.0, *,
 ):
     """Plot species average relative level in the x-direction at a certain y and z."""
     p = load_p(ds)
+
+
+    if spc == "all":
+        spc_to_plot = state["conc"].spc.values
+        n_sp = len(p["source_positions"])
+        plt.close(fig)
+        fig, axs = plt.subplots(n_sp, 1, num=num)
+        ax = axs.flat[0]
+    else:
+        spc_to_plot = [spc]
 
 
 def conc(
