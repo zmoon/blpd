@@ -234,29 +234,7 @@ def conc_2d(ds, spc="apinene",
 
     if "x" not in ds.dims:
         # We were passed the particles dataset, need to do the binning
-        # TODO: move to separate fn
-
-        if bins == "auto":
-            bins = utils.auto_grid((X, Y))
-
-        # 1. Concentration of LPD particles
-        H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
-        conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
-
-        # 2. chemistry
-        ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
-        conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
-        x = ret.x_edge
-        y = ret.y_edge
-        # ^ these are cell edges
-        xc = x[:-1] + 0.5 * np.diff(x)
-        yc = y[:-1] + 0.5 * np.diff(y)
-        # ^ these are cell centers
-
-        assert np.allclose(x, xedges) and np.allclose(y, yedges)
-        # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
-
-        z = conc_p_rel * conc_c
+        binned = utils.bin_c_xy(X, Y, conc, bins=bins)
     else:
         raise NotImplementedError("already binned?")
 
@@ -267,9 +245,9 @@ def conc_2d(ds, spc="apinene",
     )
 
     if plot_type == "pcolor":
-        im = ax.pcolormesh(x, y, z, cmap=cmap, norm=norm)
+        im = ax.pcolormesh(binned.xe, binned.ye, binned.c, cmap=cmap, norm=norm)
     elif plot_type == "contourf":
-        im = ax.contourf(xc, yc, z, levels, cmap=cmap, norm=norm, locator=locator)
+        im = ax.contourf(binned.x, binned.y, binned.c, levels, cmap=cmap, norm=norm, locator=locator)
     else:
         raise ValueError("`plot_type` should be 'pcolor' or 'contourf'")
 
@@ -289,235 +267,47 @@ def conc_2d(ds, spc="apinene",
 
 
 
-def conc_line(ds, spc="apinene", y=0, z=1.0, *,
-    dy=1.0, dz=1.0,
+def conc_xline(ds, spc="apinene", y=0., *,
+    dy=1., ax=None,  # TODO: select z as well?
 ):
-    """Plot species average relative level in the x-direction at a certain y and z."""
-    p = load_p(ds)
-
-
-    if spc == "all":
-        spc_to_plot = state["conc"].spc.values
-        n_sp = len(p["source_positions"])
-        plt.close(fig)
-        fig, axs = plt.subplots(n_sp, 1, num=num)
-        ax = axs.flat[0]
-    else:
-        spc_to_plot = [spc]
-
-
-    fig.legend(ncol=2, fontsize="small")
-    ax.set_title(s_t_info(p), loc="left")
-    fig.set_tight_layout(True)
-
-
-def conc(
-    state,
-    p,
-    spc="bocimene",  # species to plot: dict key, not display name
-    *,
-    plot_type="scatter",
-    bins=(20, 10),
-    levels=30,
-    cmap="gnuplot",
-    log_cnorm=False,  # change to `log_scale` to make more sense with centerline?
-    vmax=100,
-    vmin=None,  # allow fair comparison with other plots
-    centerline_dy=10,  # width of y bin for centerline plots
-):
-    """Scatter plot of particle end positions colored by concentration
-    for continuous release runs
-
-    INPUTS
-    ------
-    spc : str
-        species dict key (ASCII format), e.g., 'bocimene'
-        or
-        'all' (only for `plot_type='centerline'`)
-
-    INPUTS (optional)
-    ------
-    plot_type : str {'scatter', 'pcolor', 'contourf', 'centerline'}
-
+    """Plot species average relative level in the x-direction at a certain approximate y value.
+    `spc` can be ``'all'``.
     """
-    xpath = state["xp"]
-    ypath = state["yp"]
-    zpath = state["zp"]
+    p = load_p(ds)
+    X = ds.x.values
+    Y = ds.y.values
 
-    X = xpath
-    Y = ypath
-    Z = zpath
+    fig, ax = utils.maybe_new_figure(f"horizontal-end-positions-with-conc_{spc}_line", ax=ax)
 
-    if plot_type in ("scatter", "pcolor", "contourf"):
-        conc = state["conc"].f_r.sel(spc=spc).values
+    spc_to_plot = ds.spc.values if spc == "all" else [spc]
+
+    # Define bins (edges)
+    Np = p["Np_tot"]  # TODO: the part for xe here it taken from utils.auto_grid
+    xbar, xstd = X.mean(), X.std()
+    mult = 2.0
+    nx = min(np.sqrt(Np).astype(int), 100)
+    xe = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
+    ye = np.r_[y - 0.5*dy, y + 0.5*dy]
+    # ze = np.r_[z - 0.5*dz, z + 0.5*dz]
+    bins = [xe, ye]
+
+    for spc in spc_to_plot:
         spc_display_name = chemical_species_data[spc]["display_name"]
+        conc = ds.f_r.sel(spc=spc).values
+        binned = utils.bin_c_xy(X, Y, conc, bins=bins)
+        ax.plot(binned.x, binned.c.squeeze(), label=spc_display_name)
 
-    num = check_fig_num(f"horizontal-end-positions-with-conc_{spc}_{plot_type}")
-    fig, ax = plt.subplots(num=num)
+    for (xs, ys) in p["source_positions"]:
+        if abs(ys - y) <= 5:
+            ax.plot(xs, np.nanmin(binned.c), **_SOURCE_MARKER_PROPS)
 
-    if plot_type == "scatter":
-        im = ax.scatter(
-            X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, vmin=vmin, vmax=vmax
-        )
-        # default `s` is 6**2 (default lines.markersize squared)
-        # TODO: marker size should be calculated dynamically but also allowed to pass!
-    elif plot_type in ("pcolor", "contourf"):
-        # binned conc. of floral volatiles depends on both the particle concentration (the passive scalars)
-        # and chemical destruction due to oxidation
-
-        # TODO: copied this from the hist2d fn for now. should make a fn to do this...
-        if not bins:
-            bins = 50
-        elif bins == "auto":
-            bins = auto_grid([X, Y])
-            # TODO: fix so that for z we don't go below zero (or just a bit)
-        # else:
-        # bins = np.linspace(bounds[0], bounds[1], 50)
-
-        # 1. concentration of lpd particles
-        H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
-        conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
-
-        # 2. chemistry
-        ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
-        conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
-        x = ret.x_edge
-        y = ret.y_edge
-        # ^ these are cell edges
-        xc = x[:-1] + 0.5 * np.diff(x)
-        yc = y[:-1] + 0.5 * np.diff(y)
-        # ^ these are cell centers
-
-        assert np.allclose(x, xedges)
-        assert np.allclose(y, yedges)
-        # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
-
-        z = conc_p_rel * conc_c
-
-        # copied from hist2d
-        if log_cnorm:
-            norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
-
-            # https://matplotlib.org/3.1.3/gallery/images_contours_and_fields/contourf_log.html
-            # https://matplotlib.org/3.1.3/api/ticker_api.html#matplotlib.ticker.LogLocator
-            # locator = mpl.ticker.LogLocator(subs=(0.25, 0.5, 1.0))  # another way to get more levels in between powers of 10
-            nlevels = levels if isinstance(levels, int) else np.asarray(levels).size
-            locator = mpl.ticker.LogLocator(subs="all", numticks=nlevels)
-            # TODO: although this^ works, the ticks are not all getting labeled. need to fix.
-
-        else:
-            norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
-            locator = None
-
-        if plot_type == "pcolor":
-            im = ax.pcolormesh(x, y, z, cmap=cmap, norm=norm)
-        elif plot_type == "contourf":
-            im = ax.contourf(xc, yc, z, levels, cmap=cmap, norm=norm, locator=locator)
-
-        ax.set_xlim((x[0], x[-1]))
-        ax.set_ylim((y[0], y[-1]))
-
-    elif plot_type == "centerline":
-        # raise NotImplementedError("Yo")
-        if spc == "all":
-            spc_to_plot = state["conc"].spc.values
-            n_sp = len(p["source_positions"])
-            plt.close(fig)
-            fig, axs = plt.subplots(n_sp, 1, num=num)
-            ax = axs.flat[0]
-        else:
-            spc_to_plot = [spc]
-
-        # add subplots if necessary (one for each source pos)
-        # axs = []
-        # for i, source_pos in enumerate(p["source_positions"]):
-        #     if i == 0:
-        #         ax_ = ax
-        #     else:
-        #         ax_ = fig.add_subplot(len(p["source_positions"]), 1, i+1, sharex=ax)
-        #     axs.append(ax_)
-
-        for spc in spc_to_plot:
-            conc = state["conc"].f_r.sel(spc=spc).values
-
-            for i, source_pos in enumerate(p["source_positions"]):
-
-                ax_ = axs.flat[i] if spc == "all" else ax
-
-                x0_source, y0_source = source_pos
-
-                # only one bin in y
-                dy = centerline_dy
-                y_edges = np.r_[y0_source - 0.5 * dy, y0_source + 0.5 * dy]
-
-                # TODO: binning and such copied from 2d plot part. needs DRYing
-
-                # x bins same as the 2d plots
-                # if bins == "auto":
-                Np = p["Np_tot"]
-                xbar, xstd = X.mean(), X.std()
-                mult = 2.0
-                nx = min(np.sqrt(Np).astype(int), 100)
-                x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
-                # elif isinstance(bins, int):
-
-                bins = [x_edges, y_edges]
-
-                # 1. concentration of lpd particles
-                H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
-                conc_p_rel = (H / H.max()).T
-
-                # 2. chemistry
-                ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
-                conc_c = ret.statistic.T
-                x = ret.x_edge
-                y = ret.y_edge
-                # ^ these are cell edges
-                xc = x[:-1] + 0.5 * np.diff(x)
-                yc = y[:-1] + 0.5 * np.diff(y)
-                # ^ these are cell centers
-
-                # seems to be dominated by particle dispersion
-                # investigating here:
-                # z = (conc_p_rel).squeeze()
-                # z = (conc_c).squeeze()
-                z = (conc_p_rel * conc_c).squeeze()
-
-                # hack for now
-                # label = spc if i == 0 else None
-                label = chemical_species_data[spc]["display_name"] if i == 0 else None
-
-                ax_.plot(xc, z, "-", label=label)
-
-                if log_cnorm:
-                    ax_.set_yscale("log")
-
-                ax_.set_xlabel("x")
-                ax_.set_ylabel("y")
-                ax_.set_title(f"y = {y0_source}")
-
-    else:
-        raise ValueError("invalid `plot_type`")
-
-    if plot_type in ("scatter", "pcolor", "contourf"):
-        cb = fig.colorbar(im, drawedges=False)
-        cb.set_label(f"{spc_display_name} relative conc. (%)")
-
-        for (x, y) in p["source_positions"]:
-            ax.plot(x, y, marker="*", c="gold", ms=11, mec="0.35", mew=1.0)
-
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-
-    elif plot_type == "centerline":
-        # pass
-        # ax.legend()
-        fig.legend(ncol=2, fontsize="small")
-
+    fig.legend(ncol=2, fontsize="small", title="Chemical species")
     ax.set_title(s_t_info(p), loc="left")
-
+    ax.set(
+        xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
+        ylabel=f"Relative concentration",
+    )
     fig.set_tight_layout(True)
-    # fig.tight_layout()
 
 
 # TODO: x-y (or u-v) hists for different height (z) bins

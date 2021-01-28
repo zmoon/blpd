@@ -1,6 +1,8 @@
 """
 Miscellaneous utility functions for the model, plots, etc.
 """
+from collections import namedtuple
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -136,6 +138,38 @@ def auto_grid(positions, *,
     bins = [x_edges, y_edges]
 
     return bins
+
+
+
+_Bin_c_xy_ret = namedtuple("bin_c_xy", "x y xe ye c")
+
+def bin_c_xy(X, Y, C, *, bins, stat="median"):
+    """Using the `x`\, `y` positions of the particles, bin `c`, and calculate a representative value in each bin."""
+    from scipy import stats
+
+    if bins == "auto":
+        bins = utils.auto_grid((X, Y))
+
+    # 1. Concentration of LPD particles
+    H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
+    conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
+
+    # 2. chemistry
+    ret = stats.binned_statistic_2d(X, Y, C, statistic="median", bins=bins)
+    conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+    x = ret.x_edge
+    y = ret.y_edge
+    # ^ these are cell edges
+    xc = x[:-1] + 0.5 * np.diff(x)
+    yc = y[:-1] + 0.5 * np.diff(y)
+    # ^ these are cell centers
+
+    assert np.allclose(x, xedges) and np.allclose(y, yedges)
+    # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
+
+    z = conc_p_rel * conc_c
+
+    return _Bin_c_xy_ret(xc, yc, x, y, z)
 
 
 def calc_t_out(p):
