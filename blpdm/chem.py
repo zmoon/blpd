@@ -118,7 +118,11 @@ def calc_relative_levels_fixed_oxidants(
             "f_d_oh": (("ip", "spc"), d0(), {"long_name": "fraction destroyed by OH"}),
             "f_d_no3": (("ip", "spc"), d0(), {"long_name": "fraction destroyed by NO3"}),
         },
-        attrs={},
+        attrs={
+            "conc_O3": conc_O3,  # molec cm-3
+            "conc_OH": conc_OH,
+            "conc_NO3": conc_NO3,
+        },
     )
     for spc, d_spc in species.items():
         conc0_val = p['fv_0'].get(spc, fv_0_default)
