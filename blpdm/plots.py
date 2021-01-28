@@ -188,7 +188,6 @@ def conc_scatter(ds, spc="apinene", *,
 ):
     """Plot species relative level in particle as a scatter."""
     p = load_p(ds)
-
     X = ds.x.values
     Y = ds.y.values
     conc = ds.f_r.sel(spc=spc).values
@@ -217,6 +216,7 @@ def conc_scatter(ds, spc="apinene", *,
 
 def conc_2d(ds, spc="apinene",
     *,
+    bins=(20, 10),
     plot_type="pcolor",
     levels=30,  # for contourf
     cmap="gnuplot",
@@ -227,19 +227,44 @@ def conc_2d(ds, spc="apinene",
 ):
     """Plot species 2-d binned average species relative level."""
     p = load_p(ds)
-
-    if "x" not in ds.dims:
-        # We were passed the particles dataset, need to do the binning
-        ...
-    else:
-        ...
-
+    X = ds.x.values
+    Y = ds.y.values
     conc = ds.f_r.sel(spc=spc).values
     spc_display_name = chemical_species_data[spc]["display_name"]
 
+    if "x" not in ds.dims:
+        # We were passed the particles dataset, need to do the binning
+        # TODO: move to separate fn
+
+        if bins == "auto":
+            bins = utils.auto_grid((X, Y))
+
+        # 1. Concentration of LPD particles
+        H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
+        conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
+
+        # 2. chemistry
+        ret = stats.binned_statistic_2d(X, Y, conc, statistic="mean", bins=bins)
+        conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+        x = ret.x_edge
+        y = ret.y_edge
+        # ^ these are cell edges
+        xc = x[:-1] + 0.5 * np.diff(x)
+        yc = y[:-1] + 0.5 * np.diff(y)
+        # ^ these are cell centers
+
+        assert np.allclose(x, xedges) and np.allclose(y, yedges)
+        # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
+
+        z = conc_p_rel * conc_c
+    else:
+        raise NotImplementedError("already binned?")
+
     fig, ax = utils.maybe_new_figure(f"horizontal-end-positions-with-conc_{spc}_{plot_type}", ax=ax)
 
-    norm, locator = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
+    norm, locator = utils.maybe_log_cnorm(
+        log_cnorm=log_cnorm, levels=levels if plot_type == "contourf" else None, vmin=vmin, vmax=vmax,
+    )
 
     if plot_type == "pcolor":
         im = ax.pcolormesh(x, y, z, cmap=cmap, norm=norm)
@@ -279,6 +304,11 @@ def conc_line(ds, spc="apinene", y=0, z=1.0, *,
         ax = axs.flat[0]
     else:
         spc_to_plot = [spc]
+
+
+    fig.legend(ncol=2, fontsize="small")
+    ax.set_title(s_t_info(p), loc="left")
+    fig.set_tight_layout(True)
 
 
 def conc(
