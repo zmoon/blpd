@@ -135,3 +135,45 @@ def auto_grid(positions, *,
     bins = [x_edges, y_edges]
 
     return bins
+
+
+def calc_t_out(p):
+    """Calculate time-since-release for each particle at the end of simulation.
+
+    This works for a simulation with constant particle release rate
+    (number of particles released per time step per source).
+
+    Args
+    ----
+    p : dict
+        the model params+options dict
+
+    Returns
+    -------
+    np.array
+        time-since-release in seconds
+    """
+    # unpack needed model options/params
+    Np_tot = p['Np_tot']
+    dt = p['dt']
+    N_t = p['N_t']  # number of time steps
+    t_tot = p['t_tot']
+    dNp_dt_ds = p['dNp_per_dt_per_source']
+    N_s = p['N_sources']
+
+    # Calculate time-since-release for every particle
+    #! the method here is based on time as outer loop
+    #! and will be incorrect if that changes
+    # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
+    t_out = np.ravel(np.tile(np.arange(dt, N_t*dt + dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
+    # ^ need to find the best way to do this!
+    # note: apparently `(N_t+1)*dt` does not give the same stop as `N_t*dt+dt` sometimes (precision thing?)
+
+    # t_out = (t_out[::-1]+1) * dt
+    t_out = t_out[::-1]
+
+    # sanity checks
+    assert np.isclose(t_tot, t_out[0])  # the first particle has been out for the full time
+    assert t_out.size == Np_tot
+
+    return t_out

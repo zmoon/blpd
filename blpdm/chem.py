@@ -6,7 +6,7 @@ import numpy as np
 from scipy import stats
 
 from .utils import auto_grid
-
+from .utils import calc_t_out
 
 
 # key, display name string, kO3, kOH, kNO3
@@ -42,6 +42,7 @@ def _parse_chemical_species_data(s=_chemical_species_data_table_str):
     return d
 
 chemical_species_data = _parse_chemical_species_data()
+"""`dict`; keys: ASCII chemical species names, values: ``'display_name'``, ``'kO3'``, ``'kOH'``, ``'kNO3'``"""
 
 
 # TODO: for the Lagrangian particles it is really number or mass we are calculating
@@ -69,9 +70,10 @@ def calc_relative_levels_fixed_oxidants(
     p : dict
         the model params+options dict
     species : dict
-        first level: keys are the species to calculate levels for
-        second level: a dict for each species that must have the rate constants
-            'kO3', 'kOH', 'kNO3'
+        keys: keys are the species to calculate levels for;
+        values: a `dict` for each species that must at least have the rate constants
+            ``'kO3'``, ``'kOH'``, ``'kNO3'``
+        but can also have ``'fv_0'``, the in-particle concentration at release
     fv_0_default
         set to 1.0 instead for fractional mode (percentage mode by default)
         or pick a different value
@@ -156,53 +158,8 @@ def calc_relative_levels_fixed_oxidants(
     return ds
 
 
-def calc_t_out(p):
-    """Calculate time-since-release for particles at end of simulation.
-
-    This works for a simulation with constant particle release rate
-    (number of particles released per time step per source).
-
-    Args
-    ----
-    p : dict
-        the model params+options dict
-
-    Returns
-    -------
-    np.array
-    """
-
-    # unpack needed model options/params
-    Np_tot = p['Np_tot']
-    dt = p['dt']
-    N_t = p['N_t']  # number of time steps
-    t_tot = p['t_tot']
-    dNp_dt_ds = p['dNp_per_dt_per_source']
-    N_s = p['N_sources']
-
-    # Calculate time-since-release for every particle
-    #! the method here is based on time as outer loop
-    #! and will be incorrect if that changes
-    # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
-    t_out = np.ravel(np.tile(np.arange(dt, N_t*dt + dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
-    # ^ need to find the best way to do this!
-    # note: apparently `(N_t+1)*dt` does not give the same stop as `N_t*dt+dt` sometimes (precision thing?)
-
-    # t_out = (t_out[::-1]+1) * dt
-    t_out = t_out[::-1]
-
-    # sanity checks
-    assert np.isclose(t_tot, t_out[0])  # the first particle has been out for the full time
-    assert t_out.size == Np_tot
-
-    return t_out
-
-
 def load_canola_data():
-    """Canola species data.
-
-    Return as dict of dicts
-    """
+    """Canola species data as `dict` of `dict`s."""
 
     def try_float(v):
         try:
@@ -240,7 +197,7 @@ thujene,136,4.4e-16,8.7e-11,1.1e-11,0.69,0.36,α-thujene
     return d
 
 
-def canola_flower_basal_emissions():
+def load_canola_flower_basal_emissions():
     """Speciated basal emission rate data for canola plant."""
 
     # basal emissions in ng per floret-hour (ng floret^-1 hr^-1)
@@ -278,13 +235,13 @@ def canola_flower_basal_emissions():
     }
 
 
-def canola_areal_emission_rates(
+def calc_canola_areal_emission_rates(
     plant_density: float = 30.0,
     num_flowers_avg: float = 25.0,
     T: float = 298.0,
     beta: float = 0.06,
 ):
-    """Calculate areal emission rates (per m^2 per s).
+    """Calculate areal emission rates (per m^2 per s) for canola floral volatiles.
 
     plant_density : float
         average number of plants per m^2
@@ -298,11 +255,11 @@ def canola_areal_emission_rates(
     Returns
     -------
     dict
-        first level is species key
+        values: species ASCII; keys: dict of areal emissions in different units
     """
 
     # load basal data
-    basal = canola_flower_basal_emissions()
+    basal = load_canola_flower_basal_emissions()
     E_si_ug = basal["emiss_ug_per_floret-s"]
     T_S = basal["T_S_K"]
 
@@ -349,7 +306,7 @@ def canola_calc_gridded_conc(state, p):
     import xarray as xr
 
     # 1. determine floral volatile levels per particle
-    emiss_rates = canola_areal_emission_rates()
+    emiss_rates = calc_canola_areal_emission_rates()
     dt = p["dt"]
     dNp_per_dt_per_source = p["dNp_per_dt_per_source"]
     Np_per_sec_per_source = dNp_per_dt_per_source / dt
