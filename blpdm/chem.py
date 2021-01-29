@@ -6,7 +6,7 @@ import numpy as np
 import xarray as xr
 from scipy import stats
 
-from .utils import auto_bins_2d
+from .utils import auto_bins_xy
 from .utils import calc_t_out
 from .utils import load_p
 
@@ -336,7 +336,7 @@ def calc_gridded_conc_canola(ds):
     dx = X[1] - X[0]
     dy = Y[1] - Y[0]
     pos = (X, Y)
-    bins = auto_bins_2d(pos)
+    bins = auto_bins_xy(pos)
 
     # 4. Calculate concentrations from particle concentration field
     #    and speciated fv_0

@@ -123,12 +123,13 @@ def _auto_bins_1d(x, *, nx_max, std_mult, method):
     return x_edges
 
 
-def auto_bins_2d(positions, *,
+def auto_bins_xy(positions, *,
     nxy_max: int = 100,
     std_mult: float = 2.0,
     method: str = "auto",
 ):
-    """Determine a good 2-d grid (bin edges) that lets us focus on where most of the data is.
+    """Determine bin edges for a 2-d horizontal grid
+    that lets us focus on where most of the data is.
 
     Parameters
     ----------
@@ -164,14 +165,14 @@ def auto_bins_2d(positions, *,
 
 _Binned_values_xy = namedtuple("Binned_values_xy", "x y xe ye v")
 
-def bin_values_xy(x, y, values, *, bins, stat="median"):
+def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
     """Using the `x` and `y` positions of the particles, bin `values`,
     and calculate a representative value in each bin.
     """
     from scipy import stats
 
     if bins == "auto":
-        bins = auto_bins_2d((x, y))
+        bins = auto_bins_xy((x, y))
 
     # 1. Concentration of LPD particles
     H, xe0, ye0 = np.histogram2d(x, y, bins=bins)  # H is binned particle count
@@ -192,6 +193,70 @@ def bin_values_xy(x, y, values, *, bins, stat="median"):
     v = conc_p_rel * v0
 
     return _Binned_values_xy(xc, yc, xe, ye, v)
+
+
+def bin_ds_xy(ds, *, variables="all", bins="auto"):
+    """Bin a particles dataset. For example,
+    the model ``.to_xarray()`` dataset or the relative levels with fixed oxidants one.
+    """
+    from scipy import stats
+    import xarray as xr
+
+    if not tuple(ds.dims) == ("ip",):
+        raise NotImplementedError("Must have only particle dim for now.")
+
+    if variables == "all":
+        vns = [vn for vn in ds.variables if vn not in list("xyz") + list(ds.dims) + list(ds.coords)]
+    else:
+        vns = [variables]
+
+    pos = (ds.x.values, ds.y.values)
+    if bins == "auto":
+        bins = auto_bins_xy(pos)
+
+    res = {}
+    ret = None  # for first run we don't have a result yet
+    stats_to_calc = ["mean", "median", "std", "count"]  # note sum can be recovered with mean and particle count
+    for vn in vns:
+        values = ds[vn].values
+        rets = {}
+        for stat in stats_to_calc:
+            ret = stats.binned_statistic_dd(
+                pos,
+                values,
+                statistic=stat,
+                bins=bins,
+                binned_statistic_result=ret,
+            )
+            rets[stat] = ret
+        res[vn] = rets
+
+    # Grid
+    x, y = ret.bin_edges[0], ret.bin_edges[1]
+    xc = x[:-1] + 0.5 * np.diff(x)
+    yc = y[:-1] + 0.5 * np.diff(y)
+
+    # Create dataset of the binned statistics on the variables
+    ds = xr.Dataset(
+        coords={
+            "x": ("x", x, {"units": "m", "long_name": "x (bin edges)"}),
+            "y": ("y", y, {"units": "m", "long_name": "y (bin edges)"}),
+            "xc": ("xc", xc, {"units": "m", "long_name": "x (bin centers)"}),
+            "yc": ("yc", yc, {"units": "m", "long_name": "y (bin centers)"}),
+        },
+        data_vars={
+            f"{vn}_{stat}": (("xc", "yc"), ret.statistic, {
+                "units": ds[vn].attrs.get("units", ""), "long_name": ds[vn].attrs.get("long_name", ""),
+            })
+            for vn, d in res.items()
+            for stat, ret in d.items()
+        }
+    )
+
+    # Add particle count
+    ds["Np"] = (("xc", "yc"), res[vns[0]]["count"].statistic, {"long_name": "Lagrangian particle count"})
+
+    return ds.transpose()  # y first so 2-d xarray plots just work
 
 
 def calc_t_out(p):
