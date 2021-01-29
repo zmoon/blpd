@@ -108,8 +108,20 @@ def s_sample_size(p, *, N_p_only=False):
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 
-# TODO: reduce the doubled code for x and y below by defining this fn
-# def _auto_grid_np_1d(a):
+def _auto_bins_1d(x, *, nx_max, std_mult, method):
+    x_bar, x_std = x.mean(), x.std()
+    if std_mult is not None:
+        x_range = x_bar - std_mult * x_std, x_bar + std_mult * x_std
+    else:
+        x_range = None
+
+    x_edges = np.histogram_bin_edges(x, bins=method, range=x_range)
+
+    if x_edges.size > nx_max + 1:
+        x_edges = np.linspace(*x_range, nx_max+1)
+
+    return x_edges
+
 
 def auto_bins_2d(positions, *,
     nxy_max: int = 100,
@@ -141,18 +153,11 @@ def auto_bins_2d(positions, *,
     Y = pos[:,1]
 
     # TODO: optional `z_range=` arg for including certain range of heights, with defaults np.inf or None
+    # TODO: optional centering cell over certain x, y value (like 0, 0)
 
-    x_bar, x_std = X.mean(), X.std()
-    x_range = x_bar - std_mult * x_std, x_bar + std_mult * x_std if std_mult is not None else None
-    x_edges = np.histogram_bin_edges(X, bins=method, range=x_range)
-    if x_edges.size > nxy_max + 1:
-        x_edges = np.linspace(*x_range, nxy_max+1)
-
-    y_bar, y_std = Y.mean(), Y.std()
-    y_range = y_bar - std_mult * y_std, y_bar + std_mult * y_std if std_mult is not None else None
-    y_edges = np.histogram_bin_edges(Y, bins=method, range=y_range)
-    if y_edges.size > nxy_max + 1:
-        y_edges = np.linspace(*x_range, nxy_max+1)
+    kwargs_1d = dict(nx_max=nxy_max, std_mult=std_mult, method=method)
+    x_edges = _auto_bins_1d(X, **kwargs_1d)
+    y_edges = _auto_bins_1d(Y, **kwargs_1d)
 
     return [x_edges, y_edges]  # bins
 

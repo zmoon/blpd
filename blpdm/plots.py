@@ -266,11 +266,7 @@ def conc_xline(ds, spc="apinene", y=0., *,
     spc_to_plot = ds.spc.values if spc == "all" else [spc]
 
     # Define bins (edges)
-    Np = p["Np_tot"]  # TODO: the part for xe here it taken from utils.auto_grid
-    xbar, xstd = X.mean(), X.std()
-    mult = 2.0
-    nx = min(np.sqrt(Np).astype(int), 100)
-    xe = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
+    xe = utils._auto_bins_1d(X, nx_max=100, std_mult=2.0, method="sqrt")
     ye = np.r_[y - 0.5*dy, y + 0.5*dy]
     # ze = np.r_[z - 0.5*dz, z + 0.5*dz]
     bins = [xe, ye]
