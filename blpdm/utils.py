@@ -214,7 +214,9 @@ def bin_ds_xy(ds, *, variables="all", bins="auto"):
     if bins == "auto":
         bins = auto_bins_xy(pos)
 
-    res = {}
+    # Compute statistics, using `binned_statistic_dd` so we can pass the previous
+    # result for efficiency.
+    res = {}  # {vn: {stat: ...}, ...}
     ret = None  # for first run we don't have a result yet
     stats_to_calc = ["mean", "median", "std", "count"]  # note sum can be recovered with mean and particle count
     for vn in vns:
@@ -230,6 +232,9 @@ def bin_ds_xy(ds, *, variables="all", bins="auto"):
             )
             rets[stat] = ret
         res[vn] = rets
+
+        if vn == vns[0]:
+            stats_to_calc.remove("count")  # only need it once
 
     # Grid
     x, y = ret.bin_edges[0], ret.bin_edges[1]
