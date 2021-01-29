@@ -218,7 +218,7 @@ def conc_2d(ds, spc="apinene",
 
     if "x" not in ds.dims:
         # We were passed the particles dataset, need to do the binning
-        binned = utils.bin_c_xy(X, Y, conc, bins=bins)
+        binned = utils.bin_values_xy(X, Y, conc, bins=bins)
     else:
         raise NotImplementedError("already binned?")
 
@@ -229,9 +229,9 @@ def conc_2d(ds, spc="apinene",
     )
 
     if plot_type == "pcolor":
-        im = ax.pcolormesh(binned.xe, binned.ye, binned.c, cmap=cmap, norm=norm)
+        im = ax.pcolormesh(binned.xe, binned.ye, binned.v, cmap=cmap, norm=norm)
     elif plot_type == "contourf":
-        im = ax.contourf(binned.x, binned.y, binned.c, levels, cmap=cmap, norm=norm, locator=locator)
+        im = ax.contourf(binned.x, binned.y, binned.v, levels, cmap=cmap, norm=norm, locator=locator)
     else:
         raise ValueError("`plot_type` should be 'pcolor' or 'contourf'")
 
@@ -278,12 +278,12 @@ def conc_xline(ds, spc="apinene", y=0., *,
     for spc in spc_to_plot:
         spc_display_name = chemical_species_data[spc]["display_name"]
         conc = ds.f_r.sel(spc=spc).values
-        binned = utils.bin_c_xy(X, Y, conc, bins=bins)
-        ax.plot(binned.x, binned.c.squeeze(), label=spc_display_name if label is None else label)
+        binned = utils.bin_values_xy(X, Y, conc, bins=bins)
+        ax.plot(binned.x, binned.v.squeeze(), label=spc_display_name if label is None else label)
 
     for (xs, ys) in p["source_positions"]:
         if abs(ys - y) <= 5:
-            ax.plot(xs, np.nanmin(binned.c), **_SOURCE_MARKER_PROPS)
+            ax.plot(xs, np.nanmin(binned.v), **_SOURCE_MARKER_PROPS)
 
     if legend:
         fig.legend(ncol=2, fontsize="small", title="Chemical species" if legend_title is None else legend_title)
@@ -387,7 +387,7 @@ def final_pos_hist2d(
     fig, ax = plt.subplots(num=num)
 
     if bins == "auto":
-        bins = utils.auto_grid([x, y])
+        bins = utils.auto_bins_2d([x, y])
 
     if log_cnorm:
         norm = mpl.colors.LogNorm(vmin=1.0, vmax=vmax)

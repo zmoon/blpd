@@ -1,6 +1,7 @@
 """
 Miscellaneous utility functions for the model, plots, etc.
 """
+import math
 from collections import namedtuple
 
 import matplotlib as mpl
@@ -107,80 +108,85 @@ def s_sample_size(p, *, N_p_only=False):
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 
-# TODO: use this fn (auto_grid) in the plotting routines
+# TODO: reduce the doubled code for x and y below by defining this fn
+# def _auto_grid_np_1d(a):
 
-def auto_grid(positions, *,
-    nx_max: int = 100,
-    sd_mult: float = 2.0,
+def auto_bins_2d(positions, *,
+    nxy_max: int = 100,
+    std_mult: float = 2.0,
+    method: str = "auto",
 ):
-    """Determine a good grid that lets us focus on where most of the data is.
+    """Determine a good 2-d grid (bin edges) that lets us focus on where most of the data is.
 
+    Parameters
+    ----------
     positions
-        can be:
-        * container of 1-D arrays (in x,y[,z] order)
-        * single np.array where columns are x,y[,z]
-
-    sd_mult :
-        standard deviation multiplier
-        increase to capture more of the domain
-
+        Container of 1-D arrays (in x,y[,z] order)
+        OR single NumPy array where columns are x,y[,z].
+    nxy_max
+        Maximum number of bins in either direction (x or y).
+    std_mult
+        Standard deviation multiplier.
+        Increase to capture more of the domain.
+        Or set to `None` to capture all of it.
+    method
+        Passed to :func:`numpy.histogram_bin_edges`.
+        Usually use `'auto'` or `'sqrt'`.
     """
-    # explicity pass in x,y,z positions instead of whole state?
-    if isinstance(positions, (tuple, list)):
-        X = positions[0]
-        Y = positions[1]
-    elif isinstance(positions, np.array):
-        X = positions[:,0]
-        Y = positions[:,1]
-    else:
-        raise TypeError("`positions`")
-    # TODO: implement optional z binning
+    pos = np.asarray(positions)
+    assert pos.ndim == 2
+    if pos.shape[0] in [2, 3]:  # need to flip (or we only have 2 or 3 data points, but that is unlikely!)
+        pos = pos.T
+    X = pos[:,0]
+    Y = pos[:,1]
 
-    # form linearly spaced bins
-    # with grid edges based on mean and standard deviation
-    Np = X.size  # number of particles in the snapshot
-    xbar, xstd = X.mean(), X.std()
-    ybar, ystd = Y.mean(), Y.std()
-    mult = sd_mult
-    nx = min(np.sqrt(Np).astype(int), nx_max)
-    ny = nx
-    x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
-    y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
-    bins = [x_edges, y_edges]
+    # TODO: optional `z_range=` arg for including certain range of heights, with defaults np.inf or None
 
-    return bins
+    x_bar, x_std = X.mean(), X.std()
+    x_range = x_bar - std_mult * x_std, x_bar + std_mult * x_std if std_mult is not None else None
+    x_edges = np.histogram_bin_edges(X, bins=method, range=x_range)
+    if x_edges.size > nxy_max + 1:
+        x_edges = np.linspace(*x_range, nxy_max+1)
+
+    y_bar, y_std = Y.mean(), Y.std()
+    y_range = y_bar - std_mult * y_std, y_bar + std_mult * y_std if std_mult is not None else None
+    y_edges = np.histogram_bin_edges(Y, bins=method, range=y_range)
+    if y_edges.size > nxy_max + 1:
+        y_edges = np.linspace(*x_range, nxy_max+1)
+
+    return [x_edges, y_edges]  # bins
 
 
+_Binned_values_xy = namedtuple("Binned_values_xy", "x y xe ye v")
 
-_Bin_c_xy_ret = namedtuple("bin_c_xy", "x y xe ye c")
-
-def bin_c_xy(X, Y, C, *, bins, stat="median"):
-    r"""Using the `x`\, `y` positions of the particles, bin `c`, and calculate a representative value in each bin."""
+def bin_values_xy(x, y, values, *, bins, stat="median"):
+    """Using the `x` and `y` positions of the particles, bin `values`,
+    and calculate a representative value in each bin.
+    """
     from scipy import stats
 
     if bins == "auto":
-        bins = auto_grid((X, Y))
+        bins = auto_bins_2d((x, y))
 
     # 1. Concentration of LPD particles
-    H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
+    H, xe0, ye0 = np.histogram2d(x, y, bins=bins)  # H is binned particle count
     conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
 
-    # 2. chemistry
-    ret = stats.binned_statistic_2d(X, Y, C, statistic="median", bins=bins)
-    conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
-    x = ret.x_edge
-    y = ret.y_edge
+    # 2. In-particle values in each bin
+    ret = stats.binned_statistic_2d(x, y, values, statistic="median", bins=bins)
+    v0 = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+    xe = ret.x_edge
+    ye = ret.y_edge
     # ^ these are cell edges
-    xc = x[:-1] + 0.5 * np.diff(x)
-    yc = y[:-1] + 0.5 * np.diff(y)
+    xc = xe[:-1] + 0.5 * np.diff(xe)
+    yc = ye[:-1] + 0.5 * np.diff(ye)
     # ^ these are cell centers
+    assert np.allclose(xe, xe0) and np.allclose(ye, ye0)  # confirm bins same
 
-    assert np.allclose(x, xedges) and np.allclose(y, yedges)
-    # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
+    # 3. Multiply in-particle stat by particle conc. to get final values
+    v = conc_p_rel * v0
 
-    z = conc_p_rel * conc_c
-
-    return _Bin_c_xy_ret(xc, yc, x, y, z)
+    return _Binned_values_xy(xc, yc, xe, ye, v)
 
 
 def calc_t_out(p):
