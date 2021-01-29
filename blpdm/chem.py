@@ -53,6 +53,7 @@ def calc_relative_levels_fixed_oxidants(
     species=chemical_species_data,
     *,
     t_out=None,
+    p_overrides=None,
     fv_0_default: float = 100.0  # percentage mode by default
 ):
     """Calculate relative levels (rt. values at particle release)
@@ -72,7 +73,7 @@ def calc_relative_levels_fixed_oxidants(
     species : dict
         keys: keys are the species to calculate levels for;
         values: a `dict` for each species that must at least have the rate constants
-            ``'kO3'``, ``'kOH'``, ``'kNO3'``
+        ``'kO3'``, ``'kOH'``, ``'kNO3'``
         but can also have ``'fv_0'``, the in-particle concentration at release
     fv_0_default
         set to 1.0 instead for fractional mode (percentage mode by default)
@@ -83,6 +84,9 @@ def calc_relative_levels_fixed_oxidants(
     xr.Dataset
     """
     p = load_p(ds)
+
+    if p_overrides is not None:
+        p.update(p_overrides)
 
     # unpack needed model options/params
     Np_tot = p['Np_tot']

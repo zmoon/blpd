@@ -252,6 +252,7 @@ def conc_2d(ds, spc="apinene",
 
 def conc_xline(ds, spc="apinene", y=0., *,
     dy=1., ax=None,  # TODO: select z as well?
+    legend=True, label=None, legend_title=None,
 ):
     """Plot species average relative level in the x-direction at a certain approximate y value.
     `spc` can be ``'all'``.
@@ -278,13 +279,14 @@ def conc_xline(ds, spc="apinene", y=0., *,
         spc_display_name = chemical_species_data[spc]["display_name"]
         conc = ds.f_r.sel(spc=spc).values
         binned = utils.bin_c_xy(X, Y, conc, bins=bins)
-        ax.plot(binned.x, binned.c.squeeze(), label=spc_display_name)
+        ax.plot(binned.x, binned.c.squeeze(), label=spc_display_name if label is None else label)
 
     for (xs, ys) in p["source_positions"]:
         if abs(ys - y) <= 5:
             ax.plot(xs, np.nanmin(binned.c), **_SOURCE_MARKER_PROPS)
 
-    fig.legend(ncol=2, fontsize="small", title="Chemical species")
+    if legend:
+        fig.legend(ncol=2, fontsize="small", title="Chemical species" if legend_title is None else legend_title)
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
