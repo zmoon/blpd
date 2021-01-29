@@ -179,7 +179,7 @@ def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
     conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
 
     # 2. In-particle values in each bin
-    ret = stats.binned_statistic_2d(x, y, values, statistic="median", bins=bins)
+    ret = stats.binned_statistic_2d(x, y, values, statistic=stat, bins=bins)
     v0 = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
     xe = ret.x_edge
     ye = ret.y_edge
