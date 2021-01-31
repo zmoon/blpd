@@ -13,6 +13,8 @@ import numpy as np
 
 from . import lpd
 from .chem import chem_calc_options
+from .utils import numbify
+from .utils import unnumbify
 
 
 input_param_defaults = {
@@ -537,60 +539,3 @@ class Model():
                 plots.trajectories(self.to_xarray(), **kwargs)
             else:
                 plots.final_pos_scatter(self.to_xarray(), **kwargs)
-
-
-
-# TODO: float precision option
-def numbify(d, zerod_only=False):
-    """Convert dict to numba-suitable format.
-
-    dict values must be numpy arrays (or individual floats)
-
-    ref: https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#id7
-    """
-    float64_array = numba.types.float64[:]  # maybe would be more efficient to pass size
-    float64 = numba.types.float64
-    d_nb = numba.typed.Dict.empty(
-        key_type=numba.types.unicode_type,
-        value_type=float64_array if not zerod_only else float64,
-    )
-    for k, v in d.items():
-        # print(k, v, np.asarray(v).shape, np.asarray(v).shape == ())
-
-        # d_nb[k] = np.asarray(v, dtype=np.float64)  # will convert bool to 0/1
-        # d_nb[k] = np.asarray(v).astype(np.float64)
-
-        # np.asarray leaves float/int with size=1 but shape=() so numba doesn't work
-        # so hacking this for now
-        if not zerod_only:
-            if np.asarray(v).shape == ():
-                x = np.float64((1,))
-                x[:] = np.float64(v)
-                d_nb[k] = x
-            else:
-                # d_nb[k] = np.asarray(v, dtype=np.float64)
-                d_nb[k] = np.asarray(v).astype(np.float64)
-        else:
-            d_nb[k] = np.float64(v)
-
-    # numba.typed.Dict.empty() creates a normal dict if it thinks jit is disabled
-    # ref: https://github.com/numba/numba/blob/868b8e3e8d034dac0440b75ca31595e07f632d27/numba/typed/typeddict.py#L95
-    assert isinstance(d_nb, numba.typed.Dict)
-
-    return d_nb
-
-
-def unnumbify(d_nb):
-    """Convert numba dict to normal dict of numpy arrays."""
-    if not isinstance(d_nb, numba.typed.Dict):
-        raise TypeError('this fn is for dicts of type `numba.typed.Dict`')
-
-    d = {}
-    for k, v in d_nb.items():
-        # if isinstance(v, numba.types.float64[:]):
-        if v.shape == (1,):
-            d[k] = v[0]
-        else:
-            d[k] = v
-
-    return d
