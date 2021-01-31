@@ -43,7 +43,8 @@ def final_pos_scatter(ds, sdim="xy"):
     """Scatter plot of particle end positions."""
     p = utils.load_p(ds)
 
-    if sdim in ("xyz", "3d", "3-D"):
+    dims = utils.dims_from_sdim(sdim)
+    if len(dims) == 3:
         sdim = "xyz"
         x = ds.x.values
         y = ds.y.values
@@ -51,35 +52,33 @@ def final_pos_scatter(ds, sdim="xy"):
         subplot_kw = {"projection": "3d"}
         coords = (x, y, z)
         plot_kw = dict(alpha=0.5, mew=0, ms=7)
-    elif len(sdim) == 2 and all(sdim1 in ("x", "y", "z") for sdim1 in sdim):
-        x = ds[sdim[0]].values
-        y = ds[sdim[1]].values
+    elif len(dims) == 2:
+        x = ds[dims[0]].values
+        y = ds[dims[1]].values
         subplot_kw = {}
         coords = (x, y)
         plot_kw = dict(alpha=0.5, mfc="none", mew=0.8, ms=5)
     else:
-        raise ValueError("invalid choice of `sdim`")
-
-    dim = list(sdim)
+        raise ValueError("invalid `sdim`")
 
     num = utils.check_fig_num(f"final-pos-scatter-{sdim}")
     fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
 
     ax.plot(*coords, "o", **plot_kw)
 
-    ax.set_xlabel(f"${dim[0]}$")
-    ax.set_ylabel(f"${dim[1]}$")
-    if subplot_kw:
-        ax.set_zlabel(f"${dim[2]}$")
+    ax.set_xlabel(f"${dims[0]}$")
+    ax.set_ylabel(f"${dims[1]}$")
+    if len(dims) == 3:
+        ax.set_zlabel(f"${dims[2]}$")
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(f"$N_p = {p['Np_tot']}$", loc="right")
 
     for (xs, ys) in p["source_positions"]:
         sp = dict(x=xs, y=ys, z=p["release_height"])
-        if subplot_kw:  # hack for now
-            ax.plot([sp[dim[0]]], [sp[dim[1]]], [sp[dim[2]]], "*", c="gold", ms=10)
+        if len(dims) == 3:
+            ax.plot([sp[dims[0]]], [sp[dims[1]]], [sp[dims[2]]], "*", c="gold", ms=10)
         else:
-            ax.plot(sp[dim[0]], sp[dim[1]], "*", c="gold", ms=10)
+            ax.plot(sp[dims[0]], sp[dims[1]], "*", c="gold", ms=10)
 
     fig.set_tight_layout(True)
 
@@ -368,22 +367,21 @@ def final_pos_hist2d(
     ds, *, sdim="xy", bins=50, plot_type="pcolor", log_cnorm=False, vmax=None,
 ):
     """2-D histogram of selected final position components."""
-    if len(sdim) != 2 or any(dim1 not in ("x", "y", "z") for dim1 in sdim):
-        raise ValueError("for `sdim`, pick 2 from 'x', 'y', and 'z'")
-
     p = utils.load_p(ds)
+
+    dims = utils.dims_from_sdim(sdim)
     if "t" in ds.dims:
-        x = ds[sdim[0]].isel(t=-1).values
-        y = ds[sdim[1]].isel(t=-1).values
+        x = ds[dims[0]].isel(t=-1).values
+        y = ds[dims[1]].isel(t=-1).values
     else:
-        x = ds[sdim[0]].values
-        y = ds[sdim[1]].values
+        x = ds[dims[0]].values
+        y = ds[dims[1]].values
 
     num = utils.check_fig_num(f"final-pos-hist-{sdim}")
     fig, ax = plt.subplots(num=num)
 
     if bins == "auto":
-        bins = utils.auto_bins_2d([x, y])
+        bins = utils.auto_bins_xy([x, y])
 
     if log_cnorm:
         norm = mpl.colors.LogNorm(vmin=1.0, vmax=vmax)
@@ -399,8 +397,8 @@ def final_pos_hist2d(
     for (x, y) in p["source_positions"]:
         ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
 
-    ax.set_xlabel(f"${sdim[0]}$ [{ds.x.attrs['units']}]")
-    ax.set_ylabel(f"${sdim[1]}$ [{ds.x.attrs['units']}]")
+    ax.set_xlabel(f"${dims[0]}$ [{ds.x.attrs['units']}]")
+    ax.set_ylabel(f"${dims[1]}$ [{ds.x.attrs['units']}]")
     ax.autoscale(enable=True, axis='both', tight=True)
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(utils.s_sample_size(p, N_p_only=True), loc="right")

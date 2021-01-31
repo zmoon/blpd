@@ -341,3 +341,18 @@ def maybe_new_figure(try_num: str, ax=None):
         fig = ax.get_figure()
 
     return fig, ax
+
+
+def check_sdim(sdim: str):
+    if len(sdim) not in (2, 3) or any(dim1 not in ("x", "y", "z") for dim1 in sdim):
+        raise ValueError("for `sdim`, pick 2 or 3 from 'x', 'y', and 'z'. For example, 'xy'.")
+
+
+def dims_from_sdim(sdim: str):
+    check_sdim(sdim)  # first validate
+    if sdim.lower() in ("xyz", "3d", "3-d"):
+        dims = list("xyz")
+    else:
+        dims = list(sdim.lower())
+
+    return dims
