@@ -131,7 +131,7 @@ def auto_bins(positions, sdim="xy", *,
     std_mult: float = 2.0,
     method: str = "auto",
 ):
-    """Determine bin edges for a 2-d horizontal grid
+    """Determine bin edges for a 2- or 3-d horizontal grid
     that lets us focus on where most of the data is.
 
     Parameters
@@ -140,7 +140,7 @@ def auto_bins(positions, sdim="xy", *,
         Container of 1-D arrays (in x,y[,z] order)
         OR single NumPy array where columns are x,y[,z].
     nbins_max_1d
-        Maximum number of bins in either direction (x or y).
+        Maximum number of bins in any direction/dim.
     std_mult
         Standard deviation multiplier.
         Increase to capture more of the domain.
