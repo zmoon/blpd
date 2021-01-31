@@ -43,7 +43,8 @@ def final_pos_scatter(ds, sdim="xy"):
     """Scatter plot of particle end positions."""
     p = utils.load_p(ds)
 
-    if sdim in ("xyz", "3d", "3-D"):
+    dims = utils.dims_from_sdim(sdim)
+    if len(dims) == 3:
         sdim = "xyz"
         x = ds.x.values
         y = ds.y.values
@@ -51,35 +52,33 @@ def final_pos_scatter(ds, sdim="xy"):
         subplot_kw = {"projection": "3d"}
         coords = (x, y, z)
         plot_kw = dict(alpha=0.5, mew=0, ms=7)
-    elif len(sdim) == 2 and all(sdim1 in ("x", "y", "z") for sdim1 in sdim):
-        x = ds[sdim[0]].values
-        y = ds[sdim[1]].values
+    elif len(dims) == 2:
+        x = ds[dims[0]].values
+        y = ds[dims[1]].values
         subplot_kw = {}
         coords = (x, y)
         plot_kw = dict(alpha=0.5, mfc="none", mew=0.8, ms=5)
     else:
-        raise ValueError("invalid choice of `sdim`")
-
-    dim = list(sdim)
+        raise ValueError("invalid `sdim`")
 
     num = utils.check_fig_num(f"final-pos-scatter-{sdim}")
     fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
 
     ax.plot(*coords, "o", **plot_kw)
 
-    ax.set_xlabel(f"${dim[0]}$")
-    ax.set_ylabel(f"${dim[1]}$")
-    if subplot_kw:
-        ax.set_zlabel(f"${dim[2]}$")
+    ax.set_xlabel(f"${dims[0]}$")
+    ax.set_ylabel(f"${dims[1]}$")
+    if len(dims) == 3:
+        ax.set_zlabel(f"${dims[2]}$")
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(f"$N_p = {p['Np_tot']}$", loc="right")
 
     for (xs, ys) in p["source_positions"]:
         sp = dict(x=xs, y=ys, z=p["release_height"])
-        if subplot_kw:  # hack for now
-            ax.plot([sp[dim[0]]], [sp[dim[1]]], [sp[dim[2]]], "*", c="gold", ms=10)
+        if len(dims) == 3:
+            ax.plot([sp[dims[0]]], [sp[dims[1]]], [sp[dims[2]]], "*", c="gold", ms=10)
         else:
-            ax.plot(sp[dim[0]], sp[dim[1]], "*", c="gold", ms=10)
+            ax.plot(sp[dims[0]], sp[dims[1]], "*", c="gold", ms=10)
 
     fig.set_tight_layout(True)
 
@@ -218,7 +217,7 @@ def conc_2d(ds, spc="apinene",
 
     if "x" not in ds.dims:
         # We were passed the particles dataset, need to do the binning
-        binned = utils.bin_c_xy(X, Y, conc, bins=bins)
+        binned = utils.bin_values_xy(X, Y, conc, bins=bins)
     else:
         raise NotImplementedError("already binned?")
 
@@ -229,9 +228,9 @@ def conc_2d(ds, spc="apinene",
     )
 
     if plot_type == "pcolor":
-        im = ax.pcolormesh(binned.xe, binned.ye, binned.c, cmap=cmap, norm=norm)
+        im = ax.pcolormesh(binned.xe, binned.ye, binned.v, cmap=cmap, norm=norm)
     elif plot_type == "contourf":
-        im = ax.contourf(binned.x, binned.y, binned.c, levels, cmap=cmap, norm=norm, locator=locator)
+        im = ax.contourf(binned.x, binned.y, binned.v, levels, cmap=cmap, norm=norm, locator=locator)
     else:
         raise ValueError("`plot_type` should be 'pcolor' or 'contourf'")
 
@@ -266,11 +265,7 @@ def conc_xline(ds, spc="apinene", y=0., *,
     spc_to_plot = ds.spc.values if spc == "all" else [spc]
 
     # Define bins (edges)
-    Np = p["Np_tot"]  # TODO: the part for xe here it taken from utils.auto_grid
-    xbar, xstd = X.mean(), X.std()
-    mult = 2.0
-    nx = min(np.sqrt(Np).astype(int), 100)
-    xe = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
+    xe = utils._auto_bins_1d(X, nx_max=100, std_mult=2.0, method="sqrt")
     ye = np.r_[y - 0.5*dy, y + 0.5*dy]
     # ze = np.r_[z - 0.5*dz, z + 0.5*dz]
     bins = [xe, ye]
@@ -278,12 +273,12 @@ def conc_xline(ds, spc="apinene", y=0., *,
     for spc in spc_to_plot:
         spc_display_name = chemical_species_data[spc]["display_name"]
         conc = ds.f_r.sel(spc=spc).values
-        binned = utils.bin_c_xy(X, Y, conc, bins=bins)
-        ax.plot(binned.x, binned.c.squeeze(), label=spc_display_name if label is None else label)
+        binned = utils.bin_values_xy(X, Y, conc, bins=bins)
+        ax.plot(binned.x, binned.v.squeeze(), label=spc_display_name if label is None else label)
 
     for (xs, ys) in p["source_positions"]:
         if abs(ys - y) <= 5:
-            ax.plot(xs, np.nanmin(binned.c), **_SOURCE_MARKER_PROPS)
+            ax.plot(xs, np.nanmin(binned.v), **_SOURCE_MARKER_PROPS)
 
     if legend:
         fig.legend(ncol=2, fontsize="small", title="Chemical species" if legend_title is None else legend_title)
@@ -372,22 +367,21 @@ def final_pos_hist2d(
     ds, *, sdim="xy", bins=50, plot_type="pcolor", log_cnorm=False, vmax=None,
 ):
     """2-D histogram of selected final position components."""
-    if len(sdim) != 2 or any(dim1 not in ("x", "y", "z") for dim1 in sdim):
-        raise ValueError("for `sdim`, pick 2 from 'x', 'y', and 'z'")
-
     p = utils.load_p(ds)
+
+    dims = utils.dims_from_sdim(sdim)
     if "t" in ds.dims:
-        x = ds[sdim[0]].isel(t=-1).values
-        y = ds[sdim[1]].isel(t=-1).values
+        x = ds[dims[0]].isel(t=-1).values
+        y = ds[dims[1]].isel(t=-1).values
     else:
-        x = ds[sdim[0]].values
-        y = ds[sdim[1]].values
+        x = ds[dims[0]].values
+        y = ds[dims[1]].values
 
     num = utils.check_fig_num(f"final-pos-hist-{sdim}")
     fig, ax = plt.subplots(num=num)
 
     if bins == "auto":
-        bins = utils.auto_grid([x, y])
+        bins = utils.auto_bins_xy([x, y])
 
     if log_cnorm:
         norm = mpl.colors.LogNorm(vmin=1.0, vmax=vmax)
@@ -403,8 +397,8 @@ def final_pos_hist2d(
     for (x, y) in p["source_positions"]:
         ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
 
-    ax.set_xlabel(f"${sdim[0]}$ [{ds.x.attrs['units']}]")
-    ax.set_ylabel(f"${sdim[1]}$ [{ds.x.attrs['units']}]")
+    ax.set_xlabel(f"${dims[0]}$ [{ds.x.attrs['units']}]")
+    ax.set_ylabel(f"${dims[1]}$ [{ds.x.attrs['units']}]")
     ax.autoscale(enable=True, axis='both', tight=True)
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(utils.s_sample_size(p, N_p_only=True), loc="right")

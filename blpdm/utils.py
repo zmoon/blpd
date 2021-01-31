@@ -1,13 +1,15 @@
 """
-Miscellaneous utility functions for the model, plots, etc.
+Miscellaneous utility functions
+
+Mostly used in the plotting/analysis routines.
 """
+import math
 from collections import namedtuple
+from functools import partial
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-
-# TODO: create fn to compare two sets of parameters and point out the changes
 
 
 def get_open_fig_labels():
@@ -107,80 +109,174 @@ def s_sample_size(p, *, N_p_only=False):
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 
-# TODO: use this fn (auto_grid) in the plotting routines
-
-def auto_grid(positions, *,
-    nx_max: int = 100,
-    sd_mult: float = 2.0,
-):
-    """Determine a good grid that lets us focus on where most of the data is.
-
-    positions
-        can be:
-        * container of 1-D arrays (in x,y[,z] order)
-        * single np.array where columns are x,y[,z]
-
-    sd_mult :
-        standard deviation multiplier
-        increase to capture more of the domain
-
-    """
-    # explicity pass in x,y,z positions instead of whole state?
-    if isinstance(positions, (tuple, list)):
-        X = positions[0]
-        Y = positions[1]
-    elif isinstance(positions, np.array):
-        X = positions[:,0]
-        Y = positions[:,1]
+def _auto_bins_1d(x, *, nx_max, std_mult, method, pos_only=False):
+    x_bar, x_std = x.mean(), x.std()
+    if std_mult is not None:
+        a = 0 if pos_only else x_bar - std_mult * x_std
+        b = x_bar + std_mult * x_std
+        x_range = a, b
     else:
-        raise TypeError("`positions`")
-    # TODO: implement optional z binning
+        x_range = None
 
-    # form linearly spaced bins
-    # with grid edges based on mean and standard deviation
-    Np = X.size  # number of particles in the snapshot
-    xbar, xstd = X.mean(), X.std()
-    ybar, ystd = Y.mean(), Y.std()
-    mult = sd_mult
-    nx = min(np.sqrt(Np).astype(int), nx_max)
-    ny = nx
-    x_edges = np.linspace(xbar - mult * xstd, xbar + mult * xstd, nx + 1)
-    y_edges = np.linspace(ybar - mult * ystd, ybar + mult * ystd, ny + 1)
-    bins = [x_edges, y_edges]
+    x_edges = np.histogram_bin_edges(x, bins=method, range=x_range)
+
+    if x_edges.size > nx_max + 1:
+        x_edges = np.linspace(*x_range, nx_max+1)
+
+    return x_edges
+
+
+def auto_bins(positions, sdim="xy", *,
+    nbins_max_1d: int = 100,
+    std_mult: float = 2.0,
+    method: str = "auto",
+):
+    """Determine bin edges for a 2- or 3-d horizontal grid
+    that lets us focus on where most of the data is.
+
+    Parameters
+    ----------
+    positions
+        Container of 1-D arrays (in x,y[,z] order)
+        OR single NumPy array where columns are x,y[,z].
+    nbins_max_1d
+        Maximum number of bins in any direction/dim.
+    std_mult
+        Standard deviation multiplier.
+        Increase to capture more of the domain.
+        Or set to `None` to capture all of it.
+    method
+        Passed to :func:`numpy.histogram_bin_edges`.
+        Usually use `'auto'` or `'sqrt'`.
+    """
+    pos = np.asarray(positions)
+    assert pos.ndim == 2
+    if pos.shape[0] in [2, 3]:  # need to flip (or we only have 2 or 3 data points, but that is unlikely!)
+        pos = pos.T
+
+    dims = dims_from_sdim(sdim)
+    idims = ["xyz".index(dim1) for dim1 in dims]
+
+    # TODO: optional `z_range=` arg for including certain range of heights, with defaults np.inf or None
+    # TODO: optional centering cell over certain x, y value (like 0, 0)
+
+    kwargs_1d = dict(nx_max=nbins_max_1d, std_mult=std_mult, method=method)
+    bins = [
+        _auto_bins_1d(pos[:,idim1], pos_only=idim1 == 2, **kwargs_1d)
+        for idim1 in idims
+    ]
 
     return bins
 
+auto_bins_xy = partial(auto_bins, sdim="xy")
+auto_bins_xy.__doc__ = ":func:`utils.auto_bins` with ``sdim='xy'``"
 
 
-_Bin_c_xy_ret = namedtuple("bin_c_xy", "x y xe ye c")
+_Binned_values_xy = namedtuple("Binned_values_xy", "x y xe ye v")
 
-def bin_c_xy(X, Y, C, *, bins, stat="median"):
-    r"""Using the `x`\, `y` positions of the particles, bin `c`, and calculate a representative value in each bin."""
+def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
+    """Using the `x` and `y` positions of the particles, bin `values`,
+    and calculate a representative value in each bin.
+    """
     from scipy import stats
 
     if bins == "auto":
-        bins = auto_grid((X, Y))
+        bins = auto_bins_xy((x, y))
 
     # 1. Concentration of LPD particles
-    H, xedges, yedges = np.histogram2d(X, Y, bins=bins)  # H is binned particle count
+    H, xe0, ye0 = np.histogram2d(x, y, bins=bins)  # H is binned particle count
     conc_p_rel = (H / H.max()).T  # TODO: really should divide by level at source (closest bin?)
 
-    # 2. chemistry
-    ret = stats.binned_statistic_2d(X, Y, C, statistic="median", bins=bins)
-    conc_c = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
-    x = ret.x_edge
-    y = ret.y_edge
+    # 2. In-particle values in each bin
+    ret = stats.binned_statistic_2d(x, y, values, statistic=stat, bins=bins)
+    v0 = ret.statistic.T  # it is returned with dim (nx, ny), we need y to be rows (dim 0)
+    xe = ret.x_edge
+    ye = ret.y_edge
     # ^ these are cell edges
-    xc = x[:-1] + 0.5 * np.diff(x)
-    yc = y[:-1] + 0.5 * np.diff(y)
+    xc = xe[:-1] + 0.5 * np.diff(xe)
+    yc = ye[:-1] + 0.5 * np.diff(ye)
     # ^ these are cell centers
+    assert np.allclose(xe, xe0) and np.allclose(ye, ye0)  # confirm bins same
 
-    assert np.allclose(x, xedges) and np.allclose(y, yedges)
-    # TODO: find a way to not hist by x,y more than once (here we have done it 2x)
+    # 3. Multiply in-particle stat by particle conc. to get final values
+    v = conc_p_rel * v0
 
-    z = conc_p_rel * conc_c
+    return _Binned_values_xy(xc, yc, xe, ye, v)
 
-    return _Bin_c_xy_ret(xc, yc, x, y, z)
+
+def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
+    """Bin a particles dataset. For example,
+    the model ``.to_xarray()`` dataset or the relative levels with fixed oxidants one.
+    """
+    from scipy import stats
+    import xarray as xr
+
+    if not tuple(ds.dims) == ("ip",):
+        raise NotImplementedError("Must have only particle dim for now.")
+
+    if variables == "all":
+        vns = [vn for vn in ds.variables if vn not in list("xyz") + list(ds.dims) + list(ds.coords)]
+    else:
+        vns = [variables]
+
+    # Deal with dims
+    dims = dims_from_sdim(sdim)
+    dims_e = tuple(f"{dim1}e" for dim1 in dims)  # bin edges
+    dims_c = tuple(f"{dim1}" for dim1 in dims)  # bin centers
+    pos0 = tuple(ds[dim1].values for dim1 in "xyz")  # must pass to auto_grid in xyz order
+    pos = tuple(ds[dim1].values for dim1 in dims)  # for the stats
+    if bins == "auto":
+        bins = auto_bins(pos0, sdim)
+
+    # Compute statistics, using `binned_statistic_dd` so we can pass the previous
+    # result for efficiency.
+    res = {}  # {vn: {stat: ...}, ...}
+    ret = None  # for first run we don't have a result yet
+    stats_to_calc = ["mean", "median", "std", "count"]  # note sum can be recovered with mean and particle count
+    for vn in vns:
+        values = ds[vn].values
+        rets = {}
+        for stat in stats_to_calc:
+            ret = stats.binned_statistic_dd(
+                pos,
+                values,
+                statistic=stat,
+                bins=bins,
+                binned_statistic_result=ret,
+            )
+            rets[stat] = ret
+        res[vn] = rets
+
+        if vn == vns[0]:
+            stats_to_calc.remove("count")  # only need it once
+
+    # Construct coordinates dict
+    coords = {}
+    for dim1, bins, dim_e, dim_c in zip(dims, ret.bin_edges, dims_e, dims_c):
+        xe = bins
+        xc = xe[:-1] + 0.5 * np.diff(xe)
+        coords[dim_c] = (dim_c, xc, {"units": "m", "long_name": f"{dim1} (bin center)"})
+        coords[dim_e] = (dim_e, xe, {"units": "m", "long_name": f"{dim1} (bin edge)"})
+
+    # Create dataset of the binned statistics on the variables
+    ds = xr.Dataset(
+        coords=coords,
+        data_vars={
+            f"{vn}_{stat}": (dims_c, ret.statistic, {
+                "units": ds[vn].attrs.get("units", ""), "long_name": ds[vn].attrs.get("long_name", ""),
+            })
+            for vn, d in res.items()
+            for stat, ret in d.items()
+        }
+    )
+
+    # Add particle count
+    ds["Np"] = (dims_c, res[vns[0]]["count"].statistic, {"long_name": "Lagrangian particle count"})
+
+    return ds.transpose()  # y first so 2-d xarray plots just work
+
+bin_ds_xy = partial(bin_ds, sdim="xy")
+bin_ds_xy.__doc__ = ":func:`utils.bin_ds` with ``sdim='xy'``"
 
 
 def calc_t_out(p):
@@ -260,3 +356,23 @@ def maybe_new_figure(try_num: str, ax=None):
         fig = ax.get_figure()
 
     return fig, ax
+
+
+def check_sdim(sdim: str):
+    valid_sdim = ["xy", "xz", "yz", "xyz", "3d", "3-d"]
+    if sdim not in valid_sdim:
+        raise ValueError(
+            "for `sdim`, pick 2 or 3 from 'x', 'y', and 'z'. For example, 'xy'. "
+            f"The full set of valid options is {valid_sdim}. "
+            "The last two are aliases for 'xyz'."
+        )
+
+
+def dims_from_sdim(sdim: str):
+    check_sdim(sdim)  # first validate
+    if sdim in ("xyz", "3d", "3-d"):
+        dims = list("xyz")
+    else:
+        dims = list(sdim)
+
+    return dims

@@ -6,7 +6,7 @@ import numpy as np
 import xarray as xr
 from scipy import stats
 
-from .utils import auto_grid
+from .utils import auto_bins_xy
 from .utils import calc_t_out
 from .utils import load_p
 
@@ -336,7 +336,7 @@ def calc_gridded_conc_canola(ds):
     dx = X[1] - X[0]
     dy = Y[1] - Y[0]
     pos = (X, Y)
-    bins = auto_grid(pos)
+    bins = auto_bins_xy(pos)
 
     # 4. Calculate concentrations from particle concentration field
     #    and speciated fv_0
@@ -425,14 +425,14 @@ def calc_gridded_conc_canola(ds):
 
     ds = xr.Dataset(
         coords={
-            "x": ("x", x, {"units": "m", "long_name": "x (bin edges)"}),
-            "y": ("y", y, {"units": "m", "long_name": "y (bin edges)"}),
-            "xc": ("xc", xc, {"units": "m", "long_name": "x (bin centers)"}),
-            "yc": ("yc", yc, {"units": "m", "long_name": "y (bin centers)"}),
+            "xe": ("xe", x, {"units": "m", "long_name": "x (bin edge)"}),
+            "ye": ("ye", y, {"units": "m", "long_name": "y (bin edge)"}),
+            "x": ("x", xc, {"units": "m", "long_name": "x (bin center)"}),
+            "y": ("y", yc, {"units": "m", "long_name": "y (bin center)"}),
             "spc": ("spc", spc_sorted, {"long_name": "chemical species"}),
         },
         data_vars={
-            vn: (("spc", "xc", "yc"), values, {
+            vn: (("spc", "x", "y"), values, {
                 "units": units[vn], "long_name": long_names[vn],
             })
             for vn, values in res_agg.items()
