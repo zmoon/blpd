@@ -1,8 +1,11 @@
 """
-Miscellaneous utility functions for the model, plots, etc.
+Miscellaneous utility functions
+
+Mostly used in the plotting/analysis routines.
 """
 import math
 from collections import namedtuple
+from functools import partial
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -108,10 +111,12 @@ def s_sample_size(p, *, N_p_only=False):
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 
-def _auto_bins_1d(x, *, nx_max, std_mult, method):
+def _auto_bins_1d(x, *, nx_max, std_mult, method, pos_only=False):
     x_bar, x_std = x.mean(), x.std()
     if std_mult is not None:
-        x_range = x_bar - std_mult * x_std, x_bar + std_mult * x_std
+        a = 0 if pos_only else x_bar - std_mult * x_std
+        b = x_bar + std_mult * x_std
+        x_range = a, b
     else:
         x_range = None
 
@@ -123,8 +128,8 @@ def _auto_bins_1d(x, *, nx_max, std_mult, method):
     return x_edges
 
 
-def auto_bins_xy(positions, *,
-    nxy_max: int = 100,
+def auto_bins(positions, sdim="xy", *,
+    nbins_max_1d: int = 100,
     std_mult: float = 2.0,
     method: str = "auto",
 ):
@@ -136,7 +141,7 @@ def auto_bins_xy(positions, *,
     positions
         Container of 1-D arrays (in x,y[,z] order)
         OR single NumPy array where columns are x,y[,z].
-    nxy_max
+    nbins_max_1d
         Maximum number of bins in either direction (x or y).
     std_mult
         Standard deviation multiplier.
@@ -150,17 +155,23 @@ def auto_bins_xy(positions, *,
     assert pos.ndim == 2
     if pos.shape[0] in [2, 3]:  # need to flip (or we only have 2 or 3 data points, but that is unlikely!)
         pos = pos.T
-    X = pos[:,0]
-    Y = pos[:,1]
+
+    dims = dims_from_sdim(sdim)
+    idims = ["xyz".index(dim1) for dim1 in dims]
 
     # TODO: optional `z_range=` arg for including certain range of heights, with defaults np.inf or None
     # TODO: optional centering cell over certain x, y value (like 0, 0)
 
-    kwargs_1d = dict(nx_max=nxy_max, std_mult=std_mult, method=method)
-    x_edges = _auto_bins_1d(X, **kwargs_1d)
-    y_edges = _auto_bins_1d(Y, **kwargs_1d)
+    kwargs_1d = dict(nx_max=nbins_max_1d, std_mult=std_mult, method=method)
+    bins = [
+        _auto_bins_1d(pos[:,idim1], pos_only=idim1 == 2, **kwargs_1d)
+        for idim1 in idims
+    ]
 
-    return [x_edges, y_edges]  # bins
+    return bins
+
+auto_bins_xy = partial(auto_bins, sdim="xy")
+auto_bins_xy.__doc__ = ":func:`utils.auto_bins` with ``sdim='xy'``"
 
 
 _Binned_values_xy = namedtuple("Binned_values_xy", "x y xe ye v")
@@ -195,7 +206,7 @@ def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
     return _Binned_values_xy(xc, yc, xe, ye, v)
 
 
-def bin_ds_xy(ds, *, variables="all", bins="auto"):
+def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
     """Bin a particles dataset. For example,
     the model ``.to_xarray()`` dataset or the relative levels with fixed oxidants one.
     """
@@ -210,9 +221,14 @@ def bin_ds_xy(ds, *, variables="all", bins="auto"):
     else:
         vns = [variables]
 
-    pos = (ds.x.values, ds.y.values)
+    # Deal with dims
+    dims = dims_from_sdim(sdim)
+    dims_e = tuple(f"{dim1}e" for dim1 in dims)  # bin edges
+    dims_c = tuple(f"{dim1}" for dim1 in dims)  # bin centers
+    pos0 = tuple(ds[dim1].values for dim1 in "xyz")  # must pass to auto_grid in xyz order
+    pos = tuple(ds[dim1].values for dim1 in dims)  # for the stats
     if bins == "auto":
-        bins = auto_bins_xy(pos)
+        bins = auto_bins(pos0, sdim)
 
     # Compute statistics, using `binned_statistic_dd` so we can pass the previous
     # result for efficiency.
@@ -236,21 +252,19 @@ def bin_ds_xy(ds, *, variables="all", bins="auto"):
         if vn == vns[0]:
             stats_to_calc.remove("count")  # only need it once
 
-    # Grid
-    x, y = ret.bin_edges[0], ret.bin_edges[1]
-    xc = x[:-1] + 0.5 * np.diff(x)
-    yc = y[:-1] + 0.5 * np.diff(y)
+    # Construct coordinates dict
+    coords = {}
+    for dim1, bins, dim_e, dim_c in zip(dims, ret.bin_edges, dims_e, dims_c):
+        xe = bins
+        xc = xe[:-1] + 0.5 * np.diff(xe)
+        coords[dim_c] = (dim_c, xc, {"units": "m", "long_name": f"{dim1} (bin center)"})
+        coords[dim_e] = (dim_e, xe, {"units": "m", "long_name": f"{dim1} (bin edge)"})
 
     # Create dataset of the binned statistics on the variables
     ds = xr.Dataset(
-        coords={
-            "x": ("x", x, {"units": "m", "long_name": "x (bin edges)"}),
-            "y": ("y", y, {"units": "m", "long_name": "y (bin edges)"}),
-            "xc": ("xc", xc, {"units": "m", "long_name": "x (bin centers)"}),
-            "yc": ("yc", yc, {"units": "m", "long_name": "y (bin centers)"}),
-        },
+        coords=coords,
         data_vars={
-            f"{vn}_{stat}": (("xc", "yc"), ret.statistic, {
+            f"{vn}_{stat}": (dims_c, ret.statistic, {
                 "units": ds[vn].attrs.get("units", ""), "long_name": ds[vn].attrs.get("long_name", ""),
             })
             for vn, d in res.items()
@@ -259,9 +273,12 @@ def bin_ds_xy(ds, *, variables="all", bins="auto"):
     )
 
     # Add particle count
-    ds["Np"] = (("xc", "yc"), res[vns[0]]["count"].statistic, {"long_name": "Lagrangian particle count"})
+    ds["Np"] = (dims_c, res[vns[0]]["count"].statistic, {"long_name": "Lagrangian particle count"})
 
     return ds.transpose()  # y first so 2-d xarray plots just work
+
+bin_ds_xy = partial(bin_ds, sdim="xy")
+bin_ds_xy.__doc__ = ":func:`utils.bin_ds` with ``sdim='xy'``"
 
 
 def calc_t_out(p):

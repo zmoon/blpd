@@ -425,14 +425,14 @@ def calc_gridded_conc_canola(ds):
 
     ds = xr.Dataset(
         coords={
-            "x": ("x", x, {"units": "m", "long_name": "x (bin edges)"}),
-            "y": ("y", y, {"units": "m", "long_name": "y (bin edges)"}),
-            "xc": ("xc", xc, {"units": "m", "long_name": "x (bin centers)"}),
-            "yc": ("yc", yc, {"units": "m", "long_name": "y (bin centers)"}),
+            "xe": ("xe", x, {"units": "m", "long_name": "x (bin edge)"}),
+            "ye": ("ye", y, {"units": "m", "long_name": "y (bin edge)"}),
+            "x": ("x", xc, {"units": "m", "long_name": "x (bin center)"}),
+            "y": ("y", yc, {"units": "m", "long_name": "y (bin center)"}),
             "spc": ("spc", spc_sorted, {"long_name": "chemical species"}),
         },
         data_vars={
-            vn: (("spc", "xc", "yc"), values, {
+            vn: (("spc", "x", "y"), values, {
                 "units": units[vn], "long_name": long_names[vn],
             })
             for vn, values in res_agg.items()
