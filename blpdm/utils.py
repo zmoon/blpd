@@ -11,8 +11,6 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-# TODO: create fn to compare two sets of parameters and point out the changes
-
 
 def get_open_fig_labels():
     return [plt.figure(num).get_label() for num in plt.get_fignums()]
