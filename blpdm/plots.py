@@ -162,38 +162,59 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
     fig.set_tight_layout(True)
 
 
-def conc_scatter(ds, spc="apinene", *,
+def conc_scatter(ds, spc="apinene", sdim="xy", *,
     cmap="gnuplot",
     log_cnorm=False,
     vmax=100,
     vmin=None,
-    ax=None,
+    # ax=None,
 ):
-    """Plot species relative level in particle as a scatter."""
+    """Plot species relative level in particle as a scatter (2- or 3-d)."""
     p = utils.load_p(ds)
-    X = ds.x.values
-    Y = ds.y.values
+
+    dims = utils.dims_from_sdim(sdim)
+    if len(dims) == 3:
+        sdim = "xyz"
+        x = ds.x.values
+        y = ds.y.values
+        z = ds.z.values
+        subplot_kw = {"projection": "3d"}
+        coords = (x, y, z)
+        # plot_kw = dict(alpha=0.5, mew=0, ms=7)
+    elif len(dims) == 2:
+        x = ds[dims[0]].values
+        y = ds[dims[1]].values
+        subplot_kw = {}
+        coords = (x, y)
+        # plot_kw = dict(alpha=0.5, mfc="none", mew=0.8, ms=5)
+    else:
+        raise ValueError("invalid `sdim`")
+
     conc = ds.f_r.sel(spc=spc).values
     spc_display_name = chemical_species_data[spc]["display_name"]
 
-    fig, ax = utils.maybe_new_figure(f"horizontal-end-positions-with-conc_{spc}_scatter", ax=ax)
+    num = utils.check_fig_num(f"horizontal-end-positions-with-conc_{spc}_scatter_{sdim}")
+    fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
 
     norm, _ = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
 
     im = ax.scatter(
-        X, Y, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, norm=norm,
+        *coords, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, norm=norm,
     )
     cb = fig.colorbar(im, ax=ax, drawedges=False)
     cb.set_label(f"{spc_display_name} relative conc. (%)")
 
-    for (x, y) in p["source_positions"]:
-        ax.plot(x, y, **_SOURCE_MARKER_PROPS)
+    for (xs, ys) in p["source_positions"]:
+        sp = dict(x=xs, y=ys, z=p["release_height"])
+        ax.plot(*tuple(sp[dim] for dim in dims), **_SOURCE_MARKER_PROPS)
 
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
-        xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
-        ylabel=f"{ds.y.attrs['long_name']} [{ds.y.attrs['units']}]",
+        xlabel=f"{ds[dims[0]].attrs['long_name']} [{ds[dims[0]].attrs['units']}]",
+        ylabel=f"{ds[dims[1]].attrs['long_name']} [{ds[dims[1]].attrs['units']}]",
     )
+    if len(dims) == 3:
+        ax.set_zlabel(f"{ds[dims[2]].attrs['long_name']} [{ds[dims[2]].attrs['units']}]")
     fig.set_tight_layout(True)
 
 
