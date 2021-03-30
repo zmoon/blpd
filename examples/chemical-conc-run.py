@@ -18,7 +18,7 @@ m = blpdm.model()
 # change some params
 new_p = {
     'source_positions': [(-200, -200), (500, 0), (1000, 200)],  # similar to the ones Pratt used in their Fig 4.2
-    't_tot': 10*60.,  # 10 min
+    't_tot': 1*60.,  # 1 min; change to 10 min for more excitement
     'continuous_release': True,  # this is a default
     'dNp_per_dt_per_source': 4,
     # 'chemistry_on': True,
@@ -59,7 +59,7 @@ for spc in ds.spc.values:
 
     print(ds.f_r.sel(spc=spc).mean())
 
-    plots.conc(ds, spc, plot_type='pcolor', bins='auto', log_cnorm=True, vmin=1.0)
+    plots.conc_2d(ds, spc, plot_type='pcolor', bins='auto', log_cnorm=True, vmin=1.0)
 
 
 #%% centerline conc
