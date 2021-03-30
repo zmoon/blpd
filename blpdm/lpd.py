@@ -21,9 +21,7 @@ from numba import prange
 
 @njit
 def _calc_fd_params_above_canopy(pos, p):
-    """Calculate the dispersion parameters above the canopy.
-    (tau's, dtau's, etc.)
-    """
+    """Calculate the dispersion parameters above the canopy."""
     z = pos[2]
 
     ustar = p['ustar']
@@ -53,35 +51,10 @@ def _calc_fd_params_above_canopy(pos, p):
 
     # Dissipation - above canopy (log wind profile)
     # ref: e.g., MW Eq. 12
-    # print(kconstant, z, d)
     epsilon = (ustar**3)/(kconstant*(z - d))
 
-    # r = {}
-    # # should more concise dict syntax to creat it
-    # r['umean'] = umean
-    # r['dumeandz'] = dumeandz
-
-    # r['tau11'] = tau11
-    # r['tau22'] = tau22
-    # r['tau33'] = tau33
-    # r['tau13'] = tau13
-
-    # r['dtau11dz'] = dtau11dz
-    # r['dtau22dz'] = dtau22dz
-    # r['dtau33dz'] = dtau33dz
-    # r['dtau13dz'] = dtau13dz
-
-    # r['lambda11'] = lambda11
-    # r['lambda22'] = lambda22
-    # r['lambda33'] = lambda33
-    # r['lambda13'] = lambda13
-
-    # r['TKE_dissipation_rate'] = epsilon
-
-    # return r
-
     return (umean, dumeandz,
-        tau11, tau22, tau33, tau13,
+        # tau11, tau22, tau33, tau13,
         dtau11dz, dtau22dz, dtau33dz, dtau13dz,
         lambda11, lambda22, lambda33, lambda13,
         epsilon)
@@ -89,28 +62,24 @@ def _calc_fd_params_above_canopy(pos, p):
 
 @njit
 def _calc_fd_params_in_canopy(pos, p):
-    """
-
-    tau's, dtau's, etc.
-
-    """
+    """Calculate the dispersion parameters within the canopy."""
     z = pos[2]
 
     ustar = p['ustar']  # at h?
-    kconstant = p['von_Karman_constant']  # what is this??
+    kconstant = p['von_Karman_constant']
     d = p['displacement_height']
     h = p['canopy_height']
     uh = p['U_h']  # wind speed at canopy height
     cd = p['foliage_drag_coeff']
     LAI = p['total_LAI']
 
-    #z0 = p['roughness_length']
+    # z0 = p['roughness_length']
     gam1 = p['MW_gam1']
     gam2 = p['MW_gam2']
     gam3 = p['MW_gam3']
 
     nu1 = p['MW_nu1']
-    #nu2 = p['MW_nu2']  # unused?
+    # nu2 = p['MW_nu2']  # unused?
     nu3 = p['MW_nu3']
     Lam = p['MW_Lam']
     n = p['MW_n']
@@ -122,9 +91,9 @@ def _calc_fd_params_in_canopy(pos, p):
     epsilon_ch = p['MW_epsilon_c_h']
 
     # zeta(z): "cumulative leaf drag area per unit planform area" (MW p. 82) (ζ)
-    # the code we started from replace terms zeta(z)/zeta(h) by z/h
-    # this assumes a vertically homogeneous LAI dist (LAD const with z in canopy)
-    #   it accumulates from z=0, not z=h_c like LAI
+    # The code we started from replace terms zeta(z)/zeta(h) by z/h.
+    # This assumes a vertically homogeneous LAI dist (LAD const with z in canopy)
+    # that accumulates from z=0, not z=h_c like LAI.
     # zeta(h) is replaced by cd*LAI
 
     umean = uh*np.exp(-n*(1-(z/h)))
@@ -133,29 +102,33 @@ def _calc_fd_params_in_canopy(pos, p):
     zet_h = cd*LAI  # zeta(h) total leaf drag area
 
     # ref: MW eqn. 10, p. 87
-    sig_e = ustar * (\
-        nu3*np.exp(-Lam*zet_h*(1-z/h)) \
-      + B1*(np.exp(-3*n*(1-z/h)) \
-        - np.exp(-Lam*zet_h*(1-z/h))\
-        )\
+    sig_e = ustar * (
+        nu3*np.exp(-Lam*zet_h*(1-z/h))
+        + B1*(
+            np.exp(-3*n*(1-z/h))
+            - np.exp(-Lam*zet_h*(1-z/h))
+        )
     )**(1./3)
 
-    # can't find a source for this eqn
-    dsig_e2dz = (2/3)*ustar**2 * \
-        (( nu3*np.exp(-Lam*zet_h*(1-z/h)) \
-         + B1*(np.exp(-3*n*(1-z/h)) \
+    # I can't find a source for this eqn
+    dsig_e2dz = (2/3)*ustar**2 * (
+        ( nu3*np.exp(-Lam*zet_h*(1-z/h))
+         + B1*(np.exp(-3*n*(1-z/h))
            - np.exp(-Lam*zet_h*(1-z/h))
-           )\
-         )**(-1./3)\
-        )\
-        * ( (nu3*Lam*zet_h/h) * np.exp(-Lam*zet_h*(1-z/h)) \
-          + B1*( (3*n/h)*np.exp(-3*n*(1-z/h)) \
-            - (Lam*zet_h/h)*np.exp(-Lam*zet_h*(1-z/h))\
-            )\
-          )
+           )
+         )**(-1./3)
+    ) * (
+        (nu3*Lam*zet_h/h) * np.exp(-Lam*zet_h*(1-z/h))
+        + B1*(
+            (3*n/h)*np.exp(-3*n*(1-z/h))
+            - (Lam*zet_h/h)*np.exp(-Lam*zet_h*(1-z/h))
+        )
+    )
 
-    # from MW eq. 11, in the canopy: gam_i * nu_1 * sig_e = sig_i
-    # and above the canopy: sig_i/u_star = gam_i (p. 86)
+    # From MW eq. 11, in the canopy:
+    #   gam_i * nu_1 * sig_e = sig_i
+    # and above the canopy:
+    #   sig_i/u_star = gam_i    (p. 86)
 
     tau11 = (gam1*nu1*sig_e)**2
     dtau11dz = ((gam1*nu1)**2)*dsig_e2dz
@@ -178,45 +151,16 @@ def _calc_fd_params_in_canopy(pos, p):
             epsilon = (sig_e**3) * zet_h / (h*nu3*alpha)
         else:  # d < z <= h_c
             scale_choice_1 = zet_h * sig_e**3 / (nu3*alpha*ustar**3)
-            scale_choice_2 = h/(kconstant*(z-d))  # this is a potential source of div by 0 (if z v close to d)
-            # scale_choices = np.concatenate(( scale_choice_1, scale_choice_2  ))
+            scale_choice_2 = h/(kconstant*(z-d))
+            # ^ this is a potential source of div by 0 (if z v close to d)
             scale_choices = np.array([scale_choice_1, scale_choice_2])
             epsilon = (ustar**3/h) * scale_choices.min()
-                # numba doesn't support std min without tuple
-                # * np.min( np.array([ sig_e**3*(zet_h)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ]) )  # numba doesn't support std min without tuple
-                # * np.min( ( sig_e**3*(zet_h)/(nu3*alpha*ustar**3), h/(kconstant*(z-d)) ) )  # numba doesn't support std min without tuple
-                # also doesn't support `np.r_`
-
 
     lambda11, lambda22, lambda33, lambda13 = \
         _calc_Rodean_lambdas(tau11, tau22, tau33, tau13)
 
-    # r = {}
-
-    # r['umean'] = umean
-    # r['dumeandz'] = dumeandz
-
-    # r['tau11'] = tau11
-    # r['tau22'] = tau22
-    # r['tau33'] = tau33
-    # r['tau13'] = tau13
-
-    # r['dtau11dz'] = dtau11dz
-    # r['dtau22dz'] = dtau22dz
-    # r['dtau33dz'] = dtau33dz
-    # r['dtau13dz'] = dtau13dz
-
-    # r['lambda11'] = lambda11
-    # r['lambda22'] = lambda22
-    # r['lambda33'] = lambda33
-    # r['lambda13'] = lambda13
-
-    # r['TKE_dissipation_rate'] = epsilon
-
-    # return r
-
     return (umean, dumeandz,
-        tau11, tau22, tau33, tau13,
+        # tau11, tau22, tau33, tau13,
         dtau11dz, dtau22dz, dtau33dz, dtau13dz,
         lambda11, lambda22, lambda33, lambda13,
         epsilon)
@@ -224,50 +168,32 @@ def _calc_fd_params_in_canopy(pos, p):
 
 @njit
 def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
-    """
-    Ref: Pratt thesis Eq. 2.14, p. 15
-    """
-    # 1/{} should usually be faster than {}**-1 (at least with numpy)
-    # lambda11 = 1/(tau11 - ((tau13**2)/tau33))
-    # lambda22 = 1/tau22
-    # lambda33 = 1/(tau33 - ((tau13**2)/tau11))
-    # lambda13 = 1/(tau13 - ((tau11*tau33)/tau13))
-
+    # ref: Pratt thesis Eq. 2.14, p. 15
     lambda11 = 1./(tau11 - ((tau13**2)/tau33))
     lambda22 = 1./tau22
     lambda33 = 1./(tau33 - ((tau13**2)/tau11))
     lambda13 = 1./(tau13 - ((tau11*tau33)/tau13))
 
-    # lambda11 = (tau11 - ((tau13**2)/tau33))**-1.0
-    # lambda22 = (tau22)**-1
-    # lambda33 = (tau33 - ((tau13**2)/tau11))**-1.0
-    # lambda13 = (tau13 - ((tau11*tau33)/tau13))**-1.0
-
     return lambda11, lambda22, lambda33, lambda13
-
 
 
 @njit
 def calc_tends(pos, ws_local, p):
+    """Calculate the position tendencies
+    i.e., the velocity components ui + dui.
     """
-    calculate the position tendencies
-    i.e., the velocity components ui + dui
-    """
-
     z = pos[2]  # x, y, z
-
-    # u1 = p['u']
-    # u2 = p['v']
-    # u3 = p['w']
-    u1, u2, u3 = ws_local
+    u1, u2, u3 = ws_local  # u, v, w
 
     h_c = p['canopy_height']
-    #
+    C0 = p['Kolmogorov_C0']  # a Kolmogorov constant (3--10)
+    dt = p['dt']
+
+    # Calculate fd (fluid dynamics) params
     if z >= h_c:
         #p_fd = _calc_fd_params_above_canopy(pos, p)
 
         U1, dU1dx3, \
-        _, _, _, _, \
         dtau11dx3, dtau22dx3, dtau33dx3, dtau13dx3, \
         lam11, lam22, lam33, lam13, \
         eps \
@@ -280,56 +206,25 @@ def calc_tends(pos, ws_local, p):
     else:
         #p_fd = _calc_fd_params_in_canopy(pos, p)
         U1, dU1dx3, \
-        _, _, _, _, \
         dtau11dx3, dtau22dx3, dtau33dx3, dtau13dx3, \
         lam11, lam22, lam33, lam13, \
         eps \
             = _calc_fd_params_in_canopy(pos, p)
 
 
-    # fd: fluid dynamics
-
-    #> unpack needed variables
-
-    # from params
-    C0 = p['Kolmogorov_C0']  # a Kolmogorov constant (3--10)
-    dt = p['dt']
-
-    # U1 = p_fd['umean']
-    # dU1dx3 = p_fd['dumeandz']
-    # eps = p_fd['TKE_dissipation_rate']
-
-    # lam11 = p_fd['lambda11']
-    # lam22 = p_fd['lambda22']
-    # lam33 = p_fd['lambda33']
-    # lam13 = p_fd['lambda13']
-
-    # dtau11dx3 = p_fd['dtau11dz']
-    # dtau22dx3 = p_fd['dtau22dz']
-    # dtau33dx3 = p_fd['dtau33dz']
-    # dtau13dx3 = p_fd['dtau13dz']
-
-
-
-
-    # calculate new positions
+    # Calculate new positions
     # ref: Pratt thesis Eqs. 2.12-13, p. 15
-
     # dW_j is an incremental Wiener process with a mean of 0, and a variance of dt
-    # simulated as sqrt(dt)*N(0,1)
-    # ^ p. 12
+    # simulated as sqrt(dt)*N(0,1)  (p. 12)
 
     sqrt_C0eps = np.sqrt(C0*eps)
     sqrt_dt = np.sqrt(dt)
-    # math.sqrt might be faster for single floats
 
-
-    # if wanted to be able to use other sorts of integrators,
+    # TODO: if wanted to be able to use other sorts of integrators,
     # would have to freeze the random seed or something?
-    # otherwise the tends will be different every time
-    # or separate the random part from the rest of the tend calculation
-
-    # dist to draw from for the randn(s) could be an input
+    # (otherwise the tends will be different every time)
+    # or separate the random part from the rest of the tend calculation.
+    # The dist to draw from could be an input.
 
     # x-1 component
     randn = np.random.standard_normal()  # different for each component
