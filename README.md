@@ -13,10 +13,6 @@ Until releases are made (on [PyPI](https://pypi.org/) and/or GitHub), the recomm
 ```
 pip install git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
 ```
-or to ensure the plotting dependencies are met:
-```
-pip install git+https://github.com/zmoon92/bee-lpdm#egg=blpdm[plots]
-```
 These commands will install the current state of the code in the default branch (master).
 
 
