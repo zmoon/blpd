@@ -46,7 +46,7 @@ def _calc_fd_params_above_canopy(pos, p):
     dtau33dz = 0
     dtau13dz = 0
 
-    lambda11, lambda22, lambda33, lambda13 = \
+    lam11, lam22, lam33, lam13 = \
         _calc_Rodean_lambdas(tau11, tau22, tau33, tau13)
 
     # Dissipation - above canopy (log wind profile)
@@ -56,7 +56,7 @@ def _calc_fd_params_above_canopy(pos, p):
     return (umean, dumeandz,
         # tau11, tau22, tau33, tau13,
         dtau11dz, dtau22dz, dtau33dz, dtau13dz,
-        lambda11, lambda22, lambda33, lambda13,
+        lam11, lam22, lam33, lam13,
         epsilon)
 
 
@@ -156,25 +156,25 @@ def _calc_fd_params_in_canopy(pos, p):
             scale_choices = np.array([scale_choice_1, scale_choice_2])
             epsilon = (ustar**3/h) * scale_choices.min()
 
-    lambda11, lambda22, lambda33, lambda13 = \
+    lam11, lam22, lam33, lam13 = \
         _calc_Rodean_lambdas(tau11, tau22, tau33, tau13)
 
     return (umean, dumeandz,
         # tau11, tau22, tau33, tau13,
         dtau11dz, dtau22dz, dtau33dz, dtau13dz,
-        lambda11, lambda22, lambda33, lambda13,
+        lam11, lam22, lam33, lam13,
         epsilon)
 
 
 @njit
 def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
     # ref: Pratt thesis Eq. 2.14, p. 15
-    lambda11 = 1./(tau11 - ((tau13**2)/tau33))
-    lambda22 = 1./tau22
-    lambda33 = 1./(tau33 - ((tau13**2)/tau11))
-    lambda13 = 1./(tau13 - ((tau11*tau33)/tau13))
+    lam11 = 1./(tau11 - ((tau13**2)/tau33))
+    lam22 = 1./tau22
+    lam33 = 1./(tau33 - ((tau13**2)/tau11))
+    lam13 = 1./(tau13 - ((tau11*tau33)/tau13))
 
-    return lambda11, lambda22, lambda33, lambda13
+    return lam11, lam22, lam33, lam13
 
 
 @njit
@@ -201,7 +201,7 @@ def calc_tends(pos, ws_local, p):
         # return (umean, dumeandz,
         #     tau11, tau22, tau33, tau13,
         #     dtau11dz, dtau22dz, dtau33dz, dtau13dz,
-        #     lambda11, lambda22, lambda33, lambda13,
+        #     lam11, lam22, lam33, lam13,
         #     epsilon)
     else:
         #p_fd = _calc_fd_params_in_canopy(pos, p)
