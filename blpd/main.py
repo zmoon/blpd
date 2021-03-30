@@ -144,7 +144,7 @@ def compare_params(p, p0=None, input_params_only=False):
             if v0 != v:
                 print(f"'{k}': {v0} --> {v}")
     else:
-        print("all params same as defaults")
+        print(f"all params same as {p0_name}")
 
 
 class Model:
@@ -166,8 +166,10 @@ class Model:
         # checks (could move to separate `check_p` method or to `update_p`)
         assert (
             self.p["release_height"] <= self.p["canopy_height"]
-        )  # particles must be released within canopy
-        assert self.p["dt_out"] % self.p["dt"] == 0  # output interval must be a multiple of dt
+        ), "particles must be released within canopy"
+        assert (
+            np.modf(self.p["dt_out"] / self.p["dt"])[0] == 0
+        ), "output interval must be a multiple of dt"
 
         self._init_state()
         self._init_hist()
