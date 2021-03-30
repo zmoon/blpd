@@ -20,9 +20,9 @@ from numba import prange
 
 
 @njit
-def _calc_fd_params_above_canopy(pos, p):
+def _calc_fd_params_above_canopy(x, p):
     """Calculate the dispersion parameters above the canopy."""
-    z = pos[2]
+    z = x[2]
 
     ustar = p['ustar']
     kconstant = p['von_Karman_constant']
@@ -61,9 +61,9 @@ def _calc_fd_params_above_canopy(pos, p):
 
 
 @njit
-def _calc_fd_params_in_canopy(pos, p):
+def _calc_fd_params_in_canopy(x, p):
     """Calculate the dispersion parameters within the canopy."""
-    z = pos[2]
+    z = x[2]
 
     ustar = p['ustar']  # at h?
     kconstant = p['von_Karman_constant']
@@ -178,12 +178,12 @@ def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
 
 
 @njit
-def calc_tends(pos, ws_local, p):
+def calc_tends(x, u, p):
     """Calculate the position tendencies
     i.e., the velocity components ui + dui.
     """
-    z = pos[2]  # x, y, z
-    u1, u2, u3 = ws_local  # u, v, w
+    z = x[2]  # x, y, z
+    u1, u2, u3 = u  # u, v, w
 
     h_c = p['canopy_height']
     C0 = p['Kolmogorov_C0']  # a Kolmogorov constant (3--10)
@@ -195,13 +195,13 @@ def calc_tends(pos, ws_local, p):
         dtau11dx3, dtau22dx3, dtau33dx3, dtau13dx3, \
         lam11, lam22, lam33, lam13, \
         eps \
-            = _calc_fd_params_above_canopy(pos, p)
+            = _calc_fd_params_above_canopy(x, p)
     else:
         U1, dU1dx3, \
         dtau11dx3, dtau22dx3, dtau33dx3, dtau13dx3, \
         lam11, lam22, lam33, lam13, \
         eps \
-            = _calc_fd_params_in_canopy(pos, p)
+            = _calc_fd_params_in_canopy(x, p)
 
 
     # Calculate new positions
@@ -269,36 +269,35 @@ def calc_tends(pos, ws_local, p):
     return [u1 + du1, u2 + du2, u3 + du3]
 
 
-
 @njit
-def _integrate_particle_one_timestep(pos, ws_local, p):
+def _integrate_particle_one_timestep(x, u, p):
     """Take the state for one particle and integrate."""
     dt = p['dt']
 
-    res = calc_tends(pos, ws_local, p)
+    res = calc_tends(x, u, p)
 
     # Adjustments for undesired new z position
     # (below z = 0 or above PBL inversion)
     # TODO: original code noted that this needs work
     # This current method seems to correspond to completely elastic collision,
     # but maybe inelastic or some probability of deposition could be another option.
-    z = pos[2]  # before integration
+    z = x[2]  # before integration
     znew = z + res[2]*dt  # res[2] is w velocity component
     if znew <= 0.1:
         res = [res[0], res[1], -res[2]]
-        newpos = [pos[0] + res[0]*dt, pos[1] + res[1]*dt, 0.1]
+        xnew = [x[0] + res[0]*dt, x[1] + res[1]*dt, 0.1]
 
     elif znew >= 800.:  # reflect at z_i too
         res = [res[0], res[1], -res[2]]
-        newpos = [pos[0] + res[0]*dt, pos[1] + res[1]*dt, 800.]
+        xnew = [x[0] + res[0]*dt, x[1] + res[1]*dt, 800.]
 
     else:
-        newpos = [p + dpdt*dt for (p, dpdt) in zip(pos, res)]
+        xnew = [p + dpdt*dt for (p, dpdt) in zip(x, res)]
 
-    # The pos tendencies are the (new) velocity components
-    new_ws_local = res
+    # The new position (x) tendencies are the (new) velocity components
+    unew = res
 
-    return newpos, new_ws_local
+    return xnew, unew
 
 
 # @njit
@@ -306,7 +305,7 @@ def _integrate_particle_one_timestep(pos, ws_local, p):
 def integrate_particles_one_timestep(state, p):
     """Integrate all particles one time step, modifying `state` in place.
 
-    `state` and p` must be Numba typed dicts (:class:`numba.typed.Dict`)
+    `state` and p` (parameters) must be Numba typed dicts (:class:`numba.typed.Dict`)
     in order for `@njit` to work if Numba is not disabled.
     """
     Np_k = int(state['Np_k'][0])
@@ -321,25 +320,25 @@ def integrate_particles_one_timestep(state, p):
     for i in prange(Np_k):  # pylint: disable=not-an-iterable
 
         # State for particle i: position and (wind) velocity
-        pos = [xp[i], yp[i], zp[i]]  # position of particle i at current time step
-        ws_local = [up[i], vp[i], wp[i]]  # local wind speed for particle
+        x = [xp[i], yp[i], zp[i]]  # position of particle i at current time step
+        u = [up[i], vp[i], wp[i]]  # local wind speed for particle
 
         # Calculate new state
-        pos, ws_local = _integrate_particle_one_timestep(pos, ws_local, p)
+        x, u = _integrate_particle_one_timestep(x, u, p)
 
-        # Update state
-        xp[i] = pos[0]
-        yp[i] = pos[1]
-        zp[i] = pos[2]
-        up[i] = ws_local[0]
-        vp[i] = ws_local[1]
-        wp[i] = ws_local[2]
+        # Update state arrays in place
+        xp[i] = x[0]
+        yp[i] = x[1]
+        zp[i] = x[2]
+        up[i] = u[0]
+        vp[i] = u[1]
+        wp[i] = u[2]
 
         # Note that we are not really time-integrating the wind speed.
         # We are making assumptions about the distribution of perturbations
         # about a mean x-direction wind!
 
-        # del pos, ws_local
+        # del x, u
         # ^ seems like Numba might require this? (gave errors otherwise)
         # now, using numba v0.49.1 this raises error:
         #   `CompilerError: Illegal IR, del found at: del pos`
