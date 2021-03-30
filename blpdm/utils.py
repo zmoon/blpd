@@ -3,7 +3,6 @@ Miscellaneous utility functions
 
 Mostly used in the plotting/analysis routines.
 """
-import math
 from collections import namedtuple
 from functools import partial
 
@@ -106,6 +105,7 @@ def s_sample_size(p, *, N_p_only=False):
     else:
         return "\n".join([s_N_p, s_N])
 
+
 # TODO: fn to pre-process state for plots, removing data outside certain limits or with too high vel components ?
 
 
@@ -121,12 +121,15 @@ def _auto_bins_1d(x, *, nx_max, std_mult, method, pos_only=False):
     x_edges = np.histogram_bin_edges(x, bins=method, range=x_range)
 
     if x_edges.size > nx_max + 1:
-        x_edges = np.linspace(*x_range, nx_max+1)
+        x_edges = np.linspace(*x_range, nx_max + 1)
 
     return x_edges
 
 
-def auto_bins(positions, sdim="xy", *,
+def auto_bins(
+    positions,
+    sdim="xy",
+    *,
     nbins_max_1d: int = 100,
     std_mult: float = 2.0,
     method: str = "auto",
@@ -151,7 +154,8 @@ def auto_bins(positions, sdim="xy", *,
     """
     pos = np.asarray(positions)
     assert pos.ndim == 2
-    if pos.shape[0] in [2, 3]:  # need to flip (or we only have 2 or 3 data points, but that is unlikely!)
+    if pos.shape[0] in [2, 3]:
+        # ^ need to flip (or we only have 2 or 3 data points, but that is unlikely!)
         pos = pos.T
 
     dims = dims_from_sdim(sdim)
@@ -161,18 +165,17 @@ def auto_bins(positions, sdim="xy", *,
     # TODO: optional centering cell over certain x, y value (like 0, 0)
 
     kwargs_1d = dict(nx_max=nbins_max_1d, std_mult=std_mult, method=method)
-    bins = [
-        _auto_bins_1d(pos[:,idim1], pos_only=idim1 == 2, **kwargs_1d)
-        for idim1 in idims
-    ]
+    bins = [_auto_bins_1d(pos[:, idim1], pos_only=idim1 == 2, **kwargs_1d) for idim1 in idims]
 
     return bins
+
 
 auto_bins_xy = partial(auto_bins, sdim="xy")
 auto_bins_xy.__doc__ = ":func:`utils.auto_bins` with ``sdim='xy'``"
 
 
 _Binned_values_xy = namedtuple("Binned_values_xy", "x y xe ye v")
+
 
 def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
     """Using the `x` and `y` positions of the particles, bin `values`,
@@ -232,7 +235,8 @@ def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
     # result for efficiency.
     res = {}  # {vn: {stat: ...}, ...}
     ret = None  # for first run we don't have a result yet
-    stats_to_calc = ["mean", "median", "std", "count"]  # note sum can be recovered with mean and particle count
+    stats_to_calc = ["mean", "median", "std", "count"]
+    # ^ note that sum can be recovered with mean and particle count
     for vn in vns:
         values = ds[vn].values
         rets = {}
@@ -262,18 +266,24 @@ def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
     ds = xr.Dataset(
         coords=coords,
         data_vars={
-            f"{vn}_{stat}": (dims_c, ret.statistic, {
-                "units": ds[vn].attrs.get("units", ""), "long_name": ds[vn].attrs.get("long_name", ""),
-            })
+            f"{vn}_{stat}": (
+                dims_c,
+                ret.statistic,
+                {
+                    "units": ds[vn].attrs.get("units", ""),
+                    "long_name": ds[vn].attrs.get("long_name", ""),
+                },
+            )
             for vn, d in res.items()
             for stat, ret in d.items()
-        }
+        },
     )
 
     # Add particle count
     ds["Np"] = (dims_c, res[vns[0]]["count"].statistic, {"long_name": "Lagrangian particle count"})
 
     return ds.transpose()  # y first so 2-d xarray plots just work
+
 
 bin_ds_xy = partial(bin_ds, sdim="xy")
 bin_ds_xy.__doc__ = ":func:`utils.bin_ds` with ``sdim='xy'``"
@@ -296,18 +306,18 @@ def calc_t_out(p):
         time-since-release in seconds
     """
     # unpack needed model options/params
-    Np_tot = p['Np_tot']
-    dt = p['dt']
-    N_t = p['N_t']  # number of time steps
-    t_tot = p['t_tot']
-    dNp_dt_ds = p['dNp_per_dt_per_source']
-    N_s = p['N_sources']
+    Np_tot = p["Np_tot"]
+    dt = p["dt"]
+    N_t = p["N_t"]  # number of time steps
+    t_tot = p["t_tot"]
+    dNp_dt_ds = p["dNp_per_dt_per_source"]
+    N_s = p["N_sources"]
 
     # Calculate time-since-release for every particle
-    #! the method here is based on time as outer loop
-    #! and will be incorrect if that changes
+    # ! the method here is based on time as outer loop
+    # ! and will be incorrect if that changes
     # t_out = np.r_[[[(k+1)*numpart for p in range(numpart)] for k in range(N)]].flat
-    t_out = np.ravel(np.tile(np.arange(dt, N_t*dt + dt, dt)[:,np.newaxis], dNp_dt_ds*N_s))
+    t_out = np.ravel(np.tile(np.arange(dt, N_t * dt + dt, dt)[:, np.newaxis], dNp_dt_ds * N_s))
     # ^ need to find the best way to do this!
     # note: apparently `(N_t+1)*dt` does not give the same stop as `N_t*dt+dt` sometimes (precision thing?)
 
@@ -324,7 +334,6 @@ def calc_t_out(p):
 def load_p(ds):
     """Load the model parameters/info `dict` from JSON stored in `ds` :class:`xarray.Dataset`."""
     import json
-    import xarray as xr
 
     return json.loads(ds.attrs["p_json"])
 
@@ -425,7 +434,7 @@ def unnumbify(d_nb):
     import numba
 
     if not isinstance(d_nb, numba.typed.Dict):
-        raise TypeError('this fn is for dicts of type `numba.typed.Dict`')
+        raise TypeError("this fn is for dicts of type `numba.typed.Dict`")
 
     d = {}
     for k, v in d_nb.items():
