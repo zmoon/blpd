@@ -4,7 +4,7 @@
 
 [![CI workflow status](https://github.com/zmoon/blpd/actions/workflows/ci.yml/badge.svg)](https://github.com/zmoon/blpd/actions/workflows/ci.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/zmoon/blpd/master.svg)](https://results.pre-commit.ci/latest/github/zmoon/blpd/master)
-[![Run examples on Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zmoon/blpd/HEAD?filepath=lab/tree/examples)
+[![Run examples on Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zmoon/blpd/HEAD?urlpath=lab/tree/examples)
 
 ## Installing
 
