@@ -144,7 +144,7 @@ def compare_params(p, p0=None, input_params_only=False):
             if v0 != v:
                 print(f"'{k}': {v0} --> {v}")
     else:
-        print("all params same as defaults")
+        print(f"all params same as {p0_name}")
 
 
 class Model:

@@ -1,44 +1,83 @@
 # -*- coding: utf-8 -*-
-"""
-Demonstrate updating parameters
-
-@author: zmoon
-"""
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: title,-all
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.11.1
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+# %% [markdown]
+# # Parameters
+#
+# How to set them, see them, update them...
+# %%
 import pprint
-import sys
-
-sys.path.append("../")
 
 import blpd
-from blpd.main import input_param_defaults, compare_params
+from blpd.main import compare_params
+from blpd.main import input_param_defaults
 
 
-# %% View the defaults
+# %% [markdown]
+# First we print the *input* parameter defaults.
 
-pp = pprint.PrettyPrinter(indent=2)
+# %%
+pp = pprint.PrettyPrinter()
 
 msg = "All model input parameters"
 print(msg)
 print("-" * len(msg))
 pp.pprint(input_param_defaults)
 
-print("\n")
+# %% [markdown]
+# Creating a default model object, we can see that its parameters match the defaults.
 
-# %% Confirm default model instance has them
-
+# %%
 m0 = blpd.model()
 
 compare_params(m0.p)
 
-print("\n")
+# %% [markdown]
+# It has other parameters besides the ones shown above, since additional parameters are derived from the *input* parameters.
 
-# %% Create a new instance and change some parameters
+# %%
+set(m0.p) - set(input_param_defaults)
 
+# %% [markdown]
+# Creating a new model instance and changing some settings, we can see how the *input* and *derived* parameters change.
+
+# %%
 m = blpd.model()
 m.update_p({"t_tot": 5 * 60, "ustar": 1.0})
 
-compare_params(m.p)  # if no 2nd argument passed, we compare to default model instance
-print()
-compare_params(m.p, m0.p)  # confirm that that is the case
-print()
-compare_params(m.p, input_params_only=True)  #
+# %% [markdown]
+# Note that we can also make these changes at initialization.
+
+# %%
+m_alt = blpd.model(pu={"t_tot": 5 * 60, "ustar": 1.0})
+compare_params(m.p, m_alt.p)
+
+# %% [markdown]
+# If no 2nd argument passed, we compare to the default model instance.
+
+# %%
+compare_params(m.p)
+
+# %% [markdown]
+# We can also pass it and here obtain the same result, although the message has changed slightly.
+
+# %%
+compare_params(m.p, m0.p)
+
+# %% [markdown]
+# We can also elect to show only input parameters.
+
+# %%
+compare_params(m.p, input_params_only=True)
