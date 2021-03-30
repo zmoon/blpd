@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ '*' ]
+    paths: [ '**.py', '.github/workflows/ci.yml' ]
+  pull_request:
+    branches: [ master ]
+    paths: [ '**.py', '.github/workflows/ci.yml' ]
+
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install the package
+        run: |
+          set -xe
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install .[complete]
+
+      - name: Run the examples
+        run: |
+          set -xe
+          cd examples
+          for f in *.py; do
+            python $f
+          done
