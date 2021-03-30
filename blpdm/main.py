@@ -9,6 +9,8 @@ from copy import deepcopy as copy
 import numpy as np
 
 from . import lpd
+from .utils import disable_numba
+from .utils import enable_numba
 from .utils import numbify
 from .utils import unnumbify
 
@@ -347,7 +349,7 @@ class Model:
         # init of hist and state could go here
 
         if self.p["use_numba"]:
-            lpd.enable_numba()  # ensure numba compilation is not disabled
+            enable_numba()  # ensure numba compilation is not disabled
 
             # > prepare p for numba
             p_for_nb = {k: v for k, v in self.p.items() if not isinstance(v, (str, list, dict))}
@@ -369,7 +371,7 @@ class Model:
             p_run = p_nb
 
         else:  # model is set not to use numba (for checking the performance advantage of using numba)
-            lpd.disable_numba()  # disable numba compilation
+            disable_numba()  # disable numba compilation
 
             state_run = self.state
             p_run = self.p

@@ -445,3 +445,32 @@ def unnumbify(d_nb):
             d[k] = v
 
     return d
+
+
+def disable_numba():
+    """Tell numba to disable JIT.
+
+    References
+    ----------
+    * disabling JIT: https://numba.pydata.org/numba-doc/latest/user/troubleshoot.html#disabling-jit-compilation
+    * reloading config: https://github.com/numba/numba/blob/868b8e3e8d034dac0440b75ca31595e07f632d27/numba/core/config.py#L369
+    """
+    import os
+    import numba
+
+    os.environ.update({"NUMBA_DISABLE_JIT": str(1)})
+    numba.config.reload_config()
+    assert numba.config.DISABLE_JIT == 1  # pylint: disable=no-member
+
+
+def enable_numba():
+    """Tell numba to enable JIT.
+    See references in `disable_numba`.
+    """
+    import os
+    import numba
+
+    # By default (when numba is loaded normally), this env var is not set, so remove it
+    os.environ.pop("NUMBA_DISABLE_JIT", default=None)  # avoid error
+    numba.config.reload_config()
+    assert numba.config.DISABLE_JIT == 0  # pylint: disable=no-member
