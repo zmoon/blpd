@@ -1,0 +1,24 @@
+name: blpd-dev
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  #
+  # used by blpd
+  - matplotlib
+  - numba
+  - numpy
+  - scipy
+  - xarray
+  #
+  # examples as nbs
+  - jupyterlab >= 3
+  - jupytext
+  #
+  # dev
+  - rope
+  #
+  - pip
+  - pip:
+      # the package as an editable install
+      - '-e .'
