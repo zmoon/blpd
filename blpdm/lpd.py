@@ -178,7 +178,7 @@ def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
 
 
 @njit
-def calc_tends(x, u, p):
+def calc_xtend(x, u, p):
     """Calculate the position tendencies
     i.e., the velocity components ui + dui.
     """
@@ -274,7 +274,7 @@ def _integrate_particle_one_timestep(x, u, p):
     """Take the state for one particle and integrate."""
     dt = p['dt']
 
-    res = calc_tends(x, u, p)
+    dxdt = calc_xtend(x, u, p)  # u, v, w
 
     # Adjustments for undesired new z position
     # (below z = 0 or above PBL inversion)
@@ -282,20 +282,20 @@ def _integrate_particle_one_timestep(x, u, p):
     # This current method seems to correspond to completely elastic collision,
     # but maybe inelastic or some probability of deposition could be another option.
     z = x[2]  # before integration
-    znew = z + res[2]*dt  # res[2] is w velocity component
+    znew = z + dxdt[2]*dt
     if znew <= 0.1:
-        res = [res[0], res[1], -res[2]]
-        xnew = [x[0] + res[0]*dt, x[1] + res[1]*dt, 0.1]
+        dxdt = [dxdt[0], dxdt[1], -dxdt[2]]
+        xnew = [x[0] + dxdt[0]*dt, x[1] + dxdt[1]*dt, 0.1]
 
     elif znew >= 800.:  # reflect at z_i too
-        res = [res[0], res[1], -res[2]]
-        xnew = [x[0] + res[0]*dt, x[1] + res[1]*dt, 800.]
+        dxdt = [dxdt[0], dxdt[1], -dxdt[2]]
+        xnew = [x[0] + dxdt[0]*dt, x[1] + dxdt[1]*dt, 800.]
 
     else:
-        xnew = [p + dpdt*dt for (p, dpdt) in zip(x, res)]
+        xnew = [xi + dxidt*dt for (xi, dxidt) in zip(x, dxdt)]
 
     # The new position (x) tendencies are the (new) velocity components
-    unew = res
+    unew = dxdt
 
     return xnew, unew
 
@@ -340,7 +340,7 @@ def integrate_particles_one_timestep(state, p):
 
         # del x, u
         # ^ seems like Numba might require this? (gave errors otherwise)
-        # now, using numba v0.49.1 this raises error:
+        # Now, using numba v0.49.1 this raises error:
         #   `CompilerError: Illegal IR, del found at: del pos`
-        # if trying to use sufficiently older versions of numba, may need to put it back
+        # If trying to use sufficiently older versions of numba, may need to put it back.
         # TODO: maybe change numba version spec in setup.cfg to >= 0.49
