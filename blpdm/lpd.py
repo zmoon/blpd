@@ -183,8 +183,10 @@ def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
 
 @njit
 def calc_xtend(x, u, p):
-    """Calculate the position tendencies
-    i.e., the velocity components ui + dui.
+    """Calculate the position tendencies (i.e., the velocity components ui + dui)
+    for one particle with position vector `x` and velocity vector `u`.
+
+    `p` (parameters) must be a Numba typed dict (:class:`numba.typed.Dict`).
     """
     z = x[2]  # x, y, z
     u1, u2, u3 = u  # u, v, w
@@ -321,9 +323,9 @@ def _integrate_particle_one_timestep(x, u, p):
 # @njit
 @njit(parallel=True)
 def integrate_particles_one_timestep(state, p):
-    """Integrate all particles one time step, modifying `state` in place.
+    """Integrate all particles one time step, modifying the current `state` in place.
 
-    `state` and p` (parameters) must be Numba typed dicts (:class:`numba.typed.Dict`)
+    `state` and `p` (parameters) must be Numba typed dicts (:class:`numba.typed.Dict`)
     in order for `@njit` to work if Numba is not disabled.
     """
     Np_k = int(state["Np_k"][0])
