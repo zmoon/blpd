@@ -11,7 +11,7 @@ This project is based on a model written in Matlab by K. Pratt for his [MS thesi
 
 Until releases are made (on [PyPI](https://pypi.org/) and/or GitHub), the recommended method of installing is
 ```
-pip install git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
+pip install git+https://github.com/zmoon/blpd
 ```
 These commands will install the current state of the code in the default branch (master).
 
@@ -21,7 +21,7 @@ These commands will install the current state of the code in the default branch 
 If you plan to commit changes:
 1. Clone the repo
    ```
-   git clone https://github.com/zmoon92/bee-lpdm
+   git clone https://github.com/zmoon/blpd
    ```
 2. Register the package as an editable install, by navigating into the the repo and executing
    ```
@@ -30,7 +30,7 @@ If you plan to commit changes:
 
 If you don't plan to commit changes, you can skip the manual `git clone` and just use:
 ```
-pip install -e git+https://github.com/zmoon92/bee-lpdm#egg=blpdm
+pip install -e git+https://github.com/zmoon/blpd
 ```
 
 #### Notes
@@ -46,7 +46,7 @@ matplotlib
 scipy
 ```
 
-:exclamation: An updated version of `pip` (>= 19.0) should be used for the install to ensure that the build backend specified in `pyproject.toml` will be read and used (installed if necessary). Otherwise, the `blpdm` package version may not be correctly read into the package metadata.
+:exclamation: An updated version of `pip` (>= 19.0) should be used for the install to ensure that the build backend specified in `pyproject.toml` will be read and used (installed if necessary). Otherwise, the `blpd` package version may not be correctly read into the package metadata.
 
 
 ## References

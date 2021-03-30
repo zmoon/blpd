@@ -9,8 +9,8 @@ import sys
 
 sys.path.append("../")
 
-import blpdm
-from blpdm.main import input_param_defaults, compare_params
+import blpd
+from blpd.main import input_param_defaults, compare_params
 
 
 # %% View the defaults
@@ -26,7 +26,7 @@ print("\n")
 
 # %% Confirm default model instance has them
 
-m0 = blpdm.model()
+m0 = blpd.model()
 
 compare_params(m0.p)
 
@@ -34,7 +34,7 @@ print("\n")
 
 # %% Create a new instance and change some parameters
 
-m = blpdm.model()
+m = blpd.model()
 m.update_p({"t_tot": 5 * 60, "ustar": 1.0})
 
 compare_params(m.p)  # if no 2nd argument passed, we compare to default model instance

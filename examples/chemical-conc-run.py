@@ -8,13 +8,13 @@ import sys
 
 sys.path.append("../")
 
-import blpdm
-from blpdm import plots
+import blpd
+from blpd import plots
 
 
 # %% Create case and run
 
-m = blpdm.model()
+m = blpd.model()
 
 # change some params
 new_p = {
@@ -35,7 +35,7 @@ m.run()
 # demonstrate some of the settings
 
 ds0 = m.to_xarray()
-ds = blpdm.chem.calc_relative_levels_fixed_oxidants(ds0)
+ds = blpd.chem.calc_relative_levels_fixed_oxidants(ds0)
 
 # apinene is the default species plotted if spc not specified
 

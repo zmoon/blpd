@@ -8,19 +8,19 @@ import sys
 
 sys.path.append("../")
 
-import blpdm
+import blpd
 
 
 # %% Default run - continuous release without history
 
-m0 = blpdm.model()
+m0 = blpd.model()
 m0.run()
 m0.plot()
 
 
 # %% Trajectory run - single release with history
 
-m1 = blpdm.model()
+m1 = blpd.model()
 m1.update_p(
     {
         "continuous_release": False,

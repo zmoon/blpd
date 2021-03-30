@@ -502,7 +502,7 @@ class Model:
         attrs = {
             "run_completed": self._clock_time_run_end,
             "run_runtime": self._clock_time_run_end - self._clock_time_run_start,
-            # TODO: blpdm version once the packaging is better...
+            # TODO: package version once the packaging is better...
             "p_json": json.dumps(self.p),
         }
 
