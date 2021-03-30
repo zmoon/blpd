@@ -28,20 +28,22 @@ thujene, "α-thujene", 4.4e-16, 8.7e-11, 1.1e-11
 """.strip()
 # TODO: store in separate file that makes it easier to add more (and other data). YAML?
 
+
 def _parse_chemical_species_data(s=_chemical_species_data_table_str):
     d = {}
-    for line in s.split('\n'):
-        parts = [p.strip() for p in line.split(', ')]
+    for line in s.split("\n"):
+        parts = [p.strip() for p in line.split(", ")]
         dl = {
-            'display_name': eval(parts[1]),
-            'kO3': float(parts[2]),
-            'kOH': float(parts[3]),
-            'kNO3': float(parts[4])
+            "display_name": eval(parts[1]),
+            "kO3": float(parts[2]),
+            "kOH": float(parts[3]),
+            "kNO3": float(parts[4]),
         }
         key = parts[0]
         d[key] = dl
 
     return d
+
 
 chemical_species_data = _parse_chemical_species_data()
 """`dict`; keys: ASCII chemical species names, values: ``'display_name'``, ``'kO3'``, ``'kOH'``, ``'kNO3'``"""
@@ -89,15 +91,15 @@ def calc_relative_levels_fixed_oxidants(
         p.update(p_overrides)
 
     # unpack needed model options/params
-    Np_tot = p['Np_tot']
+    Np_tot = p["Np_tot"]
 
     if t_out is None:
         t_out = calc_t_out(p)
 
     # (molec cm^-3)
-    conc_O3 = p['conc_oxidants']['O3']
-    conc_OH = p['conc_oxidants']['OH']
-    conc_NO3 = p['conc_oxidants']['NO3']
+    conc_O3 = p["conc_oxidants"]["O3"]
+    conc_OH = p["conc_oxidants"]["OH"]
+    conc_NO3 = p["conc_oxidants"]["NO3"]
 
     # Save position dataset to merge with
     ds0 = ds.copy()
@@ -105,7 +107,10 @@ def calc_relative_levels_fixed_oxidants(
     ip = np.arange(Np_tot)  # for now
     spcs = sorted(species.keys())  # species keys
     n_spc = len(spcs)
-    def d0(): return np.empty((ip.size, n_spc))  # to be filled; or create d0 and use .copy()
+
+    def d0():
+        return np.empty((ip.size, n_spc))  # to be filled; or create d0 and use .copy()
+
     ds = xr.Dataset(
         coords={
             "ip": ("ip", ip, {"long_name": "Lagrangian particle index"}),
@@ -125,24 +130,23 @@ def calc_relative_levels_fixed_oxidants(
         },
     )
     for spc, d_spc in species.items():
-        conc0_val = p['fv_0'].get(spc, fv_0_default)
+        conc0_val = p["fv_0"].get(spc, fv_0_default)
 
-        kO3 = d_spc['kO3']
-        kOH = d_spc['kOH']
-        kNO3 = d_spc['kNO3']
+        kO3 = d_spc["kO3"]
+        kOH = d_spc["kOH"]
+        kNO3 = d_spc["kNO3"]
 
         # k_sum = kO3 + kOH + kNO3
         # k_inv_sum = 1/kO3 + 1/kOH + 1/kNO3
-        kc_sum = conc_O3*kO3 + conc_OH*kOH + conc_NO3*kNO3
+        kc_sum = conc_O3 * kO3 + conc_OH * kOH + conc_NO3 * kNO3
         kc_O3 = kO3 * conc_O3
         kc_OH = kOH * conc_OH
         kc_NO3 = kNO3 * conc_NO3
 
         # fraction remaining
-        f_remaining = 1.0 \
-            * np.exp(-kc_O3*t_out) \
-            * np.exp(-kc_OH*t_out) \
-            * np.exp(-kc_NO3*t_out)
+        f_remaining = (
+            1.0 * np.exp(-kc_O3 * t_out) * np.exp(-kc_OH * t_out) * np.exp(-kc_NO3 * t_out)
+        )
 
         # fraction destroyed
         # breakdown by oxidant depends on the rate const and oxidant levels
@@ -156,10 +160,10 @@ def calc_relative_levels_fixed_oxidants(
         f_r_spc = np.full((Np_tot,), conc0_val) * f_remaining
 
         # update dataset values
-        ds["f_r"].loc[:,spc] = f_r_spc
-        ds["f_d_o3"].loc[:,spc] = f_d_O3
-        ds["f_d_oh"].loc[:,spc] = f_d_OH
-        ds["f_d_no3"].loc[:,spc] = f_d_NO3
+        ds["f_r"].loc[:, spc] = f_r_spc
+        ds["f_d_o3"].loc[:, spc] = f_d_O3
+        ds["f_d_oh"].loc[:, spc] = f_d_OH
+        ds["f_d_no3"].loc[:, spc] = f_d_NO3
 
     ds_ret = xr.merge([ds, ds0[["x", "y", "z"]]])
     ds_ret.attrs.update(ds.attrs)
@@ -173,12 +177,11 @@ def load_canola_species_data():
     def try_float(v):
         try:
             return float(v)
-        except:
+        except ValueError:
             return v
 
-    fields = ["key", "MW", "kO3", "kOH", "kNO3",
-              "OH_yield", "HCHO_yield", "display_name"]
-    #,mw,ko3,koh,kno3,oh_yield,hcho_yield,display_name
+    fields = ["key", "MW", "kO3", "kOH", "kNO3", "OH_yield", "HCHO_yield", "display_name"]
+    # ,mw,ko3,koh,kno3,oh_yield,hcho_yield,display_name
     s = """
 apinene,136,8.09e-17,5.33e-11,6.16e-12,0.83,0.19,α-pinene
 bpinene,136,2.35e-17,7.81e-11,2.51e-12,0.35,0.45,β-pinene
@@ -210,23 +213,23 @@ def load_canola_flower_basal_emissions():
     # from Table 1 of Jakobsen et al. (1994) (the values for light conditions)
     # doi: https://doi.org/10.1016/S0031-9422(00)90341-8
     emiss_ng = {
-        'myrcene': 12.3,
-        'limonene': 7.2,
-        'sabinene': 6.5,
-        'farnesene': 5.0,
-        'apinene': 4.2,
-        'linalool': 3.0,
-        'carene': 1.9,
-        'bpinene': 2.0,
-        'thujene': 1.9,
-        'cineole': 1.7
+        "myrcene": 12.3,
+        "limonene": 7.2,
+        "sabinene": 6.5,
+        "farnesene": 5.0,
+        "apinene": 4.2,
+        "linalool": 3.0,
+        "carene": 1.9,
+        "bpinene": 2.0,
+        "thujene": 1.9,
+        "cineole": 1.7,
     }
 
     # convert to ug/s units
     emiss_ug_s = {}
     for spc, e_ng in emiss_ng.items():
         # calculate emission in ug (micrograms) per second
-        e_ug_s = e_ng / 1000 / (60*60)
+        e_ug_s = e_ng / 1000 / (60 * 60)
         emiss_ug_s[spc] = e_ug_s
 
     # reference temperature
@@ -270,7 +273,7 @@ def calc_areal_emission_rates_canola(
     T_S = basal["T_S_K"]
 
     # other needed
-    N_A = 6.02214076e+23  # also in scipy.constants
+    N_A = 6.02214076e23  # also in scipy.constants
 
     # load canola species additional data
     data = load_canola_species_data()
@@ -308,7 +311,7 @@ def calc_gridded_conc_canola(ds):
     using the fixed oxidants chem.
 
     """
-    #! 2-D for now (not real 3-D/volume conc.)
+    # ! 2-D for now (not real 3-D/volume conc.)
     p = load_p(ds)
 
     # 1. Determine floral volatile levels per particle
@@ -385,11 +388,11 @@ def calc_gridded_conc_canola(ds):
         res[spc] = {
             "particle_count": n_p_g,
             "molec_count": fv_spc_g,
-            "conc_molec_areal": fv_spc_g / (dx*dy),
+            "conc_molec_areal": fv_spc_g / (dx * dy),
             "oh_yield_count": oh_y_tot,
-            "oh_yield_areal": oh_y_tot / (dx*dy),
+            "oh_yield_areal": oh_y_tot / (dx * dy),
             "hcho_yield_count": hcho_y_tot,
-            "hcho_yield_areal": hcho_y_tot / (dx*dy),
+            "hcho_yield_areal": hcho_y_tot / (dx * dy),
         }
 
     # 5. Specify grid centers
@@ -420,7 +423,7 @@ def calc_gridded_conc_canola(ds):
     for vn in varnames:
         data = np.zeros((n_spc, xc.size, yc.size))
         for i, (spc, data_spc) in enumerate(res.items()):
-            data[i,:,:] = data_spc[vn]
+            data[i, :, :] = data_spc[vn]
         res_agg[vn] = data
 
     ds = xr.Dataset(
@@ -432,14 +435,19 @@ def calc_gridded_conc_canola(ds):
             "spc": ("spc", spc_sorted, {"long_name": "chemical species"}),
         },
         data_vars={
-            vn: (("spc", "x", "y"), values, {
-                "units": units[vn], "long_name": long_names[vn],
-            })
+            vn: (
+                ("spc", "x", "y"),
+                values,
+                {
+                    "units": units[vn],
+                    "long_name": long_names[vn],
+                },
+            )
             for vn, values in res_agg.items()
         },
         attrs={
             "t_tot_s": p["t_tot"],
-        }
+        },
     )
 
     # Fix particle count (doesn't vary with species)
@@ -447,13 +455,14 @@ def calc_gridded_conc_canola(ds):
 
     # Add display names
     display_names = [canola[spc]["display_name"] for spc in spc_sorted]
-    ds["display_name"] = ("spc", display_names, {"long_name": "better chemical species names (UTF-8)"})
+    ds["display_name"] = (
+        "spc",
+        display_names,
+        {"long_name": "better chemical species names (UTF-8)"},
+    )
 
     return ds
 
 
-
 # Define chem calculation options for the main model class
-chem_calc_options = {
-    "fixed_oxidants": calc_relative_levels_fixed_oxidants
-}
+chem_calc_options = {"fixed_oxidants": calc_relative_levels_fixed_oxidants}

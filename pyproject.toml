@@ -1,5 +1,5 @@
-
 [build-system]
 requires = ["setuptools>=40.9", "wheel"]
-# requires = ["setuptools>=41.0", "setuptools-scm", "wheel"]
-# build-backend = "setuptools.build_meta"  # or "setuptools.build_meta:__legacy__" (assumed if no `build-backend`)
+
+[tool.black]
+line-length = 100

@@ -3,6 +3,7 @@ Code that runs Lagrangian stochastic particle dispersion
 efficiently (hopefully) with the help of numba
 
 """
+# fmt: off
 # in order to pass in dicts as args for numba fn
 # need to use their special dict type and specify the types of the varibles
 #   https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#typed-dict

@@ -7,8 +7,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection as _LineCollection
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
-from scipy import stats
+from mpl_toolkits.mplot3d import Axes3D as _Axes3D  # noqa: F401 unused import
 
 from . import utils  # TODO: move all calls to namespaced form since I am using a lot now
 from .chem import chemical_species_data
@@ -139,15 +138,27 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
 
         N_sources = p["N_sources"]
         for i_source, color in zip(range(N_sources), cycle(colors)):
-            segs = [pos[i, :, :2] for i in range(i_source, Np, N_sources)]# for _ in range(N_sources)]
+            segs = [pos[i, :, :2] for i in range(i_source, Np, N_sources)]
 
-            lc = _LineCollection(segs, linewidths=0.5, colors=color, linestyles="solid", alpha=0.3,)
+            lc = _LineCollection(
+                segs,
+                linewidths=0.5,
+                colors=color,
+                linestyles="solid",
+                alpha=0.3,
+            )
             ax.add_collection(lc)
 
     else:
         segs = [pos[i, :, :2] for i in range(Np)]
 
-        lc = _LineCollection(segs, linewidths=0.5, colors="0.6", linestyles="solid", alpha=0.5,)
+        lc = _LineCollection(
+            segs,
+            linewidths=0.5,
+            colors="0.6",
+            linestyles="solid",
+            alpha=0.5,
+        )
         ax.add_collection(lc)
 
     for (x, y) in p["source_positions"]:
@@ -162,7 +173,11 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
     fig.set_tight_layout(True)
 
 
-def conc_scatter(ds, spc="apinene", sdim="xy", *,
+def conc_scatter(
+    ds,
+    spc="apinene",
+    sdim="xy",
+    *,
     cmap="gnuplot",
     log_cnorm=False,
     vmax=100,
@@ -199,7 +214,14 @@ def conc_scatter(ds, spc="apinene", sdim="xy", *,
     norm, _ = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
 
     im = ax.scatter(
-        *coords, c=conc, s=7, marker="o", alpha=0.4, linewidths=0, cmap=cmap, norm=norm,
+        *coords,
+        c=conc,
+        s=7,
+        marker="o",
+        alpha=0.4,
+        linewidths=0,
+        cmap=cmap,
+        norm=norm,
     )
     cb = fig.colorbar(im, ax=ax, drawedges=False)
     cb.set_label(f"{spc_display_name} relative conc. (%)")
@@ -218,7 +240,9 @@ def conc_scatter(ds, spc="apinene", sdim="xy", *,
     fig.set_tight_layout(True)
 
 
-def conc_2d(ds, spc="apinene",
+def conc_2d(
+    ds,
+    spc="apinene",
     *,
     bins=(20, 10),
     plot_type="pcolor",
@@ -245,13 +269,18 @@ def conc_2d(ds, spc="apinene",
     fig, ax = utils.maybe_new_figure(f"horizontal-end-positions-with-conc_{spc}_{plot_type}", ax=ax)
 
     norm, locator = utils.maybe_log_cnorm(
-        log_cnorm=log_cnorm, levels=levels if plot_type == "contourf" else None, vmin=vmin, vmax=vmax,
+        log_cnorm=log_cnorm,
+        levels=levels if plot_type == "contourf" else None,
+        vmin=vmin,
+        vmax=vmax,
     )
 
     if plot_type == "pcolor":
         im = ax.pcolormesh(binned.xe, binned.ye, binned.v, cmap=cmap, norm=norm)
     elif plot_type == "contourf":
-        im = ax.contourf(binned.x, binned.y, binned.v, levels, cmap=cmap, norm=norm, locator=locator)
+        im = ax.contourf(
+            binned.x, binned.y, binned.v, levels, cmap=cmap, norm=norm, locator=locator
+        )
     else:
         raise ValueError("`plot_type` should be 'pcolor' or 'contourf'")
 
@@ -261,7 +290,7 @@ def conc_2d(ds, spc="apinene",
     for (x, y) in p["source_positions"]:
         ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
-    ax.autoscale(enable=True, axis='both', tight=True)
+    ax.autoscale(enable=True, axis="both", tight=True)
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
@@ -270,9 +299,16 @@ def conc_2d(ds, spc="apinene",
     fig.set_tight_layout(True)
 
 
-def conc_xline(ds, spc="apinene", y=0., *,
-    dy=1., ax=None,  # TODO: select z as well?
-    legend=True, label=None, legend_title=None,
+def conc_xline(
+    ds,
+    spc="apinene",
+    y=0.0,
+    *,
+    dy=1.0,
+    ax=None,  # TODO: select z as well?
+    legend=True,
+    label=None,
+    legend_title=None,
 ):
     """Plot species average relative level in the x-direction at a certain approximate y value.
     `spc` can be ``'all'``.
@@ -287,7 +323,7 @@ def conc_xline(ds, spc="apinene", y=0., *,
 
     # Define bins (edges)
     xe = utils._auto_bins_1d(X, nx_max=100, std_mult=2.0, method="sqrt")
-    ye = np.r_[y - 0.5*dy, y + 0.5*dy]
+    ye = np.r_[y - 0.5 * dy, y + 0.5 * dy]
     # ze = np.r_[z - 0.5*dz, z + 0.5*dz]
     bins = [xe, ye]
 
@@ -302,11 +338,15 @@ def conc_xline(ds, spc="apinene", y=0., *,
             ax.plot(xs, np.nanmin(binned.v), **_SOURCE_MARKER_PROPS)
 
     if legend:
-        fig.legend(ncol=2, fontsize="small", title="Chemical species" if legend_title is None else legend_title)
+        fig.legend(
+            ncol=2,
+            fontsize="small",
+            title="Chemical species" if legend_title is None else legend_title,
+        )
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
         xlabel=f"{ds.x.attrs['long_name']} [{ds.x.attrs['units']}]",
-        ylabel=f"Relative concentration",
+        ylabel="Relative concentration",
     )
     fig.set_tight_layout(True)
 
@@ -315,7 +355,9 @@ def conc_xline(ds, spc="apinene", y=0., *,
 
 
 def ws_hist_all(
-    ds, *, bounds=None,
+    ds,
+    *,
+    bounds=None,
 ):
     """Histograms of particle wind speed components (one subplot for each).
     For single-release or continuous-release run.
@@ -349,7 +391,9 @@ def ws_hist_all(
 
 
 def final_pos_hist(
-    ds, *, bounds=None,
+    ds,
+    *,
+    bounds=None,
 ):
     """Histograms of final position components (x, y, and z)."""
     p = utils.load_p(ds)
@@ -385,7 +429,13 @@ def final_pos_hist(
 
 
 def final_pos_hist2d(
-    ds, *, sdim="xy", bins=50, plot_type="pcolor", log_cnorm=False, vmax=None,
+    ds,
+    *,
+    sdim="xy",
+    bins=50,
+    plot_type="pcolor",
+    log_cnorm=False,
+    vmax=None,
 ):
     """2-D histogram of selected final position components."""
     p = utils.load_p(ds)
@@ -420,7 +470,7 @@ def final_pos_hist2d(
 
     ax.set_xlabel(f"${dims[0]}$ [{ds.x.attrs['units']}]")
     ax.set_ylabel(f"${dims[1]}$ [{ds.x.attrs['units']}]")
-    ax.autoscale(enable=True, axis='both', tight=True)
+    ax.autoscale(enable=True, axis="both", tight=True)
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(utils.s_sample_size(p, N_p_only=True), loc="right")
     fig.set_tight_layout(True)
