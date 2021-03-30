@@ -1,4 +1,4 @@
-# bee-lpdm
+# blpd
 
 *Lagrangian (stochastic) particle dispersion with Python+Numba to model bees finding floral scents*
 
