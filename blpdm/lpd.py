@@ -191,20 +191,12 @@ def calc_tends(pos, ws_local, p):
 
     # Calculate fd (fluid dynamics) params
     if z >= h_c:
-        #p_fd = _calc_fd_params_above_canopy(pos, p)
-
         U1, dU1dx3, \
         dtau11dx3, dtau22dx3, dtau33dx3, dtau13dx3, \
         lam11, lam22, lam33, lam13, \
         eps \
             = _calc_fd_params_above_canopy(pos, p)
-        # return (umean, dumeandz,
-        #     tau11, tau22, tau33, tau13,
-        #     dtau11dz, dtau22dz, dtau33dz, dtau13dz,
-        #     lam11, lam22, lam33, lam13,
-        #     epsilon)
     else:
-        #p_fd = _calc_fd_params_in_canopy(pos, p)
         U1, dU1dx3, \
         dtau11dx3, dtau22dx3, dtau33dx3, dtau13dx3, \
         lam11, lam22, lam33, lam13, \
@@ -229,59 +221,43 @@ def calc_tends(pos, ws_local, p):
     # x-1 component
     randn = np.random.standard_normal()  # different for each component
     dW1 = sqrt_dt * randn
-    du1 = \
-        (-C0*eps/2 * (lam11*(u1-U1) + lam13*u3) + dU1dx3*u3 + dtau13dx3/2 ) * dt \
-      + (dtau11dx3*(lam11*(u1-U1) + lam13*u3) \
-        + dtau13dx3*(lam13*(u1-U1) + lam33*u3))*(u3/2*dt) \
-      + sqrt_C0eps * dW1
-
+    du1 = (
+        (-C0*eps/2 * (lam11*(u1-U1) + lam13*u3) + dU1dx3*u3 + dtau13dx3/2 ) * dt
+        + (
+            dtau11dx3*(lam11*(u1-U1) + lam13*u3)
+            + dtau13dx3*(lam13*(u1-U1) + lam33*u3)
+        ) * (u3/2*dt)
+        + sqrt_C0eps * dW1
+    )
 
     # x-2 component
     randn = np.random.standard_normal()
     dW2 = sqrt_dt * randn
-    du2 = \
-        (-C0*eps/2 * lam22*u2 + dtau22dx3*lam22*u2 * u3/2) * dt \
-      + sqrt_C0eps * dW2
-
+    du2 = (
+        (-C0*eps/2 * lam22*u2 + dtau22dx3*lam22*u2 * u3/2) * dt
+        + sqrt_C0eps * dW2
+    )
 
     # x-3 component
     randn = np.random.standard_normal()
     dW3 = sqrt_dt * randn
-    du3 = \
-        (-C0*eps/2 * (lam13*(u1-U1) + lam33*u3) + dtau33dx3/2) * dt \
-      + (dtau13dx3 * (lam11*(u1-U1) + lam13*u3) \
-        + dtau33dx3 * (lam13*(u1-U1) + lam33*u3)) * (u3/2*dt) \
-      + sqrt_C0eps * dW3
+    du3 = (
+        (-C0*eps/2 * (lam13*(u1-U1) + lam33*u3) + dtau33dx3/2) * dt
+        + (
+            dtau13dx3 * (lam11*(u1-U1) + lam13*u3)
+            + dtau33dx3 * (lam13*(u1-U1) + lam33*u3)
+        ) * (u3/2*dt)
+        + sqrt_C0eps * dW3
+    )
 
-
-    # if np.any(np.r_[du1, du2, du3] > 50):
+    # Check for too-high values
     if np.any(np.abs(np.array([du1, du2, du3])) > 50):
-    #     # msg = f'one wind speed is too high: {du1}, {du2}, {du3}'
-        # msg = 'one wind speed is too high: ' + str(du1) + str(du2) + str(du3)  # numba nopython can't do str formatting
-    #     warnings.warn(msg)
-        # print(msg)
         print("one ws' is too high:", du1, du2, du3)
-
-        # debugging info
         print('umean, dumeandz, epsilon', U1, dU1dx3, eps)
         if z >= h_c:
             print('  z >= h_c')
         else:
             print('  z < h_c, z =', z)
-
-        # import pdb; pdb.set_trace()
-
-        # for d in [du1, du2, du3]:  # this method doesn't seem to work in numba
-        #     if np.abs(d) > 50:
-        #         # d = 50.
-        #         # d[:] = 50.
-        # print('resetting to 50')
-
-        # print('resetting all to 0')
-        # du1 = 0.
-        # du2 = 0.
-        # du3 = 0.
-
         print('resetting new ws to 0')
         du1 = 0.
         du2 = 0.
@@ -290,56 +266,26 @@ def calc_tends(pos, ws_local, p):
         u2 = 0.
         u3 = 0.
 
-        # print('  now:', du1, du2, du3)  # to check if the resetting is working or not
-
-    #     # print(locals())
-    #     for vn, val in locals().items():
-    #         # print(f'{vn}:\t{val:.4g}')
-    #         # print(f'{vn}:\t{val}')
-    #         print(vn, ':\t', val)
-    #     print('\n\n')
-    #     sys.exit()
-
-    # r = {
-    #     'dxdt': u1 + du1,
-    #     'dydt': u2 + du2,
-    #     'dzdt': u3 + du3
-    # }
-
-    # return r
-
-    # return u1 + du1, u2 + du2, u3 + du3
     return [u1 + du1, u2 + du2, u3 + du3]
 
 
 
 @njit
 def _integrate_particle_one_timestep(pos, ws_local, p):
-    """
-    Take the state for one particle and integrate
-    """
-
-    # pos = state['x'], state['y'], state['z']
-
+    """Take the state for one particle and integrate."""
     dt = p['dt']
 
     res = calc_tends(pos, ws_local, p)
-    # ^ currently returns tuple like pos
-    # res = [ws+dws for ws, dws in zip(ws_local, res)]
 
-    # contact with ground?
-    # * original code noted that this needs work
-    # this seems to just give them an elastic collision instead of a deposition
+    # Adjustments for undesired new z position
+    # (below z = 0 or above PBL inversion)
+    # TODO: original code noted that this needs work
+    # This current method seems to correspond to completely elastic collision,
+    # but maybe inelastic or some probability of deposition could be another option.
     z = pos[2]  # before integration
     znew = z + res[2]*dt  # res[2] is w velocity component
     if znew <= 0.1:
-        # z = 0.1
-        # res[2] = -res[2]  # w -> -w
-        # res = (res[0], res[1], -res[2])
         res = [res[0], res[1], -res[2]]
-        # res = (res[0], res[1], 0)
-
-        # newpos = (pos[0] + res[0]*dt, pos[1] + res[1]*dt, 0.1)
         newpos = [pos[0] + res[0]*dt, pos[1] + res[1]*dt, 0.1]
 
     elif znew >= 800.:  # reflect at z_i too
@@ -347,34 +293,23 @@ def _integrate_particle_one_timestep(pos, ws_local, p):
         newpos = [pos[0] + res[0]*dt, pos[1] + res[1]*dt, 800.]
 
     else:
-        # newpos = tuple([p + dpdt*dt for (p, dpdt) in zip(pos, res)])  # numba doesn't like tuple of list of float64
         newpos = [p + dpdt*dt for (p, dpdt) in zip(pos, res)]
-    # this needs to be outside the calc_tends fn
 
-
-    # the pos tendencies are the (new) velocity components
+    # The pos tendencies are the (new) velocity components
     new_ws_local = res
 
-    # newpos = tuple(p + dpdt*dt for p, dpdt in zip(pos, res))  # generator expression version
-
     return newpos, new_ws_local
-
 
 
 # @njit
 @njit(parallel=True)
 def integrate_particles_one_timestep(state, p):
+    """Integrate all particles one time step, modifying `state` in place.
+
+    `state` and p` must be Numba typed dicts (:class:`numba.typed.Dict`)
+    in order for `@njit` to work if Numba is not disabled.
     """
-    Integrate all particles one time step
-
-    p must be a numba typed dict (`numba.typed.Dict`)
-    in order for @njit to work
-
-    and state too, in order to use @njit on this fn
-    """
-
     Np_k = int(state['Np_k'][0])
-    # Np_k = np.int64(state['Np_k'])
     xp = state['xp']
     yp = state['yp']
     zp = state['zp']
@@ -385,31 +320,23 @@ def integrate_particles_one_timestep(state, p):
     # for i in range(Np_k):
     for i in prange(Np_k):  # pylint: disable=not-an-iterable
 
-        # state for one particle
-        # pos and local wind speed
-
-        # pos = xp[i], yp[i], zp[i]  # position of particle i at current time step
+        # State for particle i: position and (wind) velocity
         pos = [xp[i], yp[i], zp[i]]  # position of particle i at current time step
         ws_local = [up[i], vp[i], wp[i]]  # local wind speed for particle
 
-        # newpos = _integrate_particle_one_timestep(pos, p)
-        # pos = _integrate_particle_one_timestep(pos, ws_local, p)
+        # Calculate new state
         pos, ws_local = _integrate_particle_one_timestep(pos, ws_local, p)
 
-        # ip1 = i + 1
-
+        # Update state
         xp[i] = pos[0]
         yp[i] = pos[1]
         zp[i] = pos[2]
-
         up[i] = ws_local[0]
         vp[i] = ws_local[1]
         wp[i] = ws_local[2]
-        # ^ it seems like the wind speed components were not being stored in this way in the orig code
-        #   like it was always reset to 0 in the next time step
 
-        # we are not time-integrating the wind speed.
-        # we are making assumptions about the distribution of perturbations
+        # Note that we are not really time-integrating the wind speed.
+        # We are making assumptions about the distribution of perturbations
         # about a mean x-direction wind!
 
         # del pos, ws_local
