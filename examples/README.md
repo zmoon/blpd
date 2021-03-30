@@ -1,6 +1,5 @@
+# Examples
 
-# Example scripts
+The scripts are [Jupytext `py:percent` format](https://jupytext.readthedocs.io/en/latest/formats.html#the-percent-format), meaning that they can be run normally as Python scripts or opened as notebooks in Jupyter Notebook or JupyterLab.
 
-For now, these add `blpd` to path manually (not requiring an install). This shouldn't mess anything up if `blpd` is actually installed (see [../README.md](../README.md)).
-
-Hyphens are not allowed in Python module names, but these scripts are not (at this time) intended to be imported as modules by anything. (That is, `import {module-with-hyphens}` won't work, but note that `importlib.import_module('{module-with-hyphens}')` will...)
+In the JupyterLab interface, right click on a `*.py` to open it as notebook.
