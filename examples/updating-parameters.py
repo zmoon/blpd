@@ -21,8 +21,7 @@
 import pprint
 
 import blpd
-from blpd.main import compare_params
-from blpd.main import input_param_defaults
+from blpd.model import compare_params, input_param_defaults  # noreorder
 
 
 # %% [markdown]
