@@ -129,8 +129,8 @@ class step_length_dist2_gen(rv_continuous):
     using the scipy.stats machinery
     """
 
-    # instead of including l_0 as a param,
-    # just let scipy.stats do that via the `scale` param
+    # Instead of including l_0 as a param,
+    # we just let scipy.stats do that via the `scale` param
 
     def _pdf(self, x, mu):
         c = -1.0 / (1 - mu)  # normalization const
@@ -171,19 +171,29 @@ step_length_dist2 = step_length_dist2_gen(a=1.0, name="step_length_dist2")
 
 
 if __name__ == "__main__":
-
     import matplotlib.pyplot as plt
 
-    # test the step length dist
-    # all 3 agree for mu=2.0, l_0=1.0...
-    mu = 2.2
+    plt.close("all")
+
+    # Set dist parameters
+    # Note that all 3 agree for mu=2.0, l_0=1.0...
+    # But the analytical CDFs do not agree with the hist for mu < 2
+    # Since the rvs results agree, this means the `_cdf` and `_pdf` methods are still off
+    # though the `_ppf`s are fine.
+    mu = 1.2
     l_0 = 5
-    # assert 1-mu + l_0 >= 0
+    assert 1 - mu + l_0 >= 0
     n_steps = int(5e5)
-    x_stop = 1000  # in the plots
+    x_stop = 1000  # rightmost bin edge
+    x = np.linspace(0, 100, 1000)  # for the line (analytical) plots
+    bins = np.arange(0, x_stop, 0.1)  # for the histograms
+
+    # Draw using original method
     steps = [get_step_length(l_0=l_0, mu=mu) for _ in range(n_steps)]
-    fig, [ax, ax2] = plt.subplots(1, 2)
-    bins = np.arange(0, x_stop, 0.1)
+
+    fig, [ax, ax2] = plt.subplots(1, 2, figsize=(8, 4))
+
+    # Histogram of steps using original method
     ax.hist(
         steps,
         bins=bins,
@@ -193,37 +203,45 @@ if __name__ == "__main__":
         label="orig drawing method",
     )
 
-    # compare to the scipy.stats version
-    # x = np.linspace(l_0, x_stop, 200)
-    x = np.linspace(0, 100, 1000)  # for the line (analytical) plots
+    # Create corresponding distribution objects
     dist = step_length_dist(mu=mu, l_0=l_0)
     dist2 = step_length_dist2(mu=mu, scale=l_0, loc=0)
     steps2 = dist.rvs(n_steps)
     steps3 = dist2.rvs(n_steps)
-    ax.hist(
-        steps2,
-        bins=bins,
-        density=True,
-        histtype="stepfilled",
-        alpha=0.25,
-        color="orange",
-        label="using .rvs",
-    )
-    ax.hist(
-        steps3,
-        bins=bins,
-        density=True,
-        histtype="stepfilled",
-        alpha=0.25,
-        color="magenta",
-        label="using .rvs 2",
-    )
-    ax.plot(x, dist.pdf(x), label="pdf - analytical", color="orange")
-    ax.plot(x, dist2.pdf(x), label="pdf - analytical 2", color="magenta")
 
-    # ax2.plot()
-    # bins = np.linspace(0, x_stop, 200)  # like integrating from 0->inf
-    # ax2.hist(steps2[steps2 > l_0],
+    # PDF
+    ax.hist(
+        steps2,
+        bins=bins,
+        density=True,
+        histtype="stepfilled",
+        alpha=0.25,
+        color="orange",
+        label="using dist.rvs",
+    )
+    ax.hist(
+        steps3,
+        bins=bins,
+        density=True,
+        histtype="stepfilled",
+        alpha=0.25,
+        color="magenta",
+        label="using dist2.rvs",
+    )
+    ax.plot(x, dist.pdf(x), lw=3, label="pdf - analytical", color="orange")
+    ax.plot(x, dist2.pdf(x), ":", lw=1, label="pdf - analytical 2", color="magenta")
+
+    # CDF
+    ax2.hist(
+        steps,
+        bins=bins,
+        density=True,
+        cumulative=True,
+        histtype="stepfilled",
+        alpha=0.25,
+        # color="orange",
+        label="orig drawing method",
+    )
     ax2.hist(
         steps2,
         bins=bins,
@@ -232,7 +250,7 @@ if __name__ == "__main__":
         histtype="stepfilled",
         alpha=0.25,
         color="orange",
-        label="using .rvs",
+        label="using dist.rvs",
     )
     ax2.hist(
         steps3,
@@ -242,10 +260,10 @@ if __name__ == "__main__":
         histtype="stepfilled",
         alpha=0.25,
         color="magenta",
-        label="using .rvs 2",
+        label="using dist2.rvs",
     )
-    ax2.plot(x, dist.cdf(x), lw=2, label="cdf - analytical", color="orange")
-    ax2.plot(x, dist2.cdf(x), ":", label="cdf - analytical 2", color="magenta")
+    ax2.plot(x, dist.cdf(x), lw=3, label="cdf - analytical", color="orange")
+    ax2.plot(x, dist2.cdf(x), ":", lw=1, label="cdf - analytical 2", color="magenta")
 
     ax.set_xlim((0, l_0 * 10))
     ax.legend()
