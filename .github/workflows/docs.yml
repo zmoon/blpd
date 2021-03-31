@@ -1,0 +1,45 @@
+name: Docs
+
+on:
+  push:
+    paths:
+      - '**.py'
+      - 'doc/**'
+      - '.github/workflows/docs.yml'
+    branches:
+      - master
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}  # needed for the Conda activation to work
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install package (with `docs` extras)
+        run: |
+          python -m pip install pip setuptools wheel
+          python -m pip install .[docs]
+
+      - name: Build docs with pdoc
+        run: |
+          pdoc -d numpy -t ./doc blpd -o ./doc/_build
+
+      - name: Push built docs to `gh-pages` branch
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages
+          folder: ./doc/_build
+          git-config-name: github-actions
+          git-config-email: 41898282+github-actions[bot]@users.noreply.github.com
+          clean: true
+          clean-exclude: .nojekyll
