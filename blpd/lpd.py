@@ -1,6 +1,9 @@
 """
 Lagrangian stochastic particle dispersion.
-Using Numba, particles are integrated in parallel.
+Using [Numba](https://numba.pydata.org/), particles are integrated in parallel.
+
+Although it is possible to use these functions directly,
+the intention is for `blpd.model.Model` to be used.
 """
 import numpy as np
 from numba import njit
@@ -183,7 +186,8 @@ def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
 
 @njit
 def calc_xtend(x, u, p):
-    """Calculate the position tendencies (i.e., the velocity components ui + dui)
+    r"""Calculate the position tendencies
+    (i.e., the velocity components $u_i + \delta u_i$)
     for one particle with position vector `x` and velocity vector `u`.
 
     `p` (parameters) must be a Numba typed dict (:class:`numba.typed.Dict`).
@@ -323,7 +327,7 @@ def _integrate_particle_one_timestep(x, u, p):
 # @njit
 @njit(parallel=True)
 def integrate_particles_one_timestep(state, p):
-    """Integrate all particles one time step, modifying the current `state` in place.
+    """Integrate all particles one time step, modifying the current `state` (in place).
 
     `state` and `p` (parameters) must be Numba typed dicts (:class:`numba.typed.Dict`)
     in order for `@njit` to work if Numba is not disabled.
