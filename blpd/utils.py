@@ -1,8 +1,8 @@
 """
-Miscellaneous utility functions
-
-Mostly used in the plotting/analysis routines.
+Miscellaneous utility functions,
+mostly for internal use.
 """
+import inspect
 from collections import namedtuple
 from functools import partial
 
@@ -10,13 +10,48 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Potentially publically useful
+__all__ = (
+    "auto_bins",
+    "bin_ds",
+    "bin_values_xy",
+    "moving_average",
+    "numbify",
+    "unnumbify",
+)
+
+_SNIPPETS = {
+    "bins_params": """
+bins
+    If `bins='auto'`, `blpd.utils.auto_bins` is used to construct the bins.
+    Alternatively, you can pass bin specifications in any of the forms described
+    [here](https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html).
+    """.strip(),
+    "sdim_params": """
+sdim : str
+    String representation of the set of dimensions.
+    Valid options: `["xy", "xz", "yz", "xyz", "3d", "3-d"]`.
+    """.strip(),
+}
+
+
+def _add_snippets(func):
+    """Add docstring snippets from `_SNIPPETS` dict."""
+    # ref: https://github.com/lukelbd/proplot/blob/master/proplot/internals/docstring.py
+    func.__doc__ = inspect.getdoc(func)
+    if func.__doc__:
+        func.__doc__ %= {key: value.strip() for key, value in _SNIPPETS.items()}
+    return func
+
 
 def get_open_fig_labels():
     return [plt.figure(num).get_label() for num in plt.get_fignums()]
 
 
 def check_fig_num(label, n=0):
-    """Create a fig num that is not already taken."""
+    """Create a figure `num` (label) that is not already taken,
+    appending `_{n}` if a figure with `label` already exists.
+    """
     current_labels = get_open_fig_labels()
     if n == 0:
         labeln = label
@@ -29,10 +64,9 @@ def check_fig_num(label, n=0):
 
 
 def to_sci_not(f):
-    """Convert float f to scientific notation string.
-    by using string formats 'e' and 'g'
-
-    The output of this must be enclosed within `$`
+    """Convert float `f` to a scientific notation string
+    (not including the `$`)
+    by using string formats `e` and `g`.
     """
     s_e = f"{f:.4e}"
     s_dec, s_pow_ = s_e.split("e")
@@ -44,7 +78,7 @@ def to_sci_not(f):
 def sec_to_str(total_seconds):
     """Choose best format to display the run time.
 
-    note: can't use `strftime` with `timedelta`s
+    Note: can't use `strftime` with `timedelta`s
     """
     hours, remainder = divmod(total_seconds, 60 * 60)
     minutes, seconds = divmod(remainder, 60)
@@ -70,9 +104,10 @@ def sec_to_str(total_seconds):
 
 
 def moving_average(a, n=3, axis=0):
-    """
-    from: https://stackoverflow.com/a/14314054
-    for now only axis=0 works
+    """Moving average of `a`.
+
+    Implementation taken from: <https://stackoverflow.com/a/14314054>.
+    For now only `axis=0` works.
     """
     if axis != 0:
         raise NotImplementedError
@@ -82,7 +117,9 @@ def moving_average(a, n=3, axis=0):
 
 
 def s_t_info(p):
-    """Create string to display info about run time and time step."""
+    """Create string to display info about run time and time step
+    using model parameters `p`.
+    """
     t_tot = p["t_tot"]
     dt = p["dt"]
     N_t = p["N_t"]
@@ -95,7 +132,7 @@ def s_t_info(p):
 
 
 def s_sample_size(p, *, N_p_only=False):
-    """Create string with sample size info (number of particles Np and N=Np*Nt)."""
+    """Create string with sample size info (number of particles `Np` and `N=Np*Nt`)."""
     Np, Nt = p["Np_tot"], p["N_t"]
     N = Np * Nt
     s_N_p = f"$N_p = {to_sci_not(Np)}$"
@@ -126,6 +163,7 @@ def _auto_bins_1d(x, *, nx_max, std_mult, method, pos_only=False):
     return x_edges
 
 
+@_add_snippets
 def auto_bins(
     positions,
     sdim="xy",
@@ -140,8 +178,9 @@ def auto_bins(
     Parameters
     ----------
     positions
-        Container of 1-D arrays (in x,y[,z] order)
-        OR single NumPy array where columns are x,y[,z].
+        Container of 1-D arrays (in *x*,*y*[,*z*] order)
+        OR single NumPy array where columns are *x*,*y*[,*z*].
+    %(sdim_params)s
     nbins_max_1d
         Maximum number of bins in any direction/dim.
     std_mult
@@ -177,9 +216,16 @@ auto_bins_xy.__doc__ = ":func:`utils.auto_bins` with ``sdim='xy'``"
 _Binned_values_xy = namedtuple("Binned_values_xy", "x y xe ye v")
 
 
+@_add_snippets
 def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
     """Using the `x` and `y` positions of the particles, bin `values`,
     and calculate a representative value in each bin.
+
+    Parameters
+    ----------
+    %(bins_params)s
+    stat : str
+        Statistic to calculate on the binned values.
     """
     from scipy import stats
 
@@ -207,9 +253,18 @@ def bin_values_xy(x, y, values, *, bins="auto", stat="median"):
     return _Binned_values_xy(xc, yc, xe, ye, v)
 
 
+@_add_snippets
 def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
     """Bin a particles dataset. For example,
-    the model ``.to_xarray()`` dataset or the relative levels with fixed oxidants one.
+    the `blpd.model.Model.to_xarray` dataset
+    or `blpd.chem.calc_relative_levels_fixed_oxidants` dataset.
+
+    Parameters
+    ----------
+    %(sdim_params)s
+    variables : str, list(str)
+        `'all'` to bin all variables, or pass a list of variable names.
+    %(bins_params)s
     """
     from scipy import stats
     import xarray as xr
@@ -220,7 +275,7 @@ def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
     if variables == "all":
         vns = [vn for vn in ds.variables if vn not in list("xyz") + list(ds.dims) + list(ds.coords)]
     else:
-        vns = [variables]
+        vns = variables
 
     # Deal with dims
     dims = dims_from_sdim(sdim)
@@ -295,10 +350,10 @@ def calc_t_out(p):
     This works for a simulation with constant particle release rate
     (number of particles released per time step per source).
 
-    Args
-    ----
+    Parameters
+    ----------
     p : dict
-        the model params+options dict
+        The model parameters dict.
 
     Returns
     -------
@@ -368,6 +423,7 @@ def maybe_new_figure(try_num: str, ax=None):
 
 
 def check_sdim(sdim: str):
+    """Validate `sdim`."""
     valid_sdim = ["xy", "xz", "yz", "xyz", "3d", "3-d"]
     if sdim not in valid_sdim:
         raise ValueError(
@@ -378,6 +434,7 @@ def check_sdim(sdim: str):
 
 
 def dims_from_sdim(sdim: str):
+    """Return tuple of dims corresponding to `sdim`."""
     check_sdim(sdim)  # first validate
     if sdim in ("xyz", "3d", "3-d"):
         dims = list("xyz")
@@ -389,11 +446,13 @@ def dims_from_sdim(sdim: str):
 
 # TODO: float precision option
 def numbify(d, zerod_only=False):
-    """Convert dict to numba-suitable format.
+    """Convert dict `d` to Numba-suitable format.
 
-    dict values must be numpy arrays (or individual floats)
+    Dict values should be NumPy arrays or individual floats.
 
-    ref: https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#id7
+    References
+    ----------
+    * <https://numba.pydata.org/numba-doc/dev/reference/pysupported.html#typed-dict>
     """
     import numba
 
@@ -430,7 +489,7 @@ def numbify(d, zerod_only=False):
 
 
 def unnumbify(d_nb):
-    """Convert numba dict to normal dict of numpy arrays."""
+    """Convert numba dict `d_nb` to a normal dict of numpy arrays, etc."""
     import numba
 
     if not isinstance(d_nb, numba.typed.Dict):
