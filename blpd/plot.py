@@ -10,7 +10,6 @@ from matplotlib.collections import LineCollection as _LineCollection
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D  # noqa: F401 unused import
 
 from . import utils  # TODO: move all calls to namespaced form since I am using a lot now
-from .chem import chemical_species_data
 
 # ^ could add `as _{}` to all of these
 # to indicate that these are not intended to be public parts of the module name space
@@ -206,7 +205,7 @@ def conc_scatter(
         raise ValueError("invalid `sdim`")
 
     conc = ds.f_r.sel(spc=spc).values
-    spc_display_name = chemical_species_data[spc]["display_name"]
+    spc_display_name = str(ds.display_name.sel(spc=spc).values)
 
     num = utils.check_fig_num(f"horizontal-end-positions-with-conc_{spc}_scatter_{sdim}")
     fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
@@ -258,7 +257,7 @@ def conc_2d(
     X = ds.x.values
     Y = ds.y.values
     conc = ds.f_r.sel(spc=spc).values
-    spc_display_name = chemical_species_data[spc]["display_name"]
+    spc_display_name = str(ds.display_name.sel(spc=spc).values)
 
     if "x" not in ds.dims:
         # We were passed the particles dataset, need to do the binning
@@ -328,7 +327,7 @@ def conc_xline(
     bins = [xe, ye]
 
     for spc in spc_to_plot:
-        spc_display_name = chemical_species_data[spc]["display_name"]
+        spc_display_name = str(ds.display_name.sel(spc=spc).values)
         conc = ds.f_r.sel(spc=spc).values
         binned = utils.bin_values_xy(X, Y, conc, bins=bins)
         ax.plot(binned.x, binned.v.squeeze(), label=spc_display_name if label is None else label)

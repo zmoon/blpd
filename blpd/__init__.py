@@ -18,5 +18,6 @@ See [the examples](https://github.com/zmoon/blpd/tree/master/examples) for more 
 # Define the namespace for the module `blpd`
 # Importing `Model` also adds `lpd` and `model`
 from . import bees  # noqa: F401 unused import
+from . import chem  # noqa: F401 unused import
 from . import plot  # noqa: F401 unused import
 from .model import Model as model  # noqa: F401 unused import
