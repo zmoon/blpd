@@ -1,5 +1,5 @@
 """
-Bee flight model
+Bee flight model -- the "b" in ``blpd``.
 
 Based on the Lévy flight random walk model as implemented in
 - J.D. Fuentes et al. / Atmospheric Environment (2016)
@@ -10,18 +10,21 @@ import numpy as np
 from scipy import stats
 
 
-__all__ = ("flight",)
+__all__ = (
+    "draw_step_length",
+    "flight",
+)
 
 
 PI = math.pi
 
 
-def get_step_length(*, l_0=1.0, mu=2.0, q=None):
+def draw_step_length(*, l_0=1.0, mu=2.0, q=None):
     r"""
-    Draw a step length `l` from the distribution
+    Draw a step length `l` from the power law distribution
 
     .. math::
-       p(l) = (l/l_0)^{-\mu}
+       P(l) = (l/l_0)^{-\mu}
 
     Parameters
     ----------
@@ -34,7 +37,7 @@ def get_step_length(*, l_0=1.0, mu=2.0, q=None):
 
         2 => "super diffusive Lévy walk"
     q : float, array, optional
-        Random number in [0, 1). By default, we draw from uniform.
+        Random number in [0, 1). By default, we draw a single value from uniform.
     """
     if mu <= 1 or mu > 3:
         raise ValueError(f"`mu` should be in (1, 3] but is {mu!r}")
@@ -88,7 +91,7 @@ def flight(
 
     # Draw steps
     q = np.random.rand(n)
-    steps = get_step_length(l_0=l_0, mu=mu, q=q)
+    steps = draw_step_length(l_0=l_0, mu=mu, q=q)
 
     # Clip steps if desired
     if l_max is not None:
@@ -149,7 +152,7 @@ def flight(
 # Note: `scipy.stats.powerlaw` doesn't let its param `a` be negative, so can't use it
 
 
-class step_length_dist_gen(stats.rv_continuous):
+class _step_length_dist_gen(stats.rv_continuous):
     """Step length distribution class using the `scipy.stats` machinery."""
 
     def _pdf(self, x, l_0, mu):
@@ -196,12 +199,12 @@ class step_length_dist_gen(stats.rv_continuous):
         return args[0], np.inf
 
 
-step_length_dist = step_length_dist_gen(name="step_length_dist")
+step_length_dist = _step_length_dist_gen(name="step_length_dist")
 
 
 # scaling with `scale` not working for pdf/cdf
 # need to specify them differently I guess
-class step_length_dist2_gen(stats.rv_continuous):
+class _step_length_dist2_gen(stats.rv_continuous):
     """Step length distribution class using the `scipy.stats` machinery."""
 
     # Instead of including l_0 as a param,
@@ -230,21 +233,18 @@ class step_length_dist2_gen(stats.rv_continuous):
         return cond_mu
 
 
-step_length_dist2 = step_length_dist2_gen(a=1.0, name="step_length_dist2")
+step_length_dist2 = _step_length_dist2_gen(a=1.0, name="step_length_dist2")
 
 
-if __name__ == "__main__":
+def _compare_step_dists(mu=2.0, l_0=1.0):
+    """Compare the different representations of the step length dist in this module."""
     import matplotlib.pyplot as plt
-
-    plt.close("all")
 
     # Set dist parameters
     # Note that all 3 agree for mu=2.0, l_0=1.0 (the values used in the paper)
     # But the analytical PDF/CDFs do not agree with the hist for mu < 2
     # Since the rvs results agree, this means the `_cdf` and `_pdf` methods are still off
     # though the `_ppf`s are fine.
-    mu = 2.0
-    l_0 = 1.0
     assert 1 - mu + l_0 >= 0
     n_steps = int(5e5)
     x_stop = 1000  # rightmost bin edge
@@ -252,12 +252,12 @@ if __name__ == "__main__":
     bins = np.arange(0, x_stop, 0.1)  # for the histograms
 
     # Draw using original method
-    steps = [get_step_length(l_0=l_0, mu=mu) for _ in range(n_steps)]
+    steps = [draw_step_length(l_0=l_0, mu=mu) for _ in range(n_steps)]
 
-    fig, [ax, ax2] = plt.subplots(1, 2, figsize=(8, 4))
+    fig, [ax1, ax2] = plt.subplots(1, 2, figsize=(8, 4))
 
     # Histogram of steps using original method
-    ax.hist(
+    ax1.hist(
         steps,
         bins=bins,
         density=True,
@@ -273,65 +273,61 @@ if __name__ == "__main__":
     steps3 = dist2.rvs(n_steps)
 
     # PDF
-    ax.hist(
-        steps2,
+    kwargs = dict(  # shared by the other two
         bins=bins,
         density=True,
         histtype="stepfilled",
         alpha=0.25,
+    )
+    ax1.hist(
+        steps2,
+        **kwargs,
         color="orange",
         label="using dist.rvs",
     )
-    ax.hist(
+    ax1.hist(
         steps3,
-        bins=bins,
-        density=True,
-        histtype="stepfilled",
-        alpha=0.25,
+        **kwargs,
         color="magenta",
         label="using dist2.rvs",
     )
-    ax.plot(x, dist.pdf(x), lw=3, label="pdf - analytical", color="orange")
-    ax.plot(x, dist2.pdf(x), ":", lw=1, label="pdf - analytical 2", color="magenta")
+    ax1.plot(x, dist.pdf(x), lw=3, label="pdf - analytical", color="orange")
+    ax1.plot(x, dist2.pdf(x), ":", lw=1, label="pdf - analytical 2", color="magenta")
 
     # CDF
+    kwargs.update(cumulative=True)
     ax2.hist(
         steps,
-        bins=bins,
-        density=True,
-        cumulative=True,
-        histtype="stepfilled",
-        alpha=0.25,
+        **kwargs,
         label="orig drawing method",
     )
     ax2.hist(
         steps2,
-        bins=bins,
-        density=True,
-        cumulative=True,
-        histtype="stepfilled",
-        alpha=0.25,
+        **kwargs,
         color="orange",
         label="using dist.rvs",
     )
     ax2.hist(
         steps3,
-        bins=bins,
-        density=True,
-        cumulative=True,
-        histtype="stepfilled",
-        alpha=0.25,
+        **kwargs,
         color="magenta",
         label="using dist2.rvs",
     )
     ax2.plot(x, dist.cdf(x), lw=3, label="cdf - analytical", color="orange")
     ax2.plot(x, dist2.cdf(x), ":", lw=1, label="cdf - analytical 2", color="magenta")
 
-    ax.set_xlim((0, l_0 * 10))
-    ax.legend()
+    ax1.set_title(rf"$\mu={mu:.3g}, l_0 = {l_0:.3g}$")
+    ax1.set_xlim((0, l_0 * 10))
+    ax1.legend()
     ax2.set_xlim((0, l_0 * 10))
     ax2.legend()
 
     fig.tight_layout()
 
-    plt.show()
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    plt.close("all")
+
+    _compare_step_dists()
