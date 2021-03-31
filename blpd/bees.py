@@ -4,11 +4,16 @@ Bee flight model
 Based on the Lévy flight random walk model as implemented in
 - J.D. Fuentes et al. / Atmospheric Environment (2016)
 """
+import math
+
 import numpy as np
 from scipy.stats import rv_continuous
 
 
-def get_step_length(*, l_0=1.0, mu=2.0):
+__all__ = ("flight",)
+
+
+def get_step_length(*, l_0=1.0, mu=2.0, q=None):
     r"""
     Draw a step length `l` from the distribution
 
@@ -25,15 +30,56 @@ def get_step_length(*, l_0=1.0, mu=2.0):
         3 => Brownian motion
 
         2 => "super diffusive Lévy walk"
+    q : float, array, optional
+        Random number in [0, 1). By default, we draw from uniform.
     """
     if mu <= 1 or mu > 3:
         raise ValueError(f"`mu` should be in (1, 3] but is {mu!r}")
 
-    q = np.random.rand()  # draw from [0, 1] (uniform)
+    if q is None:
+        q = np.random.rand()  # draw from [0, 1) (uniform)
+
     l = l_0 * (1 - q) ** (1 / (1 - mu))  # noqa: E741
     # ^ note 1-mu not mu, which comes from the inverse of the CDF
 
     return l
+
+
+def flight(n, *, x0=(0, 0), l_0=1.0, mu=2.0, heading_model="uniform", l_max=None):
+    """
+    Parameters
+    ----------
+    n : int
+        Number of steps taken in the simulated flight.
+        The final trajectory will have `n`+1 points.
+    x0 : array_like
+        xy-coordinates of the starting location.
+    l_max : float, optional
+        Used to clip the step size if provided.
+    """
+    assert np.asarray(x0).size == 2, "xy-coordinates"
+
+    q = np.random.rand(n)
+    steps = get_step_length(l_0=l_0, mu=mu, q=q)
+
+    if l_max is not None:
+        np.clip(steps, None, l_max, out=steps)
+
+    if heading_model == "uniform":
+        headings = np.random.uniform(0, 2 * np.pi, size=n)
+    else:
+        raise NotImplementedError
+
+    # Walk
+    x = np.full((n + 1,), x0[0], dtype=float)
+    y = np.full((n + 1,), x0[1], dtype=float)
+    for i, (step, heading) in enumerate(zip(steps, headings)):
+        dx = step * math.cos(heading)
+        dy = step * math.sin(heading)
+        x[i + 1] = x[i] + dx
+        y[i + 1] = y[i] + dy
+
+    return x, y
 
 
 # Note: `scipy.stats.powerlaw` doesn't let its param `a` be negative, so can't use it
@@ -129,7 +175,7 @@ if __name__ == "__main__":
     plt.close("all")
 
     # Set dist parameters
-    # Note that all 3 agree for mu=2.0, l_0=1.0 (I think the values used in the paper)
+    # Note that all 3 agree for mu=2.0, l_0=1.0 (the values used in the paper)
     # But the analytical PDF/CDFs do not agree with the hist for mu < 2
     # Since the rvs results agree, this means the `_cdf` and `_pdf` methods are still off
     # though the `_ppf`s are fine.
