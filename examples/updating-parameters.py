@@ -21,7 +21,7 @@
 import pprint
 
 import blpd
-from blpd.model import compare_params, input_param_defaults  # noreorder
+from blpd.model import compare_params, INPUT_PARAM_DEFAULTS  # noreorder
 
 
 # %% [markdown]
@@ -33,7 +33,7 @@ pp = pprint.PrettyPrinter()
 msg = "All model input parameters"
 print(msg)
 print("-" * len(msg))
-pp.pprint(input_param_defaults)
+pp.pprint(INPUT_PARAM_DEFAULTS)
 
 # %% [markdown]
 # Creating a default model object, we can see that its parameters match the defaults.
@@ -47,20 +47,20 @@ compare_params(m0.p)
 # It has other parameters besides the ones shown above, since additional parameters are derived from the *input* parameters.
 
 # %%
-set(m0.p) - set(input_param_defaults)
+set(m0.p) - set(INPUT_PARAM_DEFAULTS)
 
 # %% [markdown]
 # Creating a new model instance and changing some settings, we can see how the *input* and *derived* parameters change.
 
 # %%
 m = blpd.model()
-m.update_p({"t_tot": 5 * 60, "ustar": 1.0})
+m.update_p(t_tot=5 * 60, ustar=1.0)
 
 # %% [markdown]
 # Note that we can also make these changes at initialization.
 
 # %%
-m_alt = blpd.model(pu={"t_tot": 5 * 60, "ustar": 1.0})
+m_alt = blpd.model(p={"t_tot": 5 * 60, "ustar": 1.0})
 compare_params(m.p, m_alt.p)
 
 # %% [markdown]
@@ -74,6 +74,15 @@ compare_params(m.p)
 
 # %%
 compare_params(m.p, m0.p)
+
+# %% [markdown]
+# We can also do the comparisons without printing the messages.
+
+# %%
+compare_params(m.p, m0.p, print_message=False)
+
+# %%
+compare_params(m.p, m.p, print_message=False)
 
 # %% [markdown]
 # We can also elect to show only input parameters.

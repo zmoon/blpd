@@ -41,7 +41,7 @@ blpd.model().run().plot()
 
 # %%
 m1 = blpd.model(
-    pu={
+    p={
         "continuous_release": False,
         "dNp_per_dt_per_source": 1000,  # for single-release, the total number of particles to release
         "t_tot": 5 * 60,  # 5 minutes

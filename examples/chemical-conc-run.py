@@ -41,7 +41,7 @@ new_p = {
     "continuous_release": True,  # this is a default
     "dNp_per_dt_per_source": 4,
 }
-m.update_p(new_p)
+m.update_p(**new_p)
 
 # Run
 m.run()

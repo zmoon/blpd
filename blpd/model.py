@@ -1,5 +1,5 @@
 """
-:class:`Model` class for running the LPD model, input parameters, ...
+`Model` class for running the LPD model.
 """
 import importlib
 import math
@@ -15,7 +15,15 @@ from .utils import numbify
 from .utils import unnumbify
 
 
-input_param_defaults = {
+__all__ = (
+    "Model",
+    "INPUT_PARAM_DEFAULTS",
+    "calc_MW_derived_params",
+    "compare_params",
+)
+
+
+INPUT_PARAM_DEFAULTS = {
     #
     # particle sources
     "release_height": 1.05,  # m; really should draw from a distribution of release heights for each particle!!
@@ -56,15 +64,22 @@ input_param_defaults = {
     "MW_A2": 0.6  # appears to be unused, but is part of their model
     # only alpha and A_1 are empirical constants (MW p. 89)
 }
+"""
+Input parameter defaults.
+"""
 # could do more dict nesting like in pyAPES...
 
 
 # TODO: opposite of this -- calculate above MW params from normal wind params
 def calc_MW_derived_params(p):
-    """
-    from the base MW params and
+    r"""Calculate Massman and Weil (1999) parameters
+    from the base wind profile parameters
+    $c_i$, $\gamma_i$, $\alpha$ ($i = 1\colon3$)
+    and other model input parameters.
 
-    ref: Massman and Weil (1999) [MW]
+    References
+    ----------
+    * [Massman and Weil (1999)](https://doi.org/10.1023/A:1001810204560) [MW]
     """
     cd = p["foliage_drag_coeff"]
     ustar = p["ustar"]
@@ -122,46 +137,66 @@ def calc_MW_derived_params(p):
     return r
 
 
-def compare_params(p, p0=None, input_params_only=False):
-    """Compare `p` to reference `p0` (params dicts)."""
-
+def compare_params(p, p0=None, input_params_only=False, print_message=True):
+    """Compare parameters dict `p` to reference `p0`.
+    `p0` is assumed to be the default parameters dict if not provided.
+    Use `input_params_only=True` to only see those differences in the message.
+    """
     if p0 is None:
         p0 = Model().p
         p0_name = "default"
     else:
         p0_name = "reference"
 
+    same = True
     if any(p[k] != p0[k] for k in p0):
+        same = False
 
         if input_params_only:
-            p0 = {k: p0[k] for k in p0 if k in input_param_defaults}
+            p0 = {k: p0[k] for k in p0 if k in INPUT_PARAM_DEFAULTS}
 
-        t = f"parameter: {p0_name} --> current"
-        print(t)
-        print("-" * len(t))
+        if print_message:
+            t = f"parameter: {p0_name} --> current"
+            print(t)
+            print("-" * len(t))
         for k, v0 in sorted(p0.items(), key=lambda x: x[0].lower()):  # don't separate uppercase
             v = p[k]
             if v0 != v:
-                print(f"'{k}': {v0} --> {v}")
-    else:
-        print(f"all params same as {p0_name}")
+                if print_message:
+                    print(f"'{k}': {v0} --> {v}")
+
+    if same:
+        if print_message:
+            print(f"all params same as {p0_name}")
+
+    return same
 
 
 class Model:
     """The LPD model."""
 
     # class variables (as opposed to instance)
-    _p_user_input_default = input_param_defaults
+    _p_user_input_default = INPUT_PARAM_DEFAULTS
     _p_default_MW = calc_MW_derived_params(_p_user_input_default)
     _p_input_default = {**_p_user_input_default, **_p_default_MW}
 
-    def __init__(self, pu={}):
+    def __init__(self, p=None):
         """
-        pu : dict
-            user-supplied parameters (to update the defaults)
+        Parameters
+        ----------
+        p : dict
+            User-supplied input parameters (to update the defaults (`INPUT_PARAM_DEFAULTS`)).
+            `Model.update_p` can also be used to update parameters
+            after creating the `Model` instance.
         """
         self.p = copy(Model._p_input_default)  # start with defaults
-        self.update_p(pu)  # update based on user input
+        """Model parameters dict. This includes both *input* and *derived*
+        parameters and so should not be modified directly
+        (instead use `Model.update_p`).
+        """
+        if p is None:
+            p = {}
+        self.update_p(**p)  # calculate derived params
 
         # checks (could move to separate `check_p` method or to `update_p`)
         assert (
@@ -174,13 +209,12 @@ class Model:
         self._init_state()
         self._init_hist()
 
-    def update_p(self, pu):
-        """Use the dict `pu` of allowed user input parameters to check/update all model parameters."""
-        if not isinstance(pu, dict):
-            raise TypeError("must pass `dict`")
-
-        allowed_keys = Model._p_user_input_default.keys()
-        for k, v in pu.items():
+    def update_p(self, **kwargs):
+        """Use `**kwargs` (allowed user input parameters only) to check/update all model parameters
+        (in place).
+        """
+        allowed_keys = self._p_user_input_default.keys()
+        for k, v in kwargs.items():
             if k not in allowed_keys:
                 msg = f"key '{k}' is not in the default parameter list. ignoring it."
                 warnings.warn(msg)
@@ -225,7 +259,8 @@ class Model:
 
         # some variables change the lengths of the state and hist arrays
         if any(
-            k in pu for k in ["t_tot", "dNp_per_dt_per_source", "N_sources", "continuous_release"]
+            k in kwargs
+            for k in ["t_tot", "dNp_per_dt_per_source", "N_sources", "continuous_release"]
         ):
             self._init_state()
             self._init_hist()
@@ -241,7 +276,7 @@ class Model:
             "von_Karman_constant",
         ]
         # check for these and also the MW model parameters
-        if any(k in pu for k in MW_inputs) or any(k[:2] == "MW" for k in pu):
+        if any(k in kwargs for k in MW_inputs) or any(k[:2] == "MW" for k in kwargs):
             self.p.update(calc_MW_derived_params(self.p))
 
         return self
@@ -332,7 +367,9 @@ class Model:
         self.hist = hist
 
     def run(self):
-        """run dat model"""
+        """Run the LPD model, integrating the particles using
+        `blpd.lpd.integrate_particles_one_timestep`.
+        """
         import datetime
 
         # TODO: change to `time.perf_counter` for this?
@@ -457,7 +494,7 @@ class Model:
     #     # maybe should instead remove 'conc' from state if not doing chem
 
     def to_xarray(self):
-        """Returns :class:`xarray.Dataset` of the LPD run."""
+        """Create and return an `xr.Dataset` of the LPD run."""
         # TODO: smoothing/skipping options to reduce storage needed?
         import json
         import xarray as xr
@@ -518,8 +555,15 @@ class Model:
 
         return ds
 
+    def to_xr(self):
+        """Alias of `Model.to_xarray`."""
+
     def plot(self, **kwargs):
-        """Default plot of results based on run type."""
+        """Make a plot of the results (type based on run type).
+        `**kwargs` are passed through to the relevant plotting function.
+        * single release: `blpd.plot.trajectories`
+        * continuous release: `blpd.plot.final_pos_scatter`
+        """
         # first check if model has been run
         p = self.p
         state = self.state
