@@ -524,12 +524,12 @@ class Model:
         p = self.p
         state = self.state
         hist = self.hist
-        from . import plots
+        from . import plot
 
         if np.all(state["up"] == 0):  # model probably hasn't been run
             pass  # silently do nothing for now
         else:
             if (p["continuous_release"] is False) and hist:
-                plots.trajectories(self.to_xarray(), **kwargs)
+                plot.trajectories(self.to_xarray(), **kwargs)
             else:
-                plots.final_pos_scatter(self.to_xarray(), **kwargs)
+                plot.final_pos_scatter(self.to_xarray(), **kwargs)

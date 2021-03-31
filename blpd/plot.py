@@ -1,5 +1,5 @@
 """
-Create plots of lpdm results.
+Create plots of LPD model results.
 """
 from itertools import cycle
 

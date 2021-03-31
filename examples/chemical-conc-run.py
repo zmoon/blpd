@@ -21,7 +21,7 @@
 import matplotlib.pyplot as plt
 
 import blpd
-from blpd import plots as plot
+from blpd import plot
 
 
 # %% [markdown]
