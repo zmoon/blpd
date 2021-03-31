@@ -10,10 +10,12 @@ Additional plots can be created using `blpd.plot`.
 Some of these require a chem dataset.
 >>> ds = m.to_xr()  # `xr.Dataset` of LPD results
 >>> dsc = blpd.chem.calc_relative_levels_fixed_oxidants(ds)  # compute chem dataset
->>> blpd.plot.ws_hist_all(ds)  # plot wind speed histograms
+>>> blpd.plot.ws_hist(ds)  # plot wind speed histograms
 >>> blpd.plot.conc_2d(dsc)  # plot 2-d chemical species levels
 
-See [the examples](https://github.com/zmoon/blpd/tree/master/examples) for more info.
+See [the examples](https://github.com/zmoon/blpd/tree/master/examples) for more.
+
+`blpd` lives [on GitHub](https://github.com/zmoon/blpd).
 """
 # Define the namespace for the module `blpd`
 # Importing `Model` also adds `lpd` and `model`

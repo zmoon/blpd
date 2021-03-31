@@ -1,5 +1,7 @@
 """
 Create plots of LPD model results.
+
+The functions here all take `xr.Dataset`s as their first argument.
 """
 from itertools import cycle
 
@@ -10,6 +12,7 @@ from matplotlib.collections import LineCollection as _LineCollection
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D  # noqa: F401 unused import
 
 from . import utils  # TODO: move all calls to namespaced form since I am using a lot now
+from .utils import _add_snippets
 
 # ^ could add `as _{}` to all of these
 # to indicate that these are not intended to be public parts of the module name space
@@ -23,7 +26,7 @@ __all__ = (
     "final_pos_hist2d",
     "final_pos_scatter",
     "trajectories",
-    "ws_hist_all",
+    "ws_hist",
 )
 
 # TODO: create some base classes for plots to reduce repeating of code
@@ -36,9 +39,36 @@ __all__ = (
 
 _SOURCE_MARKER_PROPS = dict(marker="*", c="gold", ms=11, mec="0.35", mew=1.0)
 
+utils._SNIPPETS.update(
+    spc_params="""
+spc : str
+    ASCII identifier of a chemical species. For example, `'apinene'`.
+    """.strip(),
+    ds_lpd_params="""
+ds : xr.Dataset
+    Dataset of Lagrangian particle positions, e.g., from `blpd.model.Model.to_xr`.
+    """.strip(),
+    ds_chem_params="""
+ds : xr.Dataset
+    Dataset of Lagrangian particle positions + chemistry, e.g., from
+    `blpd.chem.calc_relative_levels_fix_oxidants`.
+    """.strip(),
+    log_cnorm_params="""
+log_cnorm : bool
+    Whether to use a logarithmic colormap normalization.
+    """.strip(),
+)
 
+
+@_add_snippets
 def final_pos_scatter(ds, sdim="xy"):
-    """Scatter plot of particle end positions."""
+    """Scatter plot of particle end positions.
+
+    Parameters
+    ----------
+    %(ds_lpd_params)s
+    %(sdim_params)s
+    """
     p = utils.load_p(ds)
 
     dims = utils.dims_from_sdim(sdim)
@@ -85,8 +115,21 @@ def final_pos_scatter(ds, sdim="xy"):
 # TODO: trajectories for hist run in 3-D?
 
 
+@_add_snippets
 def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=False):
-    """Particle trajectories."""
+    """Plot particle trajectories.
+
+    Parameters
+    ----------
+    %(ds_lpd_params)s
+    smooth : bool
+        Whether to smooth the trajectories.
+    smooth_window_size : int, optional
+        How many points to include in the moving average window.
+    color_sources : bool
+        Whether to color particle trajectories by their sources
+        to help in differentiating them.
+    """
     if "t" not in ds.dims:
         raise ValueError("time 't' must be a dimension")
 
@@ -172,6 +215,7 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
     fig.set_tight_layout(True)
 
 
+@_add_snippets
 def conc_scatter(
     ds,
     spc="apinene",
@@ -183,7 +227,15 @@ def conc_scatter(
     vmin=None,
     # ax=None,
 ):
-    """Plot species relative level in particle as a scatter (2- or 3-d)."""
+    """Plot species relative level in particle as a scatter (2- or 3-d).
+
+    Parameters
+    ----------
+    %(ds_chem_params)s
+    %(spc_params)s
+    %(sdim_params)s
+    %(log_cnorm_params)s
+    """
     p = utils.load_p(ds)
 
     dims = utils.dims_from_sdim(sdim)
@@ -239,6 +291,7 @@ def conc_scatter(
     fig.set_tight_layout(True)
 
 
+@_add_snippets
 def conc_2d(
     ds,
     spc="apinene",
@@ -252,7 +305,18 @@ def conc_2d(
     vmin=None,
     ax=None,
 ):
-    """Plot species 2-d binned average species relative level."""
+    """Plot species 2-d (*xy*) binned average species relative level.
+
+    Parameters
+    ----------
+    %(ds_chem_params)s
+    %(spc_params)s
+    %(bins_params)s
+    plot_type : {'pcolor', 'contourf'}
+    levels : int
+        Only used for plot type `'contourf'`.
+    %(log_cnorm_params)s
+    """
     p = utils.load_p(ds)
     X = ds.x.values
     Y = ds.y.values
@@ -298,6 +362,7 @@ def conc_2d(
     fig.set_tight_layout(True)
 
 
+@_add_snippets
 def conc_xline(
     ds,
     spc="apinene",
@@ -307,10 +372,19 @@ def conc_xline(
     ax=None,  # TODO: select z as well?
     legend=True,
     label=None,
-    legend_title=None,
+    legend_title="Chemical species",
 ):
-    """Plot species average relative level in the x-direction at a certain approximate y value.
-    `spc` can be ``'all'``.
+    r"""Plot species average relative level in the *x*-direction at a certain approximate y value.
+    `spc` can be ``'all'`` (all will fit in one plot since we are plotting lines).
+
+    Parameters
+    ----------
+    %(ds_chem_params)s
+    %(spc_params)s
+    y : float
+        *y* value of our "line".
+    dy : float
+        We will include Lagrangian particles within $[-\delta y / 2, \delta y / 2]$.
     """
     p = utils.load_p(ds)
     X = ds.x.values
@@ -340,7 +414,7 @@ def conc_xline(
         fig.legend(
             ncol=2,
             fontsize="small",
-            title="Chemical species" if legend_title is None else legend_title,
+            title=legend_title,
         )
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set(
@@ -353,14 +427,20 @@ def conc_xline(
 # TODO: x-y (or u-v) hists for different height (z) bins
 
 
-def ws_hist_all(
+@_add_snippets
+def ws_hist(
     ds,
     *,
     bounds=None,
 ):
-    """Histograms of particle wind speed components (one subplot for each).
-    For single-release or continuous-release run.
-    `bounds` provided as a 2-tuple are used as wind speed limits.
+    """Plot histograms of particle wind speed components (one subplot for each).
+    For a single- or continuous-release run.
+
+    Parameters
+    ----------
+    %(ds_lpd_params)s
+    bounds : 2-tuple(float), optional
+        If provided, used as wind speed limits for all histograms.
     """
     p = utils.load_p(ds)
     u_all = np.ravel(ds.u.values)  # or can do `.ravel()`
@@ -389,12 +469,20 @@ def ws_hist_all(
     fig.set_tight_layout(True)
 
 
+@_add_snippets
 def final_pos_hist(
     ds,
     *,
     bounds=None,
 ):
-    """Histograms of final position components (x, y, and z)."""
+    """Plot histograms of final position components (*x*, *y*, and *z*).
+
+    Parameters
+    ----------
+    %(ds_lpd_params)s
+    bounds : 2-tuple(float), optional
+        If provided, used as position component limits for all histograms.
+    """
     p = utils.load_p(ds)
     if "t" in ds.dims:
         xf = ds.x.isel(t=-1).values
@@ -427,6 +515,7 @@ def final_pos_hist(
     fig.set_tight_layout(True)
 
 
+@_add_snippets
 def final_pos_hist2d(
     ds,
     *,
@@ -436,7 +525,15 @@ def final_pos_hist2d(
     log_cnorm=False,
     vmax=None,
 ):
-    """2-D histogram of selected final position components."""
+    """Plot 2-d histogram of selected final position components.
+
+    Parameters
+    ----------
+    %(ds_lpd_params)s
+    %(sdim_params)s
+    %(bins_params)s
+    %(log_cnorm_params)s
+    """
     p = utils.load_p(ds)
 
     dims = utils.dims_from_sdim(sdim)
