@@ -10,3 +10,5 @@ try:
     from . import plots  # noqa: F401 unused import
 except (ImportError, ModuleNotFoundError):
     pass
+
+from . import bees  # noqa: F401 unused import
