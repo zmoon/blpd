@@ -7,10 +7,13 @@ Based on the Lévy flight random walk model as implemented in
 import math
 
 import numpy as np
-from scipy.stats import rv_continuous
+from scipy import stats
 
 
 __all__ = ("flight",)
+
+
+PI = math.pi
 
 
 def get_step_length(*, l_0=1.0, mu=2.0, q=None):
@@ -45,7 +48,17 @@ def get_step_length(*, l_0=1.0, mu=2.0, q=None):
     return l
 
 
-def flight(n, *, x0=(0, 0), l_0=1.0, mu=2.0, heading_model="uniform", l_max=None):
+def flight(
+    n,
+    *,
+    x0=(0, 0),
+    l_0=1.0,
+    mu=2.0,
+    l_max=None,
+    heading0=PI / 2,
+    heading_model="uniform",
+    heading_model_kwargs=None,
+):
     """
     Parameters
     ----------
@@ -54,28 +67,78 @@ def flight(n, *, x0=(0, 0), l_0=1.0, mu=2.0, heading_model="uniform", l_max=None
         The final trajectory will have `n`+1 points.
     x0 : array_like
         xy-coordinates of the starting location.
+    l_0, mu : float
+        Parameters of the step length power law distribution.
     l_max : float, optional
         Used to clip the step size if provided.
+    heading0 : float
+        Initial heading of the flight.
+        In standard polar coordinates, so pi/2 is north.
+    heading_model : {'uniform', 'truncnorm'}
+        Relative heading model.
+    heading_model_kwargs : dict
+        Used in the relative heading model.
+
+        For truncnorm: `'std'`.
     """
     assert np.asarray(x0).size == 2, "xy-coordinates"
 
+    if heading_model_kwargs is None:
+        heading_model_kwargs = {}
+
+    # Draw steps
     q = np.random.rand(n)
     steps = get_step_length(l_0=l_0, mu=mu, q=q)
 
+    # Clip steps if desired
     if l_max is not None:
         np.clip(steps, None, l_max, out=steps)
 
+    # Draw (relative) headings
     if heading_model == "uniform":
-        headings = np.random.uniform(0, 2 * np.pi, size=n)
+        headings = np.random.uniform(-PI, PI, size=n - 1)
+    elif heading_model == "truncnorm":
+        std = heading_model_kwargs.get("std", 1.5)
+        mean = heading_model_kwargs.get("mean", 0)
+        clip_a, clip_b = -PI, PI
+        a, b = (clip_a - mean) / std, (clip_b - mean) / std
+        dist = stats.truncnorm(a, b, scale=PI / b)
+        # print(f"99.99th: {dist.ppf(0.9999)}")
+        headings = dist.rvs(n - 1)
     else:
         raise NotImplementedError
+
+    # Convert heading -> direction
+    # (Heading is relative to current direction)
+    angles = np.full((n,), heading0)
+    for i, heading in enumerate(headings):
+        angles[i + 1] = angles[i] + heading
+
+    # Note: the above loop can be replaced by
+    # `angles[1:] = np.cumsum(headings) + heading0`
+    # (similarly for below loop)
+
+    # Convert angles to [0, 2pi) range
+    nl = math.floor(angles.min() / 2 * PI)  # multiple of 2pi to capture all neg values
+    angles_mod = np.mod(angles + nl * 2 * PI, 2 * PI)
+
+    # # Investigate the angles
+    # import matplotlib.pyplot as plt
+    # fig, [ax1, ax2, ax3] = plt.subplots(1, 3, figsize=(9, 3.5))
+    # ax1.hist(headings); ax1.set_title("headings")
+    # ax2.hist(angles); ax2.set_title("angles")
+    # ax3.hist(angles_mod); ax3.set_title("angles % 2pi")
+    # fig.tight_layout()
+
+    assert np.allclose(np.cos(angles), np.cos(angles_mod))
+    angles = angles_mod
 
     # Walk
     x = np.full((n + 1,), x0[0], dtype=float)
     y = np.full((n + 1,), x0[1], dtype=float)
-    for i, (step, heading) in enumerate(zip(steps, headings)):
-        dx = step * math.cos(heading)
-        dy = step * math.sin(heading)
+    for i, (step, angle) in enumerate(zip(steps, angles)):
+        dx = step * math.cos(angle)
+        dy = step * math.sin(angle)
         x[i + 1] = x[i] + dx
         y[i + 1] = y[i] + dy
 
@@ -85,7 +148,7 @@ def flight(n, *, x0=(0, 0), l_0=1.0, mu=2.0, heading_model="uniform", l_max=None
 # Note: `scipy.stats.powerlaw` doesn't let its param `a` be negative, so can't use it
 
 
-class step_length_dist_gen(rv_continuous):
+class step_length_dist_gen(stats.rv_continuous):
     """Step length distribution class using the `scipy.stats` machinery."""
 
     def _pdf(self, x, l_0, mu):
@@ -137,7 +200,7 @@ step_length_dist = step_length_dist_gen(name="step_length_dist")
 
 # scaling with `scale` not working for pdf/cdf
 # need to specify them differently I guess
-class step_length_dist2_gen(rv_continuous):
+class step_length_dist2_gen(stats.rv_continuous):
     """Step length distribution class using the `scipy.stats` machinery."""
 
     # Instead of including l_0 as a param,
@@ -179,8 +242,8 @@ if __name__ == "__main__":
     # But the analytical PDF/CDFs do not agree with the hist for mu < 2
     # Since the rvs results agree, this means the `_cdf` and `_pdf` methods are still off
     # though the `_ppf`s are fine.
-    mu = 2.2
-    l_0 = 5
+    mu = 2.0
+    l_0 = 1.0
     assert 1 - mu + l_0 >= 0
     n_steps = int(5e5)
     x_stop = 1000  # rightmost bin edge
