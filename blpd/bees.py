@@ -119,8 +119,12 @@ def flight(
     # (similarly for below loop)
 
     # Convert angles to [0, 2pi) range
-    nl = math.floor(angles.min() / 2 * PI)  # multiple of 2pi to capture all neg values
-    angles_mod = np.mod(angles + nl * 2 * PI, 2 * PI)
+    min_angle = angles.min()
+    # Find the multiple of 2pi needed to make all values positive
+    n_ = -math.floor(angles.min() / (2 * PI)) if min_angle < 0 else 0
+    angles_mod = np.mod(angles + n_ * 2 * PI, 2 * PI)
+    assert np.allclose(np.cos(angles), np.cos(angles_mod))
+    angles = angles_mod
 
     # # Investigate the angles
     # import matplotlib.pyplot as plt
@@ -129,9 +133,6 @@ def flight(
     # ax2.hist(angles); ax2.set_title("angles")
     # ax3.hist(angles_mod); ax3.set_title("angles % 2pi")
     # fig.tight_layout()
-
-    assert np.allclose(np.cos(angles), np.cos(angles_mod))
-    angles = angles_mod
 
     # Walk
     x = np.full((n + 1,), x0[0], dtype=float)
