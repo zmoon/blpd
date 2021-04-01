@@ -3,12 +3,20 @@ Miscellaneous utility functions,
 mostly for internal use.
 """
 import inspect
+import sys
 from collections import namedtuple
 from functools import partial
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+
+if sys.version_info >= (3, 9):
+    from functools import cache
+else:
+    from functools import lru_cache
+
+    cache = lru_cache(maxsize=None)
 
 # Potentially publically useful
 __all__ = (
