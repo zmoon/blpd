@@ -1,8 +1,9 @@
 """
-Bee flight model -- the "b" in ``blpd``.
+Bee flight model – the "b" in ``blpd``.
 
 Based on the Lévy flight random walk model as implemented in
-- J.D. Fuentes et al. / Atmospheric Environment (2016)
+[Fuentes et al. (2016)](https://doi.org/10.1016/j.atmosenv.2016.07.002)
+but with some enhancements.
 """
 import math
 
@@ -29,15 +30,15 @@ def draw_step_length(*, l_0=1.0, mu=2.0, q=None):
     Parameters
     ----------
     l_0 : float
-        The minimum step size
+        The minimum step size.
     mu : float
-        Distribution shape parameter
+        Distribution shape parameter.
 
-        3 => Brownian motion
+        $3 \implies$ Brownian motion
 
-        2 => "super diffusive Lévy walk"
+        $2 \implies$ "super diffusive Lévy walk"
     q : float, array, optional
-        Random number in [0, 1). By default, we draw a single value from uniform.
+        Random number in $[0, 1)$. By default, we draw a single value from uniform.
     """
     if mu <= 1 or mu > 3:
         raise ValueError(f"`mu` should be in (1, 3] but is {mu!r}")
@@ -62,7 +63,7 @@ def flight(
     heading_model="uniform",
     heading_model_kwargs=None,
 ):
-    """
+    r"""
     Parameters
     ----------
     n : int
@@ -76,13 +77,21 @@ def flight(
         Used to clip the step size if provided.
     heading0 : float
         Initial heading of the flight.
-        In standard polar coordinates, so pi/2 is north.
+        Default: $\pi/2$
+        (in standard polar coordinates, so, north).
     heading_model : {'uniform', 'truncnorm'}
         Relative heading model.
+        By default, directions for each step are drawn from a uniform random distribution.
+        With the truncnorm model, there is a preference for a certain relative change in direction
+        (by default, a preference for continuing in the current direction).
     heading_model_kwargs : dict
-        Used in the relative heading model.
+        Additional parameters for the relative heading model.
 
-        For truncnorm: `'std'`.
+        For the
+        [truncnorm](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html)
+        heading model (`heading_model='truncnorm'`):
+        - `'std'` (default `1.5`)
+        - `'mean'` (default `0`).
     """
     assert np.asarray(x0).size == 2, "xy-coordinates"
 
@@ -103,6 +112,7 @@ def flight(
     elif heading_model == "truncnorm":
         std = heading_model_kwargs.get("std", 1.5)
         mean = heading_model_kwargs.get("mean", 0)
+        assert -PI < mean < PI, "`mean` for truncnorm must be in (-pi, pi)"
         clip_a, clip_b = -PI, PI
         a, b = (clip_a - mean) / std, (clip_b - mean) / std
         dist = stats.truncnorm(a, b, scale=PI / b)

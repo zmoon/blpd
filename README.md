@@ -6,6 +6,7 @@
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/zmoon/blpd/master.svg)](https://results.pre-commit.ci/latest/github/zmoon/blpd/master)
 [![Run examples on Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zmoon/blpd/HEAD?urlpath=lab/tree/examples)
 
+[pdoc](https://pdoc.dev/) API documentation: <https://zmoon.github.io/blpd/blpd.html>
 ## Installing
 
 Latest:

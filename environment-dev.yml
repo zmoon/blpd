@@ -21,4 +21,4 @@ dependencies:
   - pip
   - pip:
       # the package as an editable install
-      - '-e .'
+      - '-e .[docs]'

@@ -2,6 +2,7 @@
 *.egg-info/
 .ipynb_checkpoints/
 *.ipynb
+doc/_build/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
