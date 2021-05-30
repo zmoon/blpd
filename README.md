@@ -16,7 +16,6 @@ pip install git+https://github.com/zmoon/blpd
 
 ### For development
 
-If you plan to commit changes:
 1. Clone the repo
    ```
    git clone https://github.com/zmoon/blpd
@@ -25,11 +24,6 @@ If you plan to commit changes:
    ```
    pip install -e .
    ```
-
-If you don't plan to commit changes, you can skip the manual `git clone` and just use:
-```
-pip install -e git+https://github.com/zmoon/blpd
-```
 
 #### Notes
 
