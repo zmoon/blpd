@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches: [ '*' ]
-    paths: [ '**.py', '.github/workflows/ci.yml' ]
+    paths: [ '**.py', '**.ipynb', '.github/workflows/ci.yml' ]
   pull_request:
     branches: [ master ]
-    paths: [ '**.py', '.github/workflows/ci.yml' ]
+    paths: [ '**.py', '**.ipynb', '.github/workflows/ci.yml' ]
 
 jobs:
   examples:
@@ -29,7 +29,8 @@ jobs:
       - name: Run the examples
         run: |
           set -xe
+          python -m pip install notebook ipywidgets
           cd examples
-          for f in *.py; do
-            python $f
+          for f in *.ipynb; do
+            jupyter nbconvert --to notebook --execute $f
           done

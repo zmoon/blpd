@@ -11,9 +11,9 @@ dependencies:
   - scipy
   - xarray
   #
-  # examples as nbs
+  # example nbs
+  - ipywidgets
   - jupyterlab >= 3
-  - jupytext
   #
   # dev
   - rope

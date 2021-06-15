@@ -1,7 +1,7 @@
 # https://pre-commit.com/
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: 'v4.0.1'
     hooks:
       - id: check-yaml
       - id: trailing-whitespace
@@ -10,7 +10,7 @@ repos:
 
   # sorting should run before black as black sometimes tweaks the output
   - repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.5.0
+    rev: 'v2.5.0'
     hooks:
       - id: reorder-python-imports
 
@@ -23,3 +23,8 @@ repos:
     rev: '3.9.2'
     hooks:
       - id: flake8
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: '0.4.0'
+    hooks:
+      - id: nbstripout
