@@ -12,6 +12,7 @@ dependencies:
   - xarray
   #
   # example nbs
+  - ipywidgets
   - jupyterlab >= 3
   #
   # dev

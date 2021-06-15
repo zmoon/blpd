@@ -29,7 +29,7 @@ jobs:
       - name: Run the examples
         run: |
           set -xe
-          python -m pip install notebook
+          python -m pip install notebook ipywidgets
           cd examples
           for f in *.ipynb; do
             jupyter nbconvert --to notebook --execute $f
