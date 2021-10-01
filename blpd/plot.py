@@ -225,7 +225,7 @@ def conc_scatter(
     log_cnorm=False,
     vmax=100,
     vmin=None,
-    # ax=None,
+    ax=None,
 ):
     """Plot species relative level in particle as a scatter (2- or 3-d).
 
@@ -260,7 +260,7 @@ def conc_scatter(
     spc_display_name = str(ds.display_name.sel(spc=spc).values)
 
     num = utils.check_fig_num(f"horizontal-end-positions-with-conc_{spc}_scatter_{sdim}")
-    fig, ax = plt.subplots(num=num, subplot_kw=subplot_kw)
+    fig, ax = utils.maybe_new_figure(num, ax=ax, subplot_kw=subplot_kw)
 
     norm, _ = utils.maybe_log_cnorm(log_cnorm=log_cnorm, levels=None, vmin=vmin, vmax=vmax)
 
