@@ -1,4 +1,6 @@
-# https://pre-commit.com/
+ci:
+  autoupdate_schedule: monthly
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 'v4.1.0'
@@ -8,7 +10,6 @@ repos:
         args: ['--markdown-linebreak-ext=md,markdown']
       - id: end-of-file-fixer
 
-  # sorting should run before black as black sometimes tweaks the output
   - repo: https://github.com/asottile/reorder_python_imports
     rev: 'v2.6.0'
     hooks:
