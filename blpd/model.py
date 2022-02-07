@@ -96,24 +96,24 @@ def calc_MW_derived_params(p):
     alpha = p["MW_alpha"]
 
     # derived params
-    nu1 = (gam1 ** 2 + gam2 ** 2 + gam3 ** 2) ** (-0.5)  # MW p. 86
-    nu3 = (gam1 ** 2 + gam2 ** 2 + gam3 ** 2) ** (1.5)
-    nu2 = nu3 / 6 - gam3 ** 2 / (2 * nu1)
+    nu1 = (gam1**2 + gam2**2 + gam3**2) ** (-0.5)  # MW p. 86
+    nu3 = (gam1**2 + gam2**2 + gam3**2) ** (1.5)
+    nu2 = nu3 / 6 - gam3**2 / (2 * nu1)
     # Lam2 = 7/(3*alpha**2*nu1*nu3) + [1/3 - gam3**2*nu1**2]/(3*alpha**2*nu1*nu2)  # the first Lambda^2
-    Lam2 = 3 * nu1 ** 2 / alpha ** 2  # the simplified Lambda^2 expr; MW p. 87
+    Lam2 = 3 * nu1**2 / alpha**2  # the simplified Lambda^2 expr; MW p. 87
     Lam = math.sqrt(Lam2)
     uh = ustar / (c1 - c2 * math.exp(-c3 * cd * LAI))  # u(h); MW Eq. 5
-    n = cd * LAI / (2 * ustar ** 2 / uh ** 2)  # MW Eq. 4, definitely here "n" not "nu"
-    B1 = -(9 * ustar / uh) / (2 * alpha * nu1 * (9 / 4 - Lam ** 2 * ustar ** 4 / uh ** 4))
+    n = cd * LAI / (2 * ustar**2 / uh**2)  # MW Eq. 4, definitely here "n" not "nu"
+    B1 = -(9 * ustar / uh) / (2 * alpha * nu1 * (9 / 4 - Lam**2 * ustar**4 / uh**4))
 
     d = h * (1 - (1 / (2 * n)) * (1 - math.exp(-2 * n)))  # displacement height
 
     z0 = (h - d) * math.exp(-kconstant * uh / ustar)  # roughness length
 
     # Calculate dissipation at canopy top to choose matching approach (Massman and Weil)
-    epsilon_ah = (ustar ** 3) / (kconstant * (h - d))
+    epsilon_ah = (ustar**3) / (kconstant * (h - d))
     sig_eh = ustar * (nu3) ** (1 / 3)  # not used elsewhere
-    epsilon_ch = sig_eh ** 3 * (cd * LAI / h) / (nu3 * alpha)
+    epsilon_ch = sig_eh**3 * (cd * LAI / h) / (nu3 * alpha)
     if epsilon_ah >= epsilon_ch:
         epflag = True
     else:  # eps_a(h) < eps_c(h)  => usually indicates a relatively dense canopy

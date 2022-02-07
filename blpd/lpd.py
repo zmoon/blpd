@@ -30,7 +30,7 @@ def _calc_fd_params_above_canopy(x, p):
     tau11 = (ustar * gam1) ** 2
     tau22 = (ustar * gam2) ** 2
     tau33 = (ustar * gam3) ** 2
-    tau13 = -(ustar ** 2)
+    tau13 = -(ustar**2)
 
     dtau11dz = 0
     dtau22dz = 0
@@ -41,7 +41,7 @@ def _calc_fd_params_above_canopy(x, p):
 
     # Dissipation - above canopy (log wind profile)
     # ref: e.g., MW Eq. 12
-    epsilon = (ustar ** 3) / (kconstant * (z - d))
+    epsilon = (ustar**3) / (kconstant * (z - d))
 
     return (
         umean,
@@ -108,7 +108,7 @@ def _calc_fd_params_in_canopy(x, p):
     # I can't find a source for this eqn
     dsig_e2dz = (
         (2 / 3)
-        * ustar ** 2
+        * ustar**2
         * (
             (
                 nu3 * np.exp(-Lam * zet_h * (1 - z / h))
@@ -140,21 +140,21 @@ def _calc_fd_params_in_canopy(x, p):
     tau33 = (gam3 * nu1 * sig_e) ** 2
     dtau33dz = ((gam3 * nu1) ** 2) * dsig_e2dz
 
-    tau13 = -(ustar ** 2) * np.exp(-2 * n * (1 - (z / h)))
-    dtau13dz = -(ustar ** 2) * (2 * n / h) * np.exp(-2 * n * (1 - (z / h)))
+    tau13 = -(ustar**2) * np.exp(-2 * n * (1 - (z / h)))
+    dtau13dz = -(ustar**2) * (2 * n / h) * np.exp(-2 * n * (1 - (z / h)))
 
     # Dissipation
     # ref: MW p. 88
     if epflag:
-        epsilon = (sig_e ** 3) * zet_h / (h * nu3 * alpha) * (epsilon_ah / epsilon_ch)
+        epsilon = (sig_e**3) * zet_h / (h * nu3 * alpha) * (epsilon_ah / epsilon_ch)
     else:
         if z <= d:  # 0 < z <= d
-            epsilon = (sig_e ** 3) * zet_h / (h * nu3 * alpha)
+            epsilon = (sig_e**3) * zet_h / (h * nu3 * alpha)
         else:  # d < z <= h_c
-            scale1 = zet_h * sig_e ** 3 / (nu3 * alpha * ustar ** 3)
+            scale1 = zet_h * sig_e**3 / (nu3 * alpha * ustar**3)
             scale2 = h / (kconstant * (z - d))
             # ^ this is a potential source of div by 0 (if z v close to d)
-            epsilon = (ustar ** 3 / h) * min(scale1, scale2)
+            epsilon = (ustar**3 / h) * min(scale1, scale2)
 
     lam11, lam22, lam33, lam13 = _calc_Rodean_lambdas(tau11, tau22, tau33, tau13)
 
@@ -176,9 +176,9 @@ def _calc_fd_params_in_canopy(x, p):
 @njit
 def _calc_Rodean_lambdas(tau11, tau22, tau33, tau13):
     # ref: Pratt thesis Eq. 2.14, p. 15
-    lam11 = 1.0 / (tau11 - ((tau13 ** 2) / tau33))
+    lam11 = 1.0 / (tau11 - ((tau13**2) / tau33))
     lam22 = 1.0 / tau22
-    lam33 = 1.0 / (tau33 - ((tau13 ** 2) / tau11))
+    lam33 = 1.0 / (tau33 - ((tau13**2) / tau11))
     lam13 = 1.0 / (tau13 - ((tau11 * tau33) / tau13))
 
     return lam11, lam22, lam33, lam13
