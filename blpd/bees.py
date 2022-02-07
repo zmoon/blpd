@@ -175,13 +175,13 @@ class _step_length_dist_gen(stats.rv_continuous):
         # https://www.wolframalpha.com/input/?i=anti-derivative+%28l%2Fc%29%5E-mu+dl%2C+from+l%3Dc+to+x
         c = -l_0 / (1 - mu)
         # F = x * (x/l_0)**(-mu) / (1-mu) + c
-        F = l_0 ** mu * x ** (1 - mu) / (1 - mu) + c
+        F = l_0**mu * x ** (1 - mu) / (1 - mu) + c
         # F[x < l_0] = 0
         return F / c
 
     def _ppf(self, q, l_0, mu):
         c = -l_0 / (1 - mu)
-        x = ((q * c * (1 - mu) + l_0) * l_0 ** -mu) ** (1.0 / (1.0 - mu))
+        x = ((q * c * (1 - mu) + l_0) * l_0**-mu) ** (1.0 / (1.0 - mu))
 
         return x
 
@@ -222,7 +222,7 @@ class _step_length_dist2_gen(stats.rv_continuous):
 
     def _pdf(self, x, mu):
         c = -1.0 / (1 - mu)  # normalization const
-        return (x ** -mu) / c
+        return (x**-mu) / c
 
     def _cdf(self, x, mu):
         c = -1.0 / (1 - mu)
