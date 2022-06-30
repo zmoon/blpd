@@ -11,7 +11,7 @@
 
 Latest:
 ```
-pip install git+https://github.com/zmoon/blpd
+pip install https://github.com/zmoon/blpd/archive/master.zip
 ```
 
 ### For development
