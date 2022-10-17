@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.0.2"/>
+    <meta name="generator" content="pdoc 12.2.0"/>
     <title>blpd API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -60,28 +60,32 @@ blpd    </h1>
 
 <p>The model class <code><a href="blpd/model.html#Model">blpd.model.Model</a></code> is included in this namespace for convenience.</p>
 
-<div class="pdoc-code codehilite"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">blpd</span>
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">blpd</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m</span> <span class="o">=</span> <span class="n">blpd</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="o">.</span><span class="n">run</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-</code></pre></div>
+</code></pre>
+</div>
 
 <p>Additional plots can be created using <code><a href="blpd/plot.html">blpd.plot</a></code>.
 Some of these require a chem dataset.</p>
 
-<div class="pdoc-code codehilite"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">to_xr</span><span class="p">()</span>  <span class="c1"># `xr.Dataset` of LPD results</span>
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">to_xr</span><span class="p">()</span>  <span class="c1"># `xr.Dataset` of LPD results</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dsc</span> <span class="o">=</span> <span class="n"><a href="blpd/chem.html#calc_relative_levels_fixed_oxidants">blpd.chem.calc_relative_levels_fixed_oxidants</a></span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>  <span class="c1"># compute chem dataset</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n"><a href="blpd/plot.html#ws_hist">blpd.plot.ws_hist</a></span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>  <span class="c1"># plot wind speed histograms</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n"><a href="blpd/plot.html#conc_2d">blpd.plot.conc_2d</a></span><span class="p">(</span><span class="n">dsc</span><span class="p">)</span>  <span class="c1"># plot 2-d chemical species levels</span>
-</code></pre></div>
+</code></pre>
+</div>
 
 <p>See <a href="https://github.com/zmoon/blpd/tree/master/examples">the examples</a> for more.</p>
 
 <p><code><a href="">blpd</a></code> lives <a href="https://github.com/zmoon/blpd">on GitHub</a>.</p>
 </div>
 
-                        <input id="blpd-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                        <input id="mod-blpd-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
-                        <label class="view-source-button" for="blpd-view-source"><span>View Source</span></label>
+                        <label class="view-source-button" for="mod-blpd-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="sd">Lagrangian (stochastic) particle dispersion model to model bees encountering floral scents</span>
@@ -215,7 +219,11 @@ Some of these require a chem dataset.</p>
                 let heading;
                 switch (result.doc.type) {
                     case "function":
-                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
                         break;
                     case "class":
                         heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;

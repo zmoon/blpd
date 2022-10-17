@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.0.2"/>
+    <meta name="generator" content="pdoc 12.2.0"/>
     <title>blpd.utils API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -78,9 +78,9 @@
 mostly for internal use.</p>
 </div>
 
-                        <input id="utils-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                        <input id="mod-utils-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
-                        <label class="view-source-button" for="utils-view-source"><span>View Source</span></label>
+                        <label class="view-source-button" for="mod-utils-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">Miscellaneous utility functions,</span>
@@ -637,7 +637,7 @@ mostly for internal use.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">auto_bins</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">positions</span>,</span><span class="param">	<span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">nbins_max_1d</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>,</span><span class="param">	<span class="n">std_mult</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>,</span><span class="param">	<span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span></span>)</span>
+        <span class="name">auto_bins</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">positions</span>,</span><span class="param">	<span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">nbins_max_1d</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span>,</span><span class="param">	<span class="n">std_mult</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>,</span><span class="param">	<span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;auto&#39;</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="auto_bins-view-source"><span>View Source</span></label>
 
@@ -698,9 +698,7 @@ that lets us focus on where most of the data is.</p>
 <ul>
 <li><strong>positions</strong>: Container of 1-D arrays (in <em>x</em>,<em>y</em>[,<em>z</em>] order)
 OR single NumPy array where columns are <em>x</em>,<em>y</em>[,<em>z</em>].</li>
-<li><strong>sdim</strong> (str):
-String representation of the set of dimensions.
-Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
+<li><strong>%(sdim_params)s</strong></li>
 <li><strong>nbins_max_1d</strong>: Maximum number of bins in any direction/dim.</li>
 <li><strong>std_mult</strong>: Standard deviation multiplier.
 Increase to capture more of the domain.
@@ -717,7 +715,7 @@ Usually use <code>'auto'</code> or <code>'sqrt'</code>.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">bin_ds</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">variables</span><span class="o">=</span><span class="s1">&#39;all&#39;</span>, </span><span class="param"><span class="n">bins</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span></span>)</span>
+        <span class="name">bin_ds</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">variables</span><span class="o">=</span><span class="s1">&#39;all&#39;</span>, </span><span class="param"><span class="n">bins</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="bin_ds-view-source"><span>View Source</span></label>
 
@@ -818,14 +816,10 @@ or <code><a href="chem.html#calc_relative_levels_fixed_oxidants">blpd.chem.calc_
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>sdim</strong> (str):
-String representation of the set of dimensions.
-Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
+<li><strong>%(sdim_params)s</strong></li>
 <li><strong>variables</strong> (str, list(str)):
 <code>'all'</code> to bin all variables, or pass a list of variable names.</li>
-<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="#auto_bins">blpd.utils.auto_bins</a></code> is used to construct the bins.
-Alternatively, you can pass bin specifications in any of the forms described
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html">here</a>.</li>
+<li><strong>%(bins_params)s</strong></li>
 </ul>
 </div>
 
@@ -836,7 +830,7 @@ Alternatively, you can pass bin specifications in any of the forms described
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">bin_values_xy</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">x</span>, </span><span class="param"><span class="n">y</span>, </span><span class="param"><span class="n">values</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">bins</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span>, </span><span class="param"><span class="n">stat</span><span class="o">=</span><span class="s1">&#39;median&#39;</span></span>)</span>
+        <span class="name">bin_values_xy</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">x</span>, </span><span class="param"><span class="n">y</span>, </span><span class="param"><span class="n">values</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">bins</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span>, </span><span class="param"><span class="n">stat</span><span class="o">=</span><span class="s1">&#39;median&#39;</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="bin_values_xy-view-source"><span>View Source</span></label>
 
@@ -886,9 +880,7 @@ and calculate a representative value in each bin.</p>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="#auto_bins">blpd.utils.auto_bins</a></code> is used to construct the bins.
-Alternatively, you can pass bin specifications in any of the forms described
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html">here</a>.</li>
+<li><strong>%(bins_params)s</strong></li>
 <li><strong>stat</strong> (str):
 Statistic to calculate on the binned values.</li>
 </ul>
@@ -901,7 +893,7 @@ Statistic to calculate on the binned values.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">moving_average</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">a</span>, </span><span class="param"><span class="n">n</span><span class="o">=</span><span class="mi">3</span>, </span><span class="param"><span class="n">axis</span><span class="o">=</span><span class="mi">0</span></span>)</span>
+        <span class="name">moving_average</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">a</span>, </span><span class="param"><span class="n">n</span><span class="o">=</span><span class="mi">3</span>, </span><span class="param"><span class="n">axis</span><span class="o">=</span><span class="mi">0</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="moving_average-view-source"><span>View Source</span></label>
 
@@ -934,7 +926,7 @@ For now only <code>axis=0</code> works.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">numbify</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">d</span>, </span><span class="param"><span class="n">zerod_only</span><span class="o">=</span><span class="kc">False</span></span>)</span>
+        <span class="name">numbify</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">d</span>, </span><span class="param"><span class="n">zerod_only</span><span class="o">=</span><span class="kc">False</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="numbify-view-source"><span>View Source</span></label>
 
@@ -1002,7 +994,7 @@ For now only <code>axis=0</code> works.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">unnumbify</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">d_nb</span></span>)</span>
+        <span class="name">unnumbify</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">d_nb</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="unnumbify-view-source"><span>View Source</span></label>
 
@@ -1135,7 +1127,11 @@ For now only <code>axis=0</code> works.</p>
                 let heading;
                 switch (result.doc.type) {
                     case "function":
-                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
                         break;
                     case "class":
                         heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;

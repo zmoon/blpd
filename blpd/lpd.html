@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.0.2"/>
+    <meta name="generator" content="pdoc 12.2.0"/>
     <title>blpd.lpd API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -69,9 +69,9 @@ Using <a href="https://numba.pydata.org/">Numba</a>, particles are integrated in
 the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code> to be used.</p>
 </div>
 
-                        <input id="lpd-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                        <input id="mod-lpd-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
-                        <label class="view-source-button" for="lpd-view-source"><span>View Source</span></label>
+                        <label class="view-source-button" for="mod-lpd-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">Lagrangian stochastic particle dispersion.</span>
@@ -453,7 +453,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
                     <div class="decorator">@njit</div>
 
         <span class="def">def</span>
-        <span class="name">calc_xtend</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">x</span>, </span><span class="param"><span class="n">u</span>, </span><span class="param"><span class="n">p</span></span>)</span>
+        <span class="name">calc_xtend</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">x</span>, </span><span class="param"><span class="n">u</span>, </span><span class="param"><span class="n">p</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="calc_xtend-view-source"><span>View Source</span></label>
 
@@ -584,7 +584,7 @@ for one particle with position vector <code>x</code> and velocity vector <code>u
                     <div class="decorator">@njit(parallel=True)</div>
 
         <span class="def">def</span>
-        <span class="name">integrate_particles_one_timestep</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">state</span>, </span><span class="param"><span class="n">p</span></span>)</span>
+        <span class="name">integrate_particles_one_timestep</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">state</span>, </span><span class="param"><span class="n">p</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="integrate_particles_one_timestep-view-source"><span>View Source</span></label>
 
@@ -747,7 +747,11 @@ in order for <code>@njit</code> to work if Numba is not disabled.</p>
                 let heading;
                 switch (result.doc.type) {
                     case "function":
-                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
                         break;
                     case "class":
                         heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;

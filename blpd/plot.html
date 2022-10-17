@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.0.2"/>
+    <meta name="generator" content="pdoc 12.2.0"/>
     <title>blpd.plot API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -85,9 +85,9 @@
 <p>The functions here all take <code>xr.Dataset</code>s as their first argument.</p>
 </div>
 
-                        <input id="plot-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                        <input id="mod-plot-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
-                        <label class="view-source-button" for="plot-view-source"><span>View Source</span></label>
+                        <label class="view-source-button" for="mod-plot-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">Create plots of LPD model results.</span>
@@ -670,7 +670,7 @@
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">conc_2d</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">spc</span><span class="o">=</span><span class="s1">&#39;apinene&#39;</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>,</span><span class="param">	<span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;pcolor&#39;</span>,</span><span class="param">	<span class="n">levels</span><span class="o">=</span><span class="mi">30</span>,</span><span class="param">	<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gnuplot&#39;</span>,</span><span class="param">	<span class="n">log_cnorm</span><span class="o">=</span><span class="kc">False</span>,</span><span class="param">	<span class="n">vmax</span><span class="o">=</span><span class="mi">100</span>,</span><span class="param">	<span class="n">vmin</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span></span>)</span>
+        <span class="name">conc_2d</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">spc</span><span class="o">=</span><span class="s1">&#39;apinene&#39;</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">bins</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>,</span><span class="param">	<span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;pcolor&#39;</span>,</span><span class="param">	<span class="n">levels</span><span class="o">=</span><span class="mi">30</span>,</span><span class="param">	<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gnuplot&#39;</span>,</span><span class="param">	<span class="n">log_cnorm</span><span class="o">=</span><span class="kc">False</span>,</span><span class="param">	<span class="n">vmax</span><span class="o">=</span><span class="mi">100</span>,</span><span class="param">	<span class="n">vmin</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="conc_2d-view-source"><span>View Source</span></label>
 
@@ -753,19 +753,13 @@
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions + chemistry, e.g., from
-<code>blpd.chem.calc_relative_levels_fix_oxidants</code>.</li>
-<li><strong>spc</strong> (str):
-ASCII identifier of a chemical species. For example, <code>'apinene'</code>.</li>
-<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="utils.html#auto_bins">blpd.utils.auto_bins</a></code> is used to construct the bins.
-Alternatively, you can pass bin specifications in any of the forms described
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html">here</a>.</li>
+<li><strong>%(ds_chem_params)s</strong></li>
+<li><strong>%(spc_params)s</strong></li>
+<li><strong>%(bins_params)s</strong></li>
 <li><p><strong>plot_type</strong> ({'pcolor', 'contourf'}):</p></li>
 <li><p><strong>levels</strong> (int):
 Only used for plot type <code>'contourf'</code>.</p></li>
-<li><strong>log_cnorm</strong> (bool):
-Whether to use a logarithmic colormap normalization.</li>
+<li><strong>%(log_cnorm_params)s</strong></li>
 </ul>
 </div>
 
@@ -776,7 +770,7 @@ Whether to use a logarithmic colormap normalization.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">conc_scatter</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">spc</span><span class="o">=</span><span class="s1">&#39;apinene&#39;</span>,</span><span class="param">	<span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gnuplot&#39;</span>,</span><span class="param">	<span class="n">log_cnorm</span><span class="o">=</span><span class="kc">False</span>,</span><span class="param">	<span class="n">vmax</span><span class="o">=</span><span class="mi">100</span>,</span><span class="param">	<span class="n">vmin</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span></span>)</span>
+        <span class="name">conc_scatter</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">spc</span><span class="o">=</span><span class="s1">&#39;apinene&#39;</span>,</span><span class="param">	<span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gnuplot&#39;</span>,</span><span class="param">	<span class="n">log_cnorm</span><span class="o">=</span><span class="kc">False</span>,</span><span class="param">	<span class="n">vmax</span><span class="o">=</span><span class="mi">100</span>,</span><span class="param">	<span class="n">vmin</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="conc_scatter-view-source"><span>View Source</span></label>
 
@@ -864,16 +858,10 @@ Whether to use a logarithmic colormap normalization.</li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions + chemistry, e.g., from
-<code>blpd.chem.calc_relative_levels_fix_oxidants</code>.</li>
-<li><strong>spc</strong> (str):
-ASCII identifier of a chemical species. For example, <code>'apinene'</code>.</li>
-<li><strong>sdim</strong> (str):
-String representation of the set of dimensions.
-Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
-<li><strong>log_cnorm</strong> (bool):
-Whether to use a logarithmic colormap normalization.</li>
+<li><strong>%(ds_chem_params)s</strong></li>
+<li><strong>%(spc_params)s</strong></li>
+<li><strong>%(sdim_params)s</strong></li>
+<li><strong>%(log_cnorm_params)s</strong></li>
 </ul>
 </div>
 
@@ -884,7 +872,7 @@ Whether to use a logarithmic colormap normalization.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">conc_xline</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">spc</span><span class="o">=</span><span class="s1">&#39;apinene&#39;</span>,</span><span class="param">	<span class="n">y</span><span class="o">=</span><span class="mf">0.0</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">dy</span><span class="o">=</span><span class="mf">1.0</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">legend</span><span class="o">=</span><span class="kc">True</span>,</span><span class="param">	<span class="n">label</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">legend_title</span><span class="o">=</span><span class="s1">&#39;Chemical species&#39;</span></span>)</span>
+        <span class="name">conc_xline</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">spc</span><span class="o">=</span><span class="s1">&#39;apinene&#39;</span>,</span><span class="param">	<span class="n">y</span><span class="o">=</span><span class="mf">0.0</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">dy</span><span class="o">=</span><span class="mf">1.0</span>,</span><span class="param">	<span class="n">ax</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">legend</span><span class="o">=</span><span class="kc">True</span>,</span><span class="param">	<span class="n">label</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">legend_title</span><span class="o">=</span><span class="s1">&#39;Chemical species&#39;</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="conc_xline-view-source"><span>View Source</span></label>
 
@@ -959,11 +947,8 @@ Whether to use a logarithmic colormap normalization.</li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions + chemistry, e.g., from
-<code>blpd.chem.calc_relative_levels_fix_oxidants</code>.</li>
-<li><strong>spc</strong> (str):
-ASCII identifier of a chemical species. For example, <code>'apinene'</code>.</li>
+<li><strong>%(ds_chem_params)s</strong></li>
+<li><strong>%(spc_params)s</strong></li>
 <li><strong>y</strong> (float):
 <em>y</em> value of our "line".</li>
 <li><strong>dy</strong> (float):
@@ -978,7 +963,7 @@ We will include Lagrangian particles within $[-\delta y / 2, \delta y / 2]$.</li
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">final_pos_hist</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">bounds</span><span class="o">=</span><span class="kc">None</span></span>)</span>
+        <span class="name">final_pos_hist</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">bounds</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="final_pos_hist-view-source"><span>View Source</span></label>
 
@@ -1036,8 +1021,7 @@ We will include Lagrangian particles within $[-\delta y / 2, \delta y / 2]$.</li
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions, e.g., from <code><a href="model.html#Model.to_xr">blpd.model.Model.to_xr</a></code>.</li>
+<li><strong>%(ds_lpd_params)s</strong></li>
 <li><strong>bounds</strong> (2-tuple(float), optional):
 If provided, used as position component limits for all histograms.</li>
 </ul>
@@ -1050,7 +1034,7 @@ If provided, used as position component limits for all histograms.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">final_pos_hist2d</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>,</span><span class="param">	<span class="n">bins</span><span class="o">=</span><span class="mi">50</span>,</span><span class="param">	<span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;pcolor&#39;</span>,</span><span class="param">	<span class="n">log_cnorm</span><span class="o">=</span><span class="kc">False</span>,</span><span class="param">	<span class="n">vmax</span><span class="o">=</span><span class="kc">None</span></span>)</span>
+        <span class="name">final_pos_hist2d</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span>,</span><span class="param">	<span class="n">bins</span><span class="o">=</span><span class="mi">50</span>,</span><span class="param">	<span class="n">plot_type</span><span class="o">=</span><span class="s1">&#39;pcolor&#39;</span>,</span><span class="param">	<span class="n">log_cnorm</span><span class="o">=</span><span class="kc">False</span>,</span><span class="param">	<span class="n">vmax</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="final_pos_hist2d-view-source"><span>View Source</span></label>
 
@@ -1119,16 +1103,10 @@ If provided, used as position component limits for all histograms.</li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions, e.g., from <code><a href="model.html#Model.to_xr">blpd.model.Model.to_xr</a></code>.</li>
-<li><strong>sdim</strong> (str):
-String representation of the set of dimensions.
-Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
-<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="utils.html#auto_bins">blpd.utils.auto_bins</a></code> is used to construct the bins.
-Alternatively, you can pass bin specifications in any of the forms described
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html">here</a>.</li>
-<li><strong>log_cnorm</strong> (bool):
-Whether to use a logarithmic colormap normalization.</li>
+<li><strong>%(ds_lpd_params)s</strong></li>
+<li><strong>%(sdim_params)s</strong></li>
+<li><strong>%(bins_params)s</strong></li>
+<li><strong>%(log_cnorm_params)s</strong></li>
 </ul>
 </div>
 
@@ -1139,7 +1117,7 @@ Whether to use a logarithmic colormap normalization.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">final_pos_scatter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span></span>)</span>
+        <span class="name">final_pos_scatter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="n">sdim</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="final_pos_scatter-view-source"><span>View Source</span></label>
 
@@ -1202,11 +1180,8 @@ Whether to use a logarithmic colormap normalization.</li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions, e.g., from <code><a href="model.html#Model.to_xr">blpd.model.Model.to_xr</a></code>.</li>
-<li><strong>sdim</strong> (str):
-String representation of the set of dimensions.
-Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
+<li><strong>%(ds_lpd_params)s</strong></li>
+<li><strong>%(sdim_params)s</strong></li>
 </ul>
 </div>
 
@@ -1217,7 +1192,7 @@ Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">trajectories</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">smooth</span><span class="o">=</span><span class="kc">False</span>, </span><span class="param"><span class="n">smooth_window_size</span><span class="o">=</span><span class="kc">None</span>, </span><span class="param"><span class="n">color_sources</span><span class="o">=</span><span class="kc">False</span></span>)</span>
+        <span class="name">trajectories</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">smooth</span><span class="o">=</span><span class="kc">False</span>, </span><span class="param"><span class="n">smooth_window_size</span><span class="o">=</span><span class="kc">None</span>, </span><span class="param"><span class="n">color_sources</span><span class="o">=</span><span class="kc">False</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="trajectories-view-source"><span>View Source</span></label>
 
@@ -1329,8 +1304,7 @@ Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions, e.g., from <code><a href="model.html#Model.to_xr">blpd.model.Model.to_xr</a></code>.</li>
+<li><strong>%(ds_lpd_params)s</strong></li>
 <li><strong>smooth</strong> (bool):
 Whether to smooth the trajectories.</li>
 <li><strong>smooth_window_size</strong> (int, optional):
@@ -1348,7 +1322,7 @@ to help in differentiating them.</li>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">ws_hist</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">bounds</span><span class="o">=</span><span class="kc">None</span></span>)</span>
+        <span class="name">ws_hist</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span>, </span><span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">bounds</span><span class="o">=</span><span class="kc">None</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="ws_hist-view-source"><span>View Source</span></label>
 
@@ -1403,8 +1377,7 @@ For a single- or continuous-release run.</p>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>ds</strong> (xr.Dataset):
-Dataset of Lagrangian particle positions, e.g., from <code><a href="model.html#Model.to_xr">blpd.model.Model.to_xr</a></code>.</li>
+<li><strong>%(ds_lpd_params)s</strong></li>
 <li><strong>bounds</strong> (2-tuple(float), optional):
 If provided, used as wind speed limits for all histograms.</li>
 </ul>
@@ -1515,7 +1488,11 @@ If provided, used as wind speed limits for all histograms.</li>
                 let heading;
                 switch (result.doc.type) {
                     case "function":
-                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
                         break;
                     case "class":
                         heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;

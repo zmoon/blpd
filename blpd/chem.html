@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.0.2"/>
+    <meta name="generator" content="pdoc 12.2.0"/>
     <title>blpd.chem API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -77,14 +77,16 @@
                         <div class="docstring"><p>Chemistry and emissions calculations
 on LPD (Lagrangian particle dispersion) model output.</p>
 
-<div class="pdoc-code codehilite"><pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ds0</span> <span class="o">=</span> <span class="n">blpd</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span><span class="o">.</span><span class="n">to_xr</span><span class="p">()</span>  <span class="c1"># LPD output</span>
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ds0</span> <span class="o">=</span> <span class="n">blpd</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span><span class="o">.</span><span class="n">to_xr</span><span class="p">()</span>  <span class="c1"># LPD output</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n"><a href="#calc_relative_levels_fixed_oxidants">blpd.chem.calc_relative_levels_fixed_oxidants</a></span><span class="p">(</span><span class="n">ds0</span><span class="p">)</span>
-</code></pre></div>
+</code></pre>
+</div>
 </div>
 
-                        <input id="chem-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                        <input id="mod-chem-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
-                        <label class="view-source-button" for="chem-view-source"><span>View Source</span></label>
+                        <label class="view-source-button" for="mod-chem-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">Chemistry and emissions calculations</span>
@@ -608,7 +610,7 @@ on LPD (Lagrangian particle dispersion) model output.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">calc_areal_emission_rates_canola</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">plant_density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30.0</span>,</span><span class="param">	<span class="n">num_flowers_avg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.0</span>,</span><span class="param">	<span class="n">T</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">298.0</span>,</span><span class="param">	<span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.06</span></span>)</span>
+        <span class="name">calc_areal_emission_rates_canola</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">plant_density</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">30.0</span>,</span><span class="param">	<span class="n">num_flowers_avg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">25.0</span>,</span><span class="param">	<span class="n">T</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">298.0</span>,</span><span class="param">	<span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.06</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="calc_areal_emission_rates_canola-view-source"><span>View Source</span></label>
 
@@ -705,7 +707,7 @@ on LPD (Lagrangian particle dispersion) model output.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">calc_gridded_conc_canola</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span></span>)</span>
+        <span class="name">calc_gridded_conc_canola</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">ds</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="calc_gridded_conc_canola-view-source"><span>View Source</span></label>
 
@@ -892,7 +894,7 @@ LPD model output generated by <code><a href="model.html#Model.to_xarray">blpd.mo
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">calc_relative_levels_fixed_oxidants</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">species</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">t_out</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">p_overrides</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">fv_0_default</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span></span>)</span>
+        <span class="name">calc_relative_levels_fixed_oxidants</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">ds</span>,</span><span class="param">	<span class="n">species</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">t_out</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">p_overrides</span><span class="o">=</span><span class="kc">None</span>,</span><span class="param">	<span class="n">fv_0_default</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">100.0</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="calc_relative_levels_fixed_oxidants-view-source"><span>View Source</span></label>
 
@@ -1072,7 +1074,7 @@ Used for species in <code>species</code> that don't provide <code>'fv_0'</code> 
                     <div class="decorator">@cache</div>
 
         <span class="def">def</span>
-        <span class="name">load_canola_species_data</span><span class="signature pdoc-code condensed">()</span>
+        <span class="name">load_canola_species_data</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="load_canola_species_data-view-source"><span>View Source</span></label>
 
@@ -1142,7 +1144,7 @@ Used for species in <code>species</code> that don't provide <code>'fv_0'</code> 
                     <div class="decorator">@cache</div>
 
         <span class="def">def</span>
-        <span class="name">load_canola_flower_basal_emissions</span><span class="signature pdoc-code condensed">()</span>
+        <span class="name">load_canola_flower_basal_emissions</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="load_canola_flower_basal_emissions-view-source"><span>View Source</span></label>
 
@@ -1199,7 +1201,7 @@ Used for species in <code>species</code> that don't provide <code>'fv_0'</code> 
                     <div class="decorator">@cache</div>
 
         <span class="def">def</span>
-        <span class="name">load_default_chemical_species_data</span><span class="signature pdoc-code condensed">()</span>
+        <span class="name">load_default_chemical_species_data</span><span class="signature pdoc-code condensed">(<span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="load_default_chemical_species_data-view-source"><span>View Source</span></label>
 
@@ -1364,7 +1366,11 @@ Used for species in <code>species</code> that don't provide <code>'fv_0'</code> 
                 let heading;
                 switch (result.doc.type) {
                     case "function":
-                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
                         break;
                     case "class":
                         heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;
