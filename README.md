@@ -5,6 +5,7 @@
 [![CI workflow status](https://github.com/zmoon/blpd/actions/workflows/ci.yml/badge.svg)](https://github.com/zmoon/blpd/actions/workflows/ci.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/zmoon/blpd/master.svg)](https://results.pre-commit.ci/latest/github/zmoon/blpd/master)
 [![Run examples on Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zmoon/blpd/HEAD?urlpath=lab/tree/examples)
+[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
 
 [pdoc](https://pdoc.dev/) API documentation: <https://zmoon.github.io/blpd/blpd.html>
 ## Installing
