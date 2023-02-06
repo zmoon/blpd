@@ -101,7 +101,7 @@ def final_pos_scatter(ds, sdim="xy"):
     ax.set_title(utils.s_t_info(p), loc="left")
     ax.set_title(f"$N_p = {p['Np_tot']}$", loc="right")
 
-    for (xs, ys) in p["source_positions"]:
+    for xs, ys in p["source_positions"]:
         sp = dict(x=xs, y=ys, z=p["release_height"])
         if len(dims) == 3:
             ax.plot([sp[dims[0]]], [sp[dims[1]]], [sp[dims[2]]], "*", c="gold", ms=10)
@@ -203,7 +203,7 @@ def trajectories(ds, *, smooth=False, smooth_window_size=None, color_sources=Fal
         )
         ax.add_collection(lc)
 
-    for (x, y) in p["source_positions"]:
+    for x, y in p["source_positions"]:
         ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
     ax.autoscale()  # `ax.add_collection` won't do this automatically
@@ -277,7 +277,7 @@ def conc_scatter(
     cb = fig.colorbar(im, ax=ax, drawedges=False)
     cb.set_label(f"{spc_display_name} relative conc. (%)")
 
-    for (xs, ys) in p["source_positions"]:
+    for xs, ys in p["source_positions"]:
         sp = dict(x=xs, y=ys, z=p["release_height"])
         ax.plot(*tuple(sp[dim] for dim in dims), **_SOURCE_MARKER_PROPS)
 
@@ -350,7 +350,7 @@ def conc_2d(
     cb = fig.colorbar(im, ax=ax, drawedges=False)
     cb.set_label(f"{spc_display_name} relative conc. (%)")
 
-    for (x, y) in p["source_positions"]:
+    for x, y in p["source_positions"]:
         ax.plot(x, y, **_SOURCE_MARKER_PROPS)
 
     ax.autoscale(enable=True, axis="both", tight=True)
@@ -406,7 +406,7 @@ def conc_xline(
         binned = utils.bin_values_xy(X, Y, conc, bins=bins)
         ax.plot(binned.x, binned.v.squeeze(), label=spc_display_name if label is None else label)
 
-    for (xs, ys) in p["source_positions"]:
+    for xs, ys in p["source_positions"]:
         if abs(ys - y) <= 5:
             ax.plot(xs, np.nanmin(binned.v), **_SOURCE_MARKER_PROPS)
 
@@ -561,7 +561,7 @@ def final_pos_hist2d(
     cb = fig.colorbar(im, ax=ax)
     cb.set_label("Particle count")
 
-    for (x, y) in p["source_positions"]:
+    for x, y in p["source_positions"]:
         ax.plot(x, y, "*", c="gold", ms=11, mec="0.35", mew=1.0)
 
     ax.set_xlabel(f"${dims[0]}$ [{ds.x.attrs['units']}]")

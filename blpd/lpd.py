@@ -342,7 +342,6 @@ def integrate_particles_one_timestep(state, p):
 
     # for i in range(Np_k):
     for i in prange(Np_k):  # pylint: disable=not-an-iterable
-
         # State for particle i: position and (wind) velocity
         x = [xp[i], yp[i], zp[i]]  # position of particle i at current time step
         u = [up[i], vp[i], wp[i]]  # local wind speed for particle
