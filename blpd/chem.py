@@ -322,7 +322,6 @@ def calc_areal_emission_rates_canola(
     # loop through species
     E_i = {}
     for spc, e_si in E_si_ug.items():
-
         # ug per floret-s at temperature T
         e_i = e_si * np.exp(beta * (T - T_S))
 

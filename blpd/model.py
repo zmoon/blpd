@@ -424,7 +424,6 @@ class Model:
         # print(state_run['xp'].shape)
 
         for k in range(1, N_t + 1):
-
             if self.p["continuous_release"]:
                 Np_k += dNp_dt_ds * N_s
             else:  # only release at k=1 (at k=0 the particles are inside their release point)
