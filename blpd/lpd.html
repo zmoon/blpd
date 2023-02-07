@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.2.0"/>
+    <meta name="generator" content="pdoc 12.3.1"/>
     <title>blpd.lpd API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -87,7 +87,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="nd">@njit</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">def</span> <span class="nf">_calc_fd_params_above_canopy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="sd">&quot;&quot;&quot;Calculate the dispersion parameters above the canopy.&quot;&quot;&quot;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the dispersion parameters above the canopy.&quot;&quot;&quot;</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="n">z</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">ustar</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;ustar&quot;</span><span class="p">]</span>
@@ -135,7 +135,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="nd">@njit</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="k">def</span> <span class="nf">_calc_fd_params_in_canopy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="sd">&quot;&quot;&quot;Calculate the dispersion parameters within the canopy.&quot;&quot;&quot;</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the dispersion parameters within the canopy.&quot;&quot;&quot;</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>    <span class="n">z</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="n">ustar</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;ustar&quot;</span><span class="p">]</span>  <span class="c1"># at h?</span>
@@ -261,7 +261,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
 </span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>
 </span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="nd">@njit</span>
 </span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="k">def</span> <span class="nf">calc_xtend</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the position tendencies</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the position tendencies</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a><span class="sd">    (i.e., the velocity components $u_i + \delta u_i$)</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a><span class="sd">    for one particle with position vector `x` and velocity vector `u`.</span>
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>
@@ -370,7 +370,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="nd">@njit</span>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="k">def</span> <span class="nf">_integrate_particle_one_timestep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>    <span class="sd">&quot;&quot;&quot;Take the state for one particle and integrate.&quot;&quot;&quot;</span>
+</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Take the state for one particle and integrate.&quot;&quot;&quot;</span>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>    <span class="n">dt</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">]</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>
 </span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a>    <span class="n">dxdt</span> <span class="o">=</span> <span class="n">calc_xtend</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>  <span class="c1"># u, v, w</span>
@@ -402,7 +402,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
 </span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a><span class="c1"># @njit</span>
 </span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a><span class="nd">@njit</span><span class="p">(</span><span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a><span class="k">def</span> <span class="nf">integrate_particles_one_timestep</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a>    <span class="sd">&quot;&quot;&quot;Integrate all particles one time step, modifying the current `state` (in place).</span>
+</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Integrate all particles one time step, modifying the current `state` (in place).</span>
 </span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a>
 </span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a><span class="sd">    `state` and `p` (parameters) must be Numba typed dicts (:class:`numba.typed.Dict`)</span>
 </span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a><span class="sd">    in order for `@njit` to work if Numba is not disabled.</span>
@@ -417,32 +417,31 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>
 </span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>    <span class="c1"># for i in range(Np_k):</span>
 </span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">Np_k</span><span class="p">):</span>  <span class="c1"># pylint: disable=not-an-iterable</span>
-</span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>
-</span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>        <span class="c1"># State for particle i: position and (wind) velocity</span>
-</span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a>        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># position of particle i at current time step</span>
-</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># local wind speed for particle</span>
-</span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a>
-</span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a>        <span class="c1"># Calculate new state</span>
-</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">_integrate_particle_one_timestep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
-</span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a>
-</span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>        <span class="c1"># Update state arrays in place</span>
-</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>        <span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>        <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>        <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>        <span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>        <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>        <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a>
-</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>        <span class="c1"># Note that we are not really time-integrating the wind speed.</span>
-</span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a>        <span class="c1"># We are making assumptions about the distribution of perturbations</span>
-</span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>        <span class="c1"># about a mean x-direction wind!</span>
-</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>
-</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>        <span class="c1"># del x, u</span>
-</span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>        <span class="c1"># ^ seems like Numba might require this? (gave errors otherwise)</span>
-</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>        <span class="c1"># Now, using numba v0.49.1 this raises error:</span>
-</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>        <span class="c1">#   `CompilerError: Illegal IR, del found at: del pos`</span>
-</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>        <span class="c1"># If trying to use sufficiently older versions of numba, may need to put it back.</span>
-</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>        <span class="c1"># TODO: maybe change numba version spec in setup.cfg to &gt;= 0.49</span>
+</span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>        <span class="c1"># State for particle i: position and (wind) velocity</span>
+</span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># position of particle i at current time step</span>
+</span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a>        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># local wind speed for particle</span>
+</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>
+</span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a>        <span class="c1"># Calculate new state</span>
+</span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">_integrate_particle_one_timestep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a>
+</span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a>        <span class="c1"># Update state arrays in place</span>
+</span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>        <span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>        <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>        <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>        <span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>        <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>        <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a>
+</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a>        <span class="c1"># Note that we are not really time-integrating the wind speed.</span>
+</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>        <span class="c1"># We are making assumptions about the distribution of perturbations</span>
+</span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a>        <span class="c1"># about a mean x-direction wind!</span>
+</span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a>
+</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>        <span class="c1"># del x, u</span>
+</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>        <span class="c1"># ^ seems like Numba might require this? (gave errors otherwise)</span>
+</span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a>        <span class="c1"># Now, using numba v0.49.1 this raises error:</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a>        <span class="c1">#   `CompilerError: Illegal IR, del found at: del pos`</span>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>        <span class="c1"># If trying to use sufficiently older versions of numba, may need to put it back.</span>
+</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>        <span class="c1"># TODO: maybe change numba version spec in setup.cfg to &gt;= 0.49</span>
 </span></pre></div>
 
 
@@ -461,7 +460,7 @@ the intention is for <code><a href="model.html#Model">blpd.model.Model</a></code
     <a class="headerlink" href="#calc_xtend"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="calc_xtend-188"><a href="#calc_xtend-188"><span class="linenos">188</span></a><span class="nd">@njit</span>
 </span><span id="calc_xtend-189"><a href="#calc_xtend-189"><span class="linenos">189</span></a><span class="k">def</span> <span class="nf">calc_xtend</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="calc_xtend-190"><a href="#calc_xtend-190"><span class="linenos">190</span></a>    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the position tendencies</span>
+</span><span id="calc_xtend-190"><a href="#calc_xtend-190"><span class="linenos">190</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the position tendencies</span>
 </span><span id="calc_xtend-191"><a href="#calc_xtend-191"><span class="linenos">191</span></a><span class="sd">    (i.e., the velocity components $u_i + \delta u_i$)</span>
 </span><span id="calc_xtend-192"><a href="#calc_xtend-192"><span class="linenos">192</span></a><span class="sd">    for one particle with position vector `x` and velocity vector `u`.</span>
 </span><span id="calc_xtend-193"><a href="#calc_xtend-193"><span class="linenos">193</span></a>
@@ -592,7 +591,7 @@ for one particle with position vector <code>x</code> and velocity vector <code>u
     <a class="headerlink" href="#integrate_particles_one_timestep"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="integrate_particles_one_timestep-329"><a href="#integrate_particles_one_timestep-329"><span class="linenos">329</span></a><span class="nd">@njit</span><span class="p">(</span><span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="integrate_particles_one_timestep-330"><a href="#integrate_particles_one_timestep-330"><span class="linenos">330</span></a><span class="k">def</span> <span class="nf">integrate_particles_one_timestep</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
-</span><span id="integrate_particles_one_timestep-331"><a href="#integrate_particles_one_timestep-331"><span class="linenos">331</span></a>    <span class="sd">&quot;&quot;&quot;Integrate all particles one time step, modifying the current `state` (in place).</span>
+</span><span id="integrate_particles_one_timestep-331"><a href="#integrate_particles_one_timestep-331"><span class="linenos">331</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Integrate all particles one time step, modifying the current `state` (in place).</span>
 </span><span id="integrate_particles_one_timestep-332"><a href="#integrate_particles_one_timestep-332"><span class="linenos">332</span></a>
 </span><span id="integrate_particles_one_timestep-333"><a href="#integrate_particles_one_timestep-333"><span class="linenos">333</span></a><span class="sd">    `state` and `p` (parameters) must be Numba typed dicts (:class:`numba.typed.Dict`)</span>
 </span><span id="integrate_particles_one_timestep-334"><a href="#integrate_particles_one_timestep-334"><span class="linenos">334</span></a><span class="sd">    in order for `@njit` to work if Numba is not disabled.</span>
@@ -607,32 +606,31 @@ for one particle with position vector <code>x</code> and velocity vector <code>u
 </span><span id="integrate_particles_one_timestep-343"><a href="#integrate_particles_one_timestep-343"><span class="linenos">343</span></a>
 </span><span id="integrate_particles_one_timestep-344"><a href="#integrate_particles_one_timestep-344"><span class="linenos">344</span></a>    <span class="c1"># for i in range(Np_k):</span>
 </span><span id="integrate_particles_one_timestep-345"><a href="#integrate_particles_one_timestep-345"><span class="linenos">345</span></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">Np_k</span><span class="p">):</span>  <span class="c1"># pylint: disable=not-an-iterable</span>
-</span><span id="integrate_particles_one_timestep-346"><a href="#integrate_particles_one_timestep-346"><span class="linenos">346</span></a>
-</span><span id="integrate_particles_one_timestep-347"><a href="#integrate_particles_one_timestep-347"><span class="linenos">347</span></a>        <span class="c1"># State for particle i: position and (wind) velocity</span>
-</span><span id="integrate_particles_one_timestep-348"><a href="#integrate_particles_one_timestep-348"><span class="linenos">348</span></a>        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># position of particle i at current time step</span>
-</span><span id="integrate_particles_one_timestep-349"><a href="#integrate_particles_one_timestep-349"><span class="linenos">349</span></a>        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># local wind speed for particle</span>
-</span><span id="integrate_particles_one_timestep-350"><a href="#integrate_particles_one_timestep-350"><span class="linenos">350</span></a>
-</span><span id="integrate_particles_one_timestep-351"><a href="#integrate_particles_one_timestep-351"><span class="linenos">351</span></a>        <span class="c1"># Calculate new state</span>
-</span><span id="integrate_particles_one_timestep-352"><a href="#integrate_particles_one_timestep-352"><span class="linenos">352</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">_integrate_particle_one_timestep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
-</span><span id="integrate_particles_one_timestep-353"><a href="#integrate_particles_one_timestep-353"><span class="linenos">353</span></a>
-</span><span id="integrate_particles_one_timestep-354"><a href="#integrate_particles_one_timestep-354"><span class="linenos">354</span></a>        <span class="c1"># Update state arrays in place</span>
-</span><span id="integrate_particles_one_timestep-355"><a href="#integrate_particles_one_timestep-355"><span class="linenos">355</span></a>        <span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="integrate_particles_one_timestep-356"><a href="#integrate_particles_one_timestep-356"><span class="linenos">356</span></a>        <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="integrate_particles_one_timestep-357"><a href="#integrate_particles_one_timestep-357"><span class="linenos">357</span></a>        <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="integrate_particles_one_timestep-358"><a href="#integrate_particles_one_timestep-358"><span class="linenos">358</span></a>        <span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="integrate_particles_one_timestep-359"><a href="#integrate_particles_one_timestep-359"><span class="linenos">359</span></a>        <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="integrate_particles_one_timestep-360"><a href="#integrate_particles_one_timestep-360"><span class="linenos">360</span></a>        <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="integrate_particles_one_timestep-361"><a href="#integrate_particles_one_timestep-361"><span class="linenos">361</span></a>
-</span><span id="integrate_particles_one_timestep-362"><a href="#integrate_particles_one_timestep-362"><span class="linenos">362</span></a>        <span class="c1"># Note that we are not really time-integrating the wind speed.</span>
-</span><span id="integrate_particles_one_timestep-363"><a href="#integrate_particles_one_timestep-363"><span class="linenos">363</span></a>        <span class="c1"># We are making assumptions about the distribution of perturbations</span>
-</span><span id="integrate_particles_one_timestep-364"><a href="#integrate_particles_one_timestep-364"><span class="linenos">364</span></a>        <span class="c1"># about a mean x-direction wind!</span>
-</span><span id="integrate_particles_one_timestep-365"><a href="#integrate_particles_one_timestep-365"><span class="linenos">365</span></a>
-</span><span id="integrate_particles_one_timestep-366"><a href="#integrate_particles_one_timestep-366"><span class="linenos">366</span></a>        <span class="c1"># del x, u</span>
-</span><span id="integrate_particles_one_timestep-367"><a href="#integrate_particles_one_timestep-367"><span class="linenos">367</span></a>        <span class="c1"># ^ seems like Numba might require this? (gave errors otherwise)</span>
-</span><span id="integrate_particles_one_timestep-368"><a href="#integrate_particles_one_timestep-368"><span class="linenos">368</span></a>        <span class="c1"># Now, using numba v0.49.1 this raises error:</span>
-</span><span id="integrate_particles_one_timestep-369"><a href="#integrate_particles_one_timestep-369"><span class="linenos">369</span></a>        <span class="c1">#   `CompilerError: Illegal IR, del found at: del pos`</span>
-</span><span id="integrate_particles_one_timestep-370"><a href="#integrate_particles_one_timestep-370"><span class="linenos">370</span></a>        <span class="c1"># If trying to use sufficiently older versions of numba, may need to put it back.</span>
-</span><span id="integrate_particles_one_timestep-371"><a href="#integrate_particles_one_timestep-371"><span class="linenos">371</span></a>        <span class="c1"># TODO: maybe change numba version spec in setup.cfg to &gt;= 0.49</span>
+</span><span id="integrate_particles_one_timestep-346"><a href="#integrate_particles_one_timestep-346"><span class="linenos">346</span></a>        <span class="c1"># State for particle i: position and (wind) velocity</span>
+</span><span id="integrate_particles_one_timestep-347"><a href="#integrate_particles_one_timestep-347"><span class="linenos">347</span></a>        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># position of particle i at current time step</span>
+</span><span id="integrate_particles_one_timestep-348"><a href="#integrate_particles_one_timestep-348"><span class="linenos">348</span></a>        <span class="n">u</span> <span class="o">=</span> <span class="p">[</span><span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>  <span class="c1"># local wind speed for particle</span>
+</span><span id="integrate_particles_one_timestep-349"><a href="#integrate_particles_one_timestep-349"><span class="linenos">349</span></a>
+</span><span id="integrate_particles_one_timestep-350"><a href="#integrate_particles_one_timestep-350"><span class="linenos">350</span></a>        <span class="c1"># Calculate new state</span>
+</span><span id="integrate_particles_one_timestep-351"><a href="#integrate_particles_one_timestep-351"><span class="linenos">351</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">_integrate_particle_one_timestep</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+</span><span id="integrate_particles_one_timestep-352"><a href="#integrate_particles_one_timestep-352"><span class="linenos">352</span></a>
+</span><span id="integrate_particles_one_timestep-353"><a href="#integrate_particles_one_timestep-353"><span class="linenos">353</span></a>        <span class="c1"># Update state arrays in place</span>
+</span><span id="integrate_particles_one_timestep-354"><a href="#integrate_particles_one_timestep-354"><span class="linenos">354</span></a>        <span class="n">xp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="integrate_particles_one_timestep-355"><a href="#integrate_particles_one_timestep-355"><span class="linenos">355</span></a>        <span class="n">yp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="integrate_particles_one_timestep-356"><a href="#integrate_particles_one_timestep-356"><span class="linenos">356</span></a>        <span class="n">zp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="integrate_particles_one_timestep-357"><a href="#integrate_particles_one_timestep-357"><span class="linenos">357</span></a>        <span class="n">up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="integrate_particles_one_timestep-358"><a href="#integrate_particles_one_timestep-358"><span class="linenos">358</span></a>        <span class="n">vp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="integrate_particles_one_timestep-359"><a href="#integrate_particles_one_timestep-359"><span class="linenos">359</span></a>        <span class="n">wp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="integrate_particles_one_timestep-360"><a href="#integrate_particles_one_timestep-360"><span class="linenos">360</span></a>
+</span><span id="integrate_particles_one_timestep-361"><a href="#integrate_particles_one_timestep-361"><span class="linenos">361</span></a>        <span class="c1"># Note that we are not really time-integrating the wind speed.</span>
+</span><span id="integrate_particles_one_timestep-362"><a href="#integrate_particles_one_timestep-362"><span class="linenos">362</span></a>        <span class="c1"># We are making assumptions about the distribution of perturbations</span>
+</span><span id="integrate_particles_one_timestep-363"><a href="#integrate_particles_one_timestep-363"><span class="linenos">363</span></a>        <span class="c1"># about a mean x-direction wind!</span>
+</span><span id="integrate_particles_one_timestep-364"><a href="#integrate_particles_one_timestep-364"><span class="linenos">364</span></a>
+</span><span id="integrate_particles_one_timestep-365"><a href="#integrate_particles_one_timestep-365"><span class="linenos">365</span></a>        <span class="c1"># del x, u</span>
+</span><span id="integrate_particles_one_timestep-366"><a href="#integrate_particles_one_timestep-366"><span class="linenos">366</span></a>        <span class="c1"># ^ seems like Numba might require this? (gave errors otherwise)</span>
+</span><span id="integrate_particles_one_timestep-367"><a href="#integrate_particles_one_timestep-367"><span class="linenos">367</span></a>        <span class="c1"># Now, using numba v0.49.1 this raises error:</span>
+</span><span id="integrate_particles_one_timestep-368"><a href="#integrate_particles_one_timestep-368"><span class="linenos">368</span></a>        <span class="c1">#   `CompilerError: Illegal IR, del found at: del pos`</span>
+</span><span id="integrate_particles_one_timestep-369"><a href="#integrate_particles_one_timestep-369"><span class="linenos">369</span></a>        <span class="c1"># If trying to use sufficiently older versions of numba, may need to put it back.</span>
+</span><span id="integrate_particles_one_timestep-370"><a href="#integrate_particles_one_timestep-370"><span class="linenos">370</span></a>        <span class="c1"># TODO: maybe change numba version spec in setup.cfg to &gt;= 0.49</span>
 </span></pre></div>
 
 
@@ -745,7 +743,7 @@ in order for <code>@njit</code> to work if Numba is not disabled.</p>
                 }
 
                 let heading;
-                switch (result.doc.type) {
+                switch (result.doc.kind) {
                     case "function":
                         if (doc.fullname.endsWith(".__init__")) {
                             heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
@@ -772,7 +770,7 @@ in order for <code>@njit</code> to work if Numba is not disabled.</p>
                 }
                 html += `
                         <section class="search-result">
-                        <a href="${url}" class="attr ${doc.type}">${heading}</a>
+                        <a href="${url}" class="attr ${doc.kind}">${heading}</a>
                         <div class="docstring">${doc.doc}</div>
                         </section>
                     `;

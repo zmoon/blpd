@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.2.0"/>
+    <meta name="generator" content="pdoc 12.3.1"/>
     <title>blpd.bees API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -96,7 +96,7 @@ but with some enhancements.</p>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="k">def</span> <span class="nf">draw_step_length</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">l_0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    Draw a step length `l` from the power law distribution</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    .. math::</span>
@@ -138,7 +138,7 @@ but with some enhancements.</p>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="n">heading_model</span><span class="o">=</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>    <span class="n">heading_model_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="p">):</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    Parameters</span>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    ----------</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    n : int</span>
@@ -238,7 +238,7 @@ but with some enhancements.</p>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="k">class</span> <span class="nc">_step_length_dist_gen</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_continuous</span><span class="p">):</span>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>    <span class="sd">&quot;&quot;&quot;Step length distribution class using the `scipy.stats` machinery.&quot;&quot;&quot;</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Step length distribution class using the `scipy.stats` machinery.&quot;&quot;&quot;</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>    <span class="k">def</span> <span class="nf">_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">l_0</span><span class="p">,</span> <span class="n">mu</span><span class="p">):</span>
 </span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>        <span class="n">c</span> <span class="o">=</span> <span class="o">-</span><span class="n">l_0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span>
@@ -290,7 +290,7 @@ but with some enhancements.</p>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="c1"># scaling with `scale` not working for pdf/cdf</span>
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="c1"># need to specify them differently I guess</span>
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="k">class</span> <span class="nc">_step_length_dist2_gen</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">rv_continuous</span><span class="p">):</span>
-</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>    <span class="sd">&quot;&quot;&quot;Step length distribution class using the `scipy.stats` machinery.&quot;&quot;&quot;</span>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Step length distribution class using the `scipy.stats` machinery.&quot;&quot;&quot;</span>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a>
 </span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>    <span class="c1"># Instead of including l_0 as a param,</span>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>    <span class="c1"># we just let scipy.stats do that via the `scale` param</span>
@@ -322,7 +322,7 @@ but with some enhancements.</p>
 </span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>
 </span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>
 </span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="k">def</span> <span class="nf">_compare_step_dists</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">l_0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
-</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>    <span class="sd">&quot;&quot;&quot;Compare the different representations of the step length dist in this module.&quot;&quot;&quot;</span>
+</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare the different representations of the step length dist in this module.&quot;&quot;&quot;</span>
 </span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>
 </span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>    <span class="c1"># Set dist parameters</span>
@@ -432,7 +432,7 @@ but with some enhancements.</p>
     </div>
     <a class="headerlink" href="#draw_step_length"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="draw_step_length-24"><a href="#draw_step_length-24"><span class="linenos">24</span></a><span class="k">def</span> <span class="nf">draw_step_length</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">l_0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="draw_step_length-25"><a href="#draw_step_length-25"><span class="linenos">25</span></a>    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="draw_step_length-25"><a href="#draw_step_length-25"><span class="linenos">25</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="draw_step_length-26"><a href="#draw_step_length-26"><span class="linenos">26</span></a><span class="sd">    Draw a step length `l` from the power law distribution</span>
 </span><span id="draw_step_length-27"><a href="#draw_step_length-27"><span class="linenos">27</span></a>
 </span><span id="draw_step_length-28"><a href="#draw_step_length-28"><span class="linenos">28</span></a><span class="sd">    .. math::</span>
@@ -508,7 +508,7 @@ Random number in $[0, 1)$. By default, we draw a single value from uniform.</li>
 </span><span id="flight-64"><a href="#flight-64"><span class="linenos"> 64</span></a>    <span class="n">heading_model</span><span class="o">=</span><span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
 </span><span id="flight-65"><a href="#flight-65"><span class="linenos"> 65</span></a>    <span class="n">heading_model_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 </span><span id="flight-66"><a href="#flight-66"><span class="linenos"> 66</span></a><span class="p">):</span>
-</span><span id="flight-67"><a href="#flight-67"><span class="linenos"> 67</span></a>    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="flight-67"><a href="#flight-67"><span class="linenos"> 67</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="flight-68"><a href="#flight-68"><span class="linenos"> 68</span></a><span class="sd">    Parameters</span>
 </span><span id="flight-69"><a href="#flight-69"><span class="linenos"> 69</span></a><span class="sd">    ----------</span>
 </span><span id="flight-70"><a href="#flight-70"><span class="linenos"> 70</span></a><span class="sd">    n : int</span>
@@ -743,7 +743,7 @@ heading model (<code>heading_model='truncnorm'</code>):</p>
                 }
 
                 let heading;
-                switch (result.doc.type) {
+                switch (result.doc.kind) {
                     case "function":
                         if (doc.fullname.endsWith(".__init__")) {
                             heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
@@ -770,7 +770,7 @@ heading model (<code>heading_model='truncnorm'</code>):</p>
                 }
                 html += `
                         <section class="search-result">
-                        <a href="${url}" class="attr ${doc.type}">${heading}</a>
+                        <a href="${url}" class="attr ${doc.kind}">${heading}</a>
                         <div class="docstring">${doc.doc}</div>
                         </section>
                     `;

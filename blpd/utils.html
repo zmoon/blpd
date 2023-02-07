@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.2.0"/>
+    <meta name="generator" content="pdoc 12.3.1"/>
     <title>blpd.utils API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -128,7 +128,7 @@ mostly for internal use.</p>
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
 </span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="k">def</span> <span class="nf">_add_snippets</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="sd">&quot;&quot;&quot;Add docstring snippets from `_SNIPPETS` dict.&quot;&quot;&quot;</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Add docstring snippets from `_SNIPPETS` dict.&quot;&quot;&quot;</span>
 </span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="c1"># ref: https://github.com/lukelbd/proplot/blob/master/proplot/internals/docstring.py</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getdoc</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">if</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">:</span>
@@ -141,7 +141,7 @@ mostly for internal use.</p>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="k">def</span> <span class="nf">check_fig_num</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="sd">&quot;&quot;&quot;Create a figure `num` (label) that is not already taken,</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a figure `num` (label) that is not already taken,</span>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    appending `_{n}` if a figure with `label` already exists.</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="n">current_labels</span> <span class="o">=</span> <span class="n">get_open_fig_labels</span><span class="p">()</span>
@@ -156,7 +156,7 @@ mostly for internal use.</p>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
 </span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="k">def</span> <span class="nf">to_sci_not</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="sd">&quot;&quot;&quot;Convert float `f` to a scientific notation string</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert float `f` to a scientific notation string</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">    (not including the `$`)</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">    by using string formats `e` and `g`.</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -168,7 +168,7 @@ mostly for internal use.</p>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="k">def</span> <span class="nf">sec_to_str</span><span class="p">(</span><span class="n">total_seconds</span><span class="p">):</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="sd">&quot;&quot;&quot;Choose best format to display the run time.</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Choose best format to display the run time.</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">    Note: can&#39;t use `strftime` with `timedelta`s</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -196,7 +196,7 @@ mostly for internal use.</p>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="k">def</span> <span class="nf">moving_average</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="sd">&quot;&quot;&quot;Moving average of `a`.</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Moving average of `a`.</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    Implementation taken from: &lt;https://stackoverflow.com/a/14314054&gt;.</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    For now only `axis=0` works.</span>
@@ -209,7 +209,7 @@ mostly for internal use.</p>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="k">def</span> <span class="nf">s_t_info</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="sd">&quot;&quot;&quot;Create string to display info about run time and time step</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create string to display info about run time and time step</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">    using model parameters `p`.</span>
 </span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="n">t_tot</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;t_tot&quot;</span><span class="p">]</span>
@@ -224,7 +224,7 @@ mostly for internal use.</p>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="k">def</span> <span class="nf">s_sample_size</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">N_p_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="sd">&quot;&quot;&quot;Create string with sample size info (number of particles `Np` and `N=Np*Nt`).&quot;&quot;&quot;</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create string with sample size info (number of particles `Np` and `N=Np*Nt`).&quot;&quot;&quot;</span>
 </span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="n">Np</span><span class="p">,</span> <span class="n">Nt</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Np_tot&quot;</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;N_t&quot;</span><span class="p">]</span>
 </span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="n">N</span> <span class="o">=</span> <span class="n">Np</span> <span class="o">*</span> <span class="n">Nt</span>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="n">s_N_p</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;$N_p = </span><span class="si">{</span><span class="n">to_sci_not</span><span class="p">(</span><span class="n">Np</span><span class="p">)</span><span class="si">}</span><span class="s2">$&quot;</span>
@@ -264,7 +264,7 @@ mostly for internal use.</p>
 </span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="n">std_mult</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="p">):</span>
-</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>    <span class="sd">&quot;&quot;&quot;Determine bin edges for a 2- or 3-d horizontal grid</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine bin edges for a 2- or 3-d horizontal grid</span>
 </span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="sd">    that lets us focus on where most of the data is.</span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
 </span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">    Parameters</span>
@@ -310,7 +310,7 @@ mostly for internal use.</p>
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a><span class="nd">@_add_snippets</span>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a><span class="k">def</span> <span class="nf">bin_values_xy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">):</span>
-</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>    <span class="sd">&quot;&quot;&quot;Using the `x` and `y` positions of the particles, bin `values`,</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Using the `x` and `y` positions of the particles, bin `values`,</span>
 </span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="sd">    and calculate a representative value in each bin.</span>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>
 </span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="sd">    Parameters</span>
@@ -347,7 +347,7 @@ mostly for internal use.</p>
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a><span class="nd">@_add_snippets</span>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="k">def</span> <span class="nf">bin_ds</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
-</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>    <span class="sd">&quot;&quot;&quot;Bin a particles dataset. For example,</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Bin a particles dataset. For example,</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a><span class="sd">    the `blpd.model.Model.to_xarray` dataset</span>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a><span class="sd">    or `blpd.chem.calc_relative_levels_fixed_oxidants` dataset.</span>
 </span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>
@@ -437,7 +437,7 @@ mostly for internal use.</p>
 </span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>
 </span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>
 </span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a><span class="k">def</span> <span class="nf">calc_t_out</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
-</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>    <span class="sd">&quot;&quot;&quot;Calculate time-since-release for each particle at the end of simulation.</span>
+</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate time-since-release for each particle at the end of simulation.</span>
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a><span class="sd">    This works for a simulation with constant particle release rate</span>
 </span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a><span class="sd">    (number of particles released per time step per source).</span>
@@ -479,7 +479,7 @@ mostly for internal use.</p>
 </span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>
 </span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>
 </span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a><span class="k">def</span> <span class="nf">load_p</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
-</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>    <span class="sd">&quot;&quot;&quot;Load the model parameters/info `dict` from JSON stored in `ds` :class:`xarray.Dataset`.&quot;&quot;&quot;</span>
+</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the model parameters/info `dict` from JSON stored in `ds` :class:`xarray.Dataset`.&quot;&quot;&quot;</span>
 </span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="kn">import</span> <span class="nn">json</span>
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>
 </span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;p_json&quot;</span><span class="p">])</span>
@@ -518,7 +518,7 @@ mostly for internal use.</p>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>
 </span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>
 </span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="k">def</span> <span class="nf">check_sdim</span><span class="p">(</span><span class="n">sdim</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a>    <span class="sd">&quot;&quot;&quot;Validate `sdim`.&quot;&quot;&quot;</span>
+</span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate `sdim`.&quot;&quot;&quot;</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>    <span class="n">valid_sdim</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">,</span> <span class="s2">&quot;xyz&quot;</span><span class="p">,</span> <span class="s2">&quot;3d&quot;</span><span class="p">,</span> <span class="s2">&quot;3-d&quot;</span><span class="p">]</span>
 </span><span id="L-439"><a href="#L-439"><span class="linenos">439</span></a>    <span class="k">if</span> <span class="n">sdim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_sdim</span><span class="p">:</span>
 </span><span id="L-440"><a href="#L-440"><span class="linenos">440</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -529,7 +529,7 @@ mostly for internal use.</p>
 </span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>
 </span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a>
 </span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a><span class="k">def</span> <span class="nf">dims_from_sdim</span><span class="p">(</span><span class="n">sdim</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>    <span class="sd">&quot;&quot;&quot;Return tuple of dims corresponding to `sdim`.&quot;&quot;&quot;</span>
+</span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return tuple of dims corresponding to `sdim`.&quot;&quot;&quot;</span>
 </span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>    <span class="n">check_sdim</span><span class="p">(</span><span class="n">sdim</span><span class="p">)</span>  <span class="c1"># first validate</span>
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>    <span class="k">if</span> <span class="n">sdim</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">,</span> <span class="s2">&quot;3d&quot;</span><span class="p">,</span> <span class="s2">&quot;3-d&quot;</span><span class="p">):</span>
 </span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="n">dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">)</span>
@@ -541,7 +541,7 @@ mostly for internal use.</p>
 </span><span id="L-457"><a href="#L-457"><span class="linenos">457</span></a>
 </span><span id="L-458"><a href="#L-458"><span class="linenos">458</span></a><span class="c1"># TODO: float precision option</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos">459</span></a><span class="k">def</span> <span class="nf">numbify</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">zerod_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a>    <span class="sd">&quot;&quot;&quot;Convert dict `d` to Numba-suitable format.</span>
+</span><span id="L-460"><a href="#L-460"><span class="linenos">460</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert dict `d` to Numba-suitable format.</span>
 </span><span id="L-461"><a href="#L-461"><span class="linenos">461</span></a>
 </span><span id="L-462"><a href="#L-462"><span class="linenos">462</span></a><span class="sd">    Dict values should be NumPy arrays or individual floats.</span>
 </span><span id="L-463"><a href="#L-463"><span class="linenos">463</span></a>
@@ -584,7 +584,7 @@ mostly for internal use.</p>
 </span><span id="L-500"><a href="#L-500"><span class="linenos">500</span></a>
 </span><span id="L-501"><a href="#L-501"><span class="linenos">501</span></a>
 </span><span id="L-502"><a href="#L-502"><span class="linenos">502</span></a><span class="k">def</span> <span class="nf">unnumbify</span><span class="p">(</span><span class="n">d_nb</span><span class="p">):</span>
-</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a>    <span class="sd">&quot;&quot;&quot;Convert numba dict `d_nb` to a normal dict of numpy arrays, etc.&quot;&quot;&quot;</span>
+</span><span id="L-503"><a href="#L-503"><span class="linenos">503</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert numba dict `d_nb` to a normal dict of numpy arrays, etc.&quot;&quot;&quot;</span>
 </span><span id="L-504"><a href="#L-504"><span class="linenos">504</span></a>    <span class="kn">import</span> <span class="nn">numba</span>
 </span><span id="L-505"><a href="#L-505"><span class="linenos">505</span></a>
 </span><span id="L-506"><a href="#L-506"><span class="linenos">506</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d_nb</span><span class="p">,</span> <span class="n">numba</span><span class="o">.</span><span class="n">typed</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
@@ -602,7 +602,7 @@ mostly for internal use.</p>
 </span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>
 </span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a>
 </span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="k">def</span> <span class="nf">disable_numba</span><span class="p">():</span>
-</span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a>    <span class="sd">&quot;&quot;&quot;Tell numba to disable JIT.</span>
+</span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tell numba to disable JIT.</span>
 </span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a>
 </span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a><span class="sd">    References</span>
 </span><span id="L-524"><a href="#L-524"><span class="linenos">524</span></a><span class="sd">    ----------</span>
@@ -618,7 +618,7 @@ mostly for internal use.</p>
 </span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a>
 </span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a>
 </span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a><span class="k">def</span> <span class="nf">enable_numba</span><span class="p">():</span>
-</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>    <span class="sd">&quot;&quot;&quot;Tell numba to enable JIT.</span>
+</span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tell numba to enable JIT.</span>
 </span><span id="L-538"><a href="#L-538"><span class="linenos">538</span></a><span class="sd">    See references in `disable_numba`.</span>
 </span><span id="L-539"><a href="#L-539"><span class="linenos">539</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-540"><a href="#L-540"><span class="linenos">540</span></a>    <span class="kn">import</span> <span class="nn">os</span>
@@ -652,7 +652,7 @@ mostly for internal use.</p>
 </span><span id="auto_bins-181"><a href="#auto_bins-181"><span class="linenos">181</span></a>    <span class="n">std_mult</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
 </span><span id="auto_bins-182"><a href="#auto_bins-182"><span class="linenos">182</span></a>    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
 </span><span id="auto_bins-183"><a href="#auto_bins-183"><span class="linenos">183</span></a><span class="p">):</span>
-</span><span id="auto_bins-184"><a href="#auto_bins-184"><span class="linenos">184</span></a>    <span class="sd">&quot;&quot;&quot;Determine bin edges for a 2- or 3-d horizontal grid</span>
+</span><span id="auto_bins-184"><a href="#auto_bins-184"><span class="linenos">184</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine bin edges for a 2- or 3-d horizontal grid</span>
 </span><span id="auto_bins-185"><a href="#auto_bins-185"><span class="linenos">185</span></a><span class="sd">    that lets us focus on where most of the data is.</span>
 </span><span id="auto_bins-186"><a href="#auto_bins-186"><span class="linenos">186</span></a>
 </span><span id="auto_bins-187"><a href="#auto_bins-187"><span class="linenos">187</span></a><span class="sd">    Parameters</span>
@@ -703,7 +703,7 @@ OR single NumPy array where columns are <em>x</em>,<em>y</em>[,<em>z</em>].</li>
 <li><strong>std_mult</strong>: Standard deviation multiplier.
 Increase to capture more of the domain.
 Or set to <code>None</code> to capture all of it.</li>
-<li><strong>method</strong>: Passed to <code>numpy.histogram_bin_edges</code>.
+<li><strong>method</strong>: Passed to <code>numpy.histogram_bin_edges()</code>.
 Usually use <code>'auto'</code> or <code>'sqrt'</code>.</li>
 </ul>
 </div>
@@ -723,7 +723,7 @@ Usually use <code>'auto'</code> or <code>'sqrt'</code>.</li>
     <a class="headerlink" href="#bin_ds"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="bin_ds-265"><a href="#bin_ds-265"><span class="linenos">265</span></a><span class="nd">@_add_snippets</span>
 </span><span id="bin_ds-266"><a href="#bin_ds-266"><span class="linenos">266</span></a><span class="k">def</span> <span class="nf">bin_ds</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
-</span><span id="bin_ds-267"><a href="#bin_ds-267"><span class="linenos">267</span></a>    <span class="sd">&quot;&quot;&quot;Bin a particles dataset. For example,</span>
+</span><span id="bin_ds-267"><a href="#bin_ds-267"><span class="linenos">267</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Bin a particles dataset. For example,</span>
 </span><span id="bin_ds-268"><a href="#bin_ds-268"><span class="linenos">268</span></a><span class="sd">    the `blpd.model.Model.to_xarray` dataset</span>
 </span><span id="bin_ds-269"><a href="#bin_ds-269"><span class="linenos">269</span></a><span class="sd">    or `blpd.chem.calc_relative_levels_fixed_oxidants` dataset.</span>
 </span><span id="bin_ds-270"><a href="#bin_ds-270"><span class="linenos">270</span></a>
@@ -838,7 +838,7 @@ or <code><a href="chem.html#calc_relative_levels_fixed_oxidants">blpd.chem.calc_
     <a class="headerlink" href="#bin_values_xy"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="bin_values_xy-228"><a href="#bin_values_xy-228"><span class="linenos">228</span></a><span class="nd">@_add_snippets</span>
 </span><span id="bin_values_xy-229"><a href="#bin_values_xy-229"><span class="linenos">229</span></a><span class="k">def</span> <span class="nf">bin_values_xy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">stat</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">):</span>
-</span><span id="bin_values_xy-230"><a href="#bin_values_xy-230"><span class="linenos">230</span></a>    <span class="sd">&quot;&quot;&quot;Using the `x` and `y` positions of the particles, bin `values`,</span>
+</span><span id="bin_values_xy-230"><a href="#bin_values_xy-230"><span class="linenos">230</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Using the `x` and `y` positions of the particles, bin `values`,</span>
 </span><span id="bin_values_xy-231"><a href="#bin_values_xy-231"><span class="linenos">231</span></a><span class="sd">    and calculate a representative value in each bin.</span>
 </span><span id="bin_values_xy-232"><a href="#bin_values_xy-232"><span class="linenos">232</span></a>
 </span><span id="bin_values_xy-233"><a href="#bin_values_xy-233"><span class="linenos">233</span></a><span class="sd">    Parameters</span>
@@ -900,7 +900,7 @@ Statistic to calculate on the binned values.</li>
     </div>
     <a class="headerlink" href="#moving_average"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="moving_average-115"><a href="#moving_average-115"><span class="linenos">115</span></a><span class="k">def</span> <span class="nf">moving_average</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-</span><span id="moving_average-116"><a href="#moving_average-116"><span class="linenos">116</span></a>    <span class="sd">&quot;&quot;&quot;Moving average of `a`.</span>
+</span><span id="moving_average-116"><a href="#moving_average-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Moving average of `a`.</span>
 </span><span id="moving_average-117"><a href="#moving_average-117"><span class="linenos">117</span></a>
 </span><span id="moving_average-118"><a href="#moving_average-118"><span class="linenos">118</span></a><span class="sd">    Implementation taken from: &lt;https://stackoverflow.com/a/14314054&gt;.</span>
 </span><span id="moving_average-119"><a href="#moving_average-119"><span class="linenos">119</span></a><span class="sd">    For now only `axis=0` works.</span>
@@ -933,7 +933,7 @@ For now only <code>axis=0</code> works.</p>
     </div>
     <a class="headerlink" href="#numbify"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="numbify-460"><a href="#numbify-460"><span class="linenos">460</span></a><span class="k">def</span> <span class="nf">numbify</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">zerod_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="numbify-461"><a href="#numbify-461"><span class="linenos">461</span></a>    <span class="sd">&quot;&quot;&quot;Convert dict `d` to Numba-suitable format.</span>
+</span><span id="numbify-461"><a href="#numbify-461"><span class="linenos">461</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert dict `d` to Numba-suitable format.</span>
 </span><span id="numbify-462"><a href="#numbify-462"><span class="linenos">462</span></a>
 </span><span id="numbify-463"><a href="#numbify-463"><span class="linenos">463</span></a><span class="sd">    Dict values should be NumPy arrays or individual floats.</span>
 </span><span id="numbify-464"><a href="#numbify-464"><span class="linenos">464</span></a>
@@ -1001,7 +1001,7 @@ For now only <code>axis=0</code> works.</p>
     </div>
     <a class="headerlink" href="#unnumbify"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="unnumbify-503"><a href="#unnumbify-503"><span class="linenos">503</span></a><span class="k">def</span> <span class="nf">unnumbify</span><span class="p">(</span><span class="n">d_nb</span><span class="p">):</span>
-</span><span id="unnumbify-504"><a href="#unnumbify-504"><span class="linenos">504</span></a>    <span class="sd">&quot;&quot;&quot;Convert numba dict `d_nb` to a normal dict of numpy arrays, etc.&quot;&quot;&quot;</span>
+</span><span id="unnumbify-504"><a href="#unnumbify-504"><span class="linenos">504</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert numba dict `d_nb` to a normal dict of numpy arrays, etc.&quot;&quot;&quot;</span>
 </span><span id="unnumbify-505"><a href="#unnumbify-505"><span class="linenos">505</span></a>    <span class="kn">import</span> <span class="nn">numba</span>
 </span><span id="unnumbify-506"><a href="#unnumbify-506"><span class="linenos">506</span></a>
 </span><span id="unnumbify-507"><a href="#unnumbify-507"><span class="linenos">507</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d_nb</span><span class="p">,</span> <span class="n">numba</span><span class="o">.</span><span class="n">typed</span><span class="o">.</span><span class="n">Dict</span><span class="p">):</span>
@@ -1125,7 +1125,7 @@ For now only <code>axis=0</code> works.</p>
                 }
 
                 let heading;
-                switch (result.doc.type) {
+                switch (result.doc.kind) {
                     case "function":
                         if (doc.fullname.endsWith(".__init__")) {
                             heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
@@ -1152,7 +1152,7 @@ For now only <code>axis=0</code> works.</p>
                 }
                 html += `
                         <section class="search-result">
-                        <a href="${url}" class="attr ${doc.type}">${heading}</a>
+                        <a href="${url}" class="attr ${doc.kind}">${heading}</a>
                         <div class="docstring">${doc.doc}</div>
                         </section>
                     `;
