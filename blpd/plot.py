@@ -3,6 +3,7 @@ Create plots of LPD model results.
 
 The functions here all take `xr.Dataset`s as their first argument.
 """
+
 from itertools import cycle
 
 import matplotlib as mpl

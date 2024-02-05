@@ -17,6 +17,7 @@ See [the examples](https://github.com/zmoon/blpd/tree/master/examples) for more.
 
 `blpd` lives [on GitHub](https://github.com/zmoon/blpd).
 """
+
 # Define the namespace for the module `blpd`
 # Importing `Model` also adds `lpd` and `model`
 from . import bees  # noqa: F401 unused import
