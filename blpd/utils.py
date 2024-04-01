@@ -2,6 +2,7 @@
 Miscellaneous utility functions,
 mostly for internal use.
 """
+
 import inspect
 import sys
 from collections import namedtuple
