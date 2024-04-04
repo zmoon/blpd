@@ -5,6 +5,7 @@ Using [Numba](https://numba.pydata.org/), particles are integrated in parallel.
 Although it is possible to use these functions directly,
 the intention is for `blpd.model.Model` to be used.
 """
+
 import numpy as np
 from numba import njit
 from numba import prange

@@ -1,6 +1,7 @@
 """
 `Model` class for running the LPD model.
 """
+
 import importlib
 import math
 import warnings
@@ -13,7 +14,6 @@ from .utils import disable_numba
 from .utils import enable_numba
 from .utils import numbify
 from .utils import unnumbify
-
 
 __all__ = (
     "Model",
@@ -61,7 +61,7 @@ INPUT_PARAM_DEFAULTS = {
     "MW_gam2": 1.90,
     "MW_gam3": 1.25,
     "MW_alpha": 0.05,  # parameter that controls in-canopy sigma_w and sigma_u
-    "MW_A2": 0.6  # appears to be unused, but is part of their model
+    "MW_A2": 0.6,  # appears to be unused, but is part of their model
     # only alpha and A_1 are empirical constants (MW p. 89)
 }
 """
@@ -496,6 +496,7 @@ class Model:
         """Create and return an `xr.Dataset` of the LPD run."""
         # TODO: smoothing/skipping options to reduce storage needed?
         import json
+
         import xarray as xr
 
         ip_coord_tup = (

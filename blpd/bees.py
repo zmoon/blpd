@@ -5,11 +5,11 @@ Based on the Lévy flight random walk model as implemented in
 [Fuentes et al. (2016)](https://doi.org/10.1016/j.atmosenv.2016.07.002)
 but with some enhancements.
 """
+
 import math
 
 import numpy as np
 from scipy import stats
-
 
 __all__ = (
     "draw_step_length",

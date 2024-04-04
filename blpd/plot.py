@@ -3,6 +3,7 @@ Create plots of LPD model results.
 
 The functions here all take `xr.Dataset`s as their first argument.
 """
+
 from itertools import cycle
 
 import matplotlib as mpl
@@ -11,7 +12,7 @@ import numpy as np
 from matplotlib.collections import LineCollection as _LineCollection
 from mpl_toolkits.mplot3d import Axes3D as _Axes3D  # noqa: F401 unused import
 
-from . import utils  # TODO: move all calls to namespaced form since I am using a lot now
+from . import utils
 from .utils import _add_snippets
 
 # ^ could add `as _{}` to all of these
