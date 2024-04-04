@@ -11,7 +11,6 @@ import math
 import numpy as np
 from scipy import stats
 
-
 __all__ = (
     "draw_step_length",
     "flight",

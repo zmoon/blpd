@@ -15,7 +15,6 @@ from .utils import enable_numba
 from .utils import numbify
 from .utils import unnumbify
 
-
 __all__ = (
     "Model",
     "INPUT_PARAM_DEFAULTS",
@@ -497,6 +496,7 @@ class Model:
         """Create and return an `xr.Dataset` of the LPD run."""
         # TODO: smoothing/skipping options to reduce storage needed?
         import json
+
         import xarray as xr
 
         ip_coord_tup = (

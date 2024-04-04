@@ -275,8 +275,8 @@ def bin_ds(ds, sdim="xy", *, variables="all", bins="auto"):
         `'all'` to bin all variables, or pass a list of variable names.
     %(bins_params)s
     """
-    from scipy import stats
     import xarray as xr
+    from scipy import stats
 
     if not tuple(ds.dims) == ("ip",):
         raise NotImplementedError("Must have only particle dim for now.")
@@ -527,6 +527,7 @@ def disable_numba():
     * reloading config: https://github.com/numba/numba/blob/868b8e3e8d034dac0440b75ca31595e07f632d27/numba/core/config.py#L369
     """
     import os
+
     import numba
 
     os.environ.update({"NUMBA_DISABLE_JIT": str(1)})
@@ -539,6 +540,7 @@ def enable_numba():
     See references in `disable_numba`.
     """
     import os
+
     import numba
 
     # By default (when numba is loaded normally), this env var is not set, so remove it
