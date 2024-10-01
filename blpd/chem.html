@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 14.6.0"/>
+    <meta name="generator" content="pdoc 14.7.0"/>
     <title>blpd.chem API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -79,7 +79,7 @@ on LPD (Lagrangian particle dispersion) model output.</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">ds0</span> <span class="o">=</span> <span class="n">blpd</span><span class="o">.</span><span class="n">Model</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span><span class="o">.</span><span class="n">to_xr</span><span class="p">()</span>  <span class="c1"># LPD output</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n"><a href="#calc_relative_levels_fixed_oxidants">calc_relative_levels_fixed_oxidants</a></span><span class="p">(</span><span class="n">ds0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n"><a href="#calc_relative_levels_fixed_oxidants">blpd.chem.calc_relative_levels_fixed_oxidants</a></span><span class="p">(</span><span class="n">ds0</span><span class="p">)</span>
 </code></pre>
 </div>
 </div>

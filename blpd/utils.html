@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 14.6.0"/>
+    <meta name="generator" content="pdoc 14.7.0"/>
     <title>blpd.utils API documentation</title>
     <!-- MathJax 3, with $..$ for inline math enabled -->
     <script>
@@ -826,7 +826,7 @@ String representation of the set of dimensions.
 Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
 <li><strong>variables</strong> (str, list(str)):
 <code>'all'</code> to bin all variables, or pass a list of variable names.</li>
-<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="#auto_bins">auto_bins</a></code> is used to construct the bins.
+<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="#auto_bins">blpd.utils.auto_bins</a></code> is used to construct the bins.
 Alternatively, you can pass bin specifications in any of the forms described
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html">here</a>.</li>
 </ul>
@@ -889,7 +889,7 @@ and calculate a representative value in each bin.</p>
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="#auto_bins">auto_bins</a></code> is used to construct the bins.
+<li><strong>bins</strong>: If <code>bins='auto'</code>, <code><a href="#auto_bins">blpd.utils.auto_bins</a></code> is used to construct the bins.
 Alternatively, you can pass bin specifications in any of the forms described
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.histogramdd.html">here</a>.</li>
 <li><strong>stat</strong> (str):
