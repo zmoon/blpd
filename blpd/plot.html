@@ -95,16 +95,16 @@
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">The functions here all take `xr.Dataset`s as their first argument.</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">cycle</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">cycle</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">LineCollection</span> <span class="k">as</span> <span class="n">_LineCollection</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span> <span class="k">as</span> <span class="n">_Axes3D</span>  <span class="c1"># noqa: F401 unused import</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineCollection</span> <span class="k">as</span> <span class="n">_LineCollection</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span> <span class="k">as</span> <span class="n">_Axes3D</span>  <span class="c1"># noqa: F401 unused import</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">utils</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">_add_snippets</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_add_snippets</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="c1"># ^ could add `as _{}` to all of these</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="c1"># to indicate that these are not intended to be public parts of the module name space</span>
@@ -153,7 +153,7 @@
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="k">def</span> <span class="nf">final_pos_scatter</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">):</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="k">def</span><span class="w"> </span><span class="nf">final_pos_scatter</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">):</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Scatter plot of particle end positions.</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
 </span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    Parameters</span>
@@ -208,7 +208,7 @@
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="k">def</span> <span class="nf">trajectories</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">smooth_window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color_sources</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="k">def</span><span class="w"> </span><span class="nf">trajectories</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">smooth_window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color_sources</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot particle trajectories.</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">    Parameters</span>
@@ -308,7 +308,7 @@
 </span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>
 </span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="k">def</span> <span class="nf">conc_scatter</span><span class="p">(</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="k">def</span><span class="w"> </span><span class="nf">conc_scatter</span><span class="p">(</span>
 </span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>    <span class="n">spc</span><span class="o">=</span><span class="s2">&quot;apinene&quot;</span><span class="p">,</span>
 </span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>    <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span>
@@ -384,7 +384,7 @@
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="k">def</span> <span class="nf">conc_2d</span><span class="p">(</span>
+</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="k">def</span><span class="w"> </span><span class="nf">conc_2d</span><span class="p">(</span>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>    <span class="n">spc</span><span class="o">=</span><span class="s2">&quot;apinene&quot;</span><span class="p">,</span>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>    <span class="o">*</span><span class="p">,</span>
@@ -455,7 +455,7 @@
 </span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a>
 </span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a>
 </span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a><span class="k">def</span> <span class="nf">conc_xline</span><span class="p">(</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a><span class="k">def</span><span class="w"> </span><span class="nf">conc_xline</span><span class="p">(</span>
 </span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a>    <span class="n">spc</span><span class="o">=</span><span class="s2">&quot;apinene&quot;</span><span class="p">,</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a>    <span class="n">y</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
@@ -520,7 +520,7 @@
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a>
 </span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>
 </span><span id="L-431"><a href="#L-431"><span class="linenos">431</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="k">def</span> <span class="nf">ws_hist</span><span class="p">(</span>
+</span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a><span class="k">def</span><span class="w"> </span><span class="nf">ws_hist</span><span class="p">(</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -562,7 +562,7 @@
 </span><span id="L-471"><a href="#L-471"><span class="linenos">471</span></a>
 </span><span id="L-472"><a href="#L-472"><span class="linenos">472</span></a>
 </span><span id="L-473"><a href="#L-473"><span class="linenos">473</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a><span class="k">def</span> <span class="nf">final_pos_hist</span><span class="p">(</span>
+</span><span id="L-474"><a href="#L-474"><span class="linenos">474</span></a><span class="k">def</span><span class="w"> </span><span class="nf">final_pos_hist</span><span class="p">(</span>
 </span><span id="L-475"><a href="#L-475"><span class="linenos">475</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="L-476"><a href="#L-476"><span class="linenos">476</span></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="L-477"><a href="#L-477"><span class="linenos">477</span></a>    <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -608,7 +608,7 @@
 </span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a>
 </span><span id="L-518"><a href="#L-518"><span class="linenos">518</span></a>
 </span><span id="L-519"><a href="#L-519"><span class="linenos">519</span></a><span class="nd">@_add_snippets</span>
-</span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="k">def</span> <span class="nf">final_pos_hist2d</span><span class="p">(</span>
+</span><span id="L-520"><a href="#L-520"><span class="linenos">520</span></a><span class="k">def</span><span class="w"> </span><span class="nf">final_pos_hist2d</span><span class="p">(</span>
 </span><span id="L-521"><a href="#L-521"><span class="linenos">521</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="L-522"><a href="#L-522"><span class="linenos">522</span></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a>    <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span>
@@ -678,7 +678,7 @@
     </div>
     <a class="headerlink" href="#conc_2d"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="conc_2d-296"><a href="#conc_2d-296"><span class="linenos">296</span></a><span class="nd">@_add_snippets</span>
-</span><span id="conc_2d-297"><a href="#conc_2d-297"><span class="linenos">297</span></a><span class="k">def</span> <span class="nf">conc_2d</span><span class="p">(</span>
+</span><span id="conc_2d-297"><a href="#conc_2d-297"><span class="linenos">297</span></a><span class="k">def</span><span class="w"> </span><span class="nf">conc_2d</span><span class="p">(</span>
 </span><span id="conc_2d-298"><a href="#conc_2d-298"><span class="linenos">298</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="conc_2d-299"><a href="#conc_2d-299"><span class="linenos">299</span></a>    <span class="n">spc</span><span class="o">=</span><span class="s2">&quot;apinene&quot;</span><span class="p">,</span>
 </span><span id="conc_2d-300"><a href="#conc_2d-300"><span class="linenos">300</span></a>    <span class="o">*</span><span class="p">,</span>
@@ -784,7 +784,7 @@ Whether to use a logarithmic colormap normalization.</li>
     </div>
     <a class="headerlink" href="#conc_scatter"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="conc_scatter-220"><a href="#conc_scatter-220"><span class="linenos">220</span></a><span class="nd">@_add_snippets</span>
-</span><span id="conc_scatter-221"><a href="#conc_scatter-221"><span class="linenos">221</span></a><span class="k">def</span> <span class="nf">conc_scatter</span><span class="p">(</span>
+</span><span id="conc_scatter-221"><a href="#conc_scatter-221"><span class="linenos">221</span></a><span class="k">def</span><span class="w"> </span><span class="nf">conc_scatter</span><span class="p">(</span>
 </span><span id="conc_scatter-222"><a href="#conc_scatter-222"><span class="linenos">222</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="conc_scatter-223"><a href="#conc_scatter-223"><span class="linenos">223</span></a>    <span class="n">spc</span><span class="o">=</span><span class="s2">&quot;apinene&quot;</span><span class="p">,</span>
 </span><span id="conc_scatter-224"><a href="#conc_scatter-224"><span class="linenos">224</span></a>    <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span>
@@ -892,7 +892,7 @@ Whether to use a logarithmic colormap normalization.</li>
     </div>
     <a class="headerlink" href="#conc_xline"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="conc_xline-367"><a href="#conc_xline-367"><span class="linenos">367</span></a><span class="nd">@_add_snippets</span>
-</span><span id="conc_xline-368"><a href="#conc_xline-368"><span class="linenos">368</span></a><span class="k">def</span> <span class="nf">conc_xline</span><span class="p">(</span>
+</span><span id="conc_xline-368"><a href="#conc_xline-368"><span class="linenos">368</span></a><span class="k">def</span><span class="w"> </span><span class="nf">conc_xline</span><span class="p">(</span>
 </span><span id="conc_xline-369"><a href="#conc_xline-369"><span class="linenos">369</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="conc_xline-370"><a href="#conc_xline-370"><span class="linenos">370</span></a>    <span class="n">spc</span><span class="o">=</span><span class="s2">&quot;apinene&quot;</span><span class="p">,</span>
 </span><span id="conc_xline-371"><a href="#conc_xline-371"><span class="linenos">371</span></a>    <span class="n">y</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
@@ -986,7 +986,7 @@ We will include Lagrangian particles within $[-\delta y / 2, \delta y / 2]$.</li
     </div>
     <a class="headerlink" href="#final_pos_hist"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="final_pos_hist-474"><a href="#final_pos_hist-474"><span class="linenos">474</span></a><span class="nd">@_add_snippets</span>
-</span><span id="final_pos_hist-475"><a href="#final_pos_hist-475"><span class="linenos">475</span></a><span class="k">def</span> <span class="nf">final_pos_hist</span><span class="p">(</span>
+</span><span id="final_pos_hist-475"><a href="#final_pos_hist-475"><span class="linenos">475</span></a><span class="k">def</span><span class="w"> </span><span class="nf">final_pos_hist</span><span class="p">(</span>
 </span><span id="final_pos_hist-476"><a href="#final_pos_hist-476"><span class="linenos">476</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="final_pos_hist-477"><a href="#final_pos_hist-477"><span class="linenos">477</span></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="final_pos_hist-478"><a href="#final_pos_hist-478"><span class="linenos">478</span></a>    <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1058,7 +1058,7 @@ If provided, used as position component limits for all histograms.</li>
     </div>
     <a class="headerlink" href="#final_pos_hist2d"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="final_pos_hist2d-520"><a href="#final_pos_hist2d-520"><span class="linenos">520</span></a><span class="nd">@_add_snippets</span>
-</span><span id="final_pos_hist2d-521"><a href="#final_pos_hist2d-521"><span class="linenos">521</span></a><span class="k">def</span> <span class="nf">final_pos_hist2d</span><span class="p">(</span>
+</span><span id="final_pos_hist2d-521"><a href="#final_pos_hist2d-521"><span class="linenos">521</span></a><span class="k">def</span><span class="w"> </span><span class="nf">final_pos_hist2d</span><span class="p">(</span>
 </span><span id="final_pos_hist2d-522"><a href="#final_pos_hist2d-522"><span class="linenos">522</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="final_pos_hist2d-523"><a href="#final_pos_hist2d-523"><span class="linenos">523</span></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="final_pos_hist2d-524"><a href="#final_pos_hist2d-524"><span class="linenos">524</span></a>    <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span>
@@ -1147,7 +1147,7 @@ Whether to use a logarithmic colormap normalization.</li>
     </div>
     <a class="headerlink" href="#final_pos_scatter"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="final_pos_scatter-65"><a href="#final_pos_scatter-65"><span class="linenos"> 65</span></a><span class="nd">@_add_snippets</span>
-</span><span id="final_pos_scatter-66"><a href="#final_pos_scatter-66"><span class="linenos"> 66</span></a><span class="k">def</span> <span class="nf">final_pos_scatter</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">):</span>
+</span><span id="final_pos_scatter-66"><a href="#final_pos_scatter-66"><span class="linenos"> 66</span></a><span class="k">def</span><span class="w"> </span><span class="nf">final_pos_scatter</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">sdim</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">):</span>
 </span><span id="final_pos_scatter-67"><a href="#final_pos_scatter-67"><span class="linenos"> 67</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Scatter plot of particle end positions.</span>
 </span><span id="final_pos_scatter-68"><a href="#final_pos_scatter-68"><span class="linenos"> 68</span></a>
 </span><span id="final_pos_scatter-69"><a href="#final_pos_scatter-69"><span class="linenos"> 69</span></a><span class="sd">    Parameters</span>
@@ -1225,7 +1225,7 @@ Valid options: <code>["xy", "xz", "yz", "xyz", "3d", "3-d"]</code>.</li>
     </div>
     <a class="headerlink" href="#trajectories"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="trajectories-120"><a href="#trajectories-120"><span class="linenos">120</span></a><span class="nd">@_add_snippets</span>
-</span><span id="trajectories-121"><a href="#trajectories-121"><span class="linenos">121</span></a><span class="k">def</span> <span class="nf">trajectories</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">smooth_window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color_sources</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="trajectories-121"><a href="#trajectories-121"><span class="linenos">121</span></a><span class="k">def</span><span class="w"> </span><span class="nf">trajectories</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">smooth_window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color_sources</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 </span><span id="trajectories-122"><a href="#trajectories-122"><span class="linenos">122</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot particle trajectories.</span>
 </span><span id="trajectories-123"><a href="#trajectories-123"><span class="linenos">123</span></a>
 </span><span id="trajectories-124"><a href="#trajectories-124"><span class="linenos">124</span></a><span class="sd">    Parameters</span>
@@ -1356,7 +1356,7 @@ to help in differentiating them.</li>
     </div>
     <a class="headerlink" href="#ws_hist"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ws_hist-432"><a href="#ws_hist-432"><span class="linenos">432</span></a><span class="nd">@_add_snippets</span>
-</span><span id="ws_hist-433"><a href="#ws_hist-433"><span class="linenos">433</span></a><span class="k">def</span> <span class="nf">ws_hist</span><span class="p">(</span>
+</span><span id="ws_hist-433"><a href="#ws_hist-433"><span class="linenos">433</span></a><span class="k">def</span><span class="w"> </span><span class="nf">ws_hist</span><span class="p">(</span>
 </span><span id="ws_hist-434"><a href="#ws_hist-434"><span class="linenos">434</span></a>    <span class="n">ds</span><span class="p">,</span>
 </span><span id="ws_hist-435"><a href="#ws_hist-435"><span class="linenos">435</span></a>    <span class="o">*</span><span class="p">,</span>
 </span><span id="ws_hist-436"><a href="#ws_hist-436"><span class="linenos">436</span></a>    <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
