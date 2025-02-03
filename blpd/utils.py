@@ -98,7 +98,7 @@ def sec_to_str(total_seconds):
 
     h = "\u2095"  # unicode subscript letters
     m = "\u2098"
-    s = "\u209B"
+    s = "\u209b"
     sep = "\u2009"  # thin space
 
     if total_seconds <= 60:
