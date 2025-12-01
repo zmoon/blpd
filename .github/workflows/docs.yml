@@ -35,7 +35,7 @@ jobs:
           pdoc -d numpy -t ./doc blpd -o ./doc/_build
 
       - name: Push built docs to `gh-pages` branch
-        uses: JamesIves/github-pages-deploy-action@v4.7.4
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: ./doc/_build
